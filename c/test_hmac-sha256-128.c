@@ -1,0 +1,106 @@
+#include <stdbool.h>
+#include <stdio.h>
+#include "hmac-sha256.h"
+
+typedef struct
+{
+    uint8_t *key;
+    uint8_t key_size;
+    uint8_t *data;
+    uint8_t len;
+    uint8_t *result;
+} test_t;
+
+uint8_t t1_key[32] = {0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
+                      0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
+                      0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
+                      0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b};
+uint8_t t1_data[8] = "Hi There";
+uint8_t t1_result[16] = {0x19, 0x8a, 0x60, 0x7e,
+                         0xb4, 0x4b, 0xfb, 0xc6,
+                         0x99, 0x03, 0xa0, 0xf1,
+                         0xcf, 0x2b, 0xbd, 0xc5};
+
+uint8_t t2_key[32] = {0x4a, 0x65, 0x66, 0X65, 0x4a, 0x65, 0x66, 0X65,
+                      0x4a, 0x65, 0x66, 0X65, 0x4a, 0x65, 0x66, 0X65,
+                      0x4a, 0x65, 0x66, 0X65, 0x4a, 0x65, 0x66, 0X65,
+                      0x4a, 0x65, 0x66, 0X65, 0x4a, 0x65, 0x66, 0X65};
+uint8_t t2_data[28] = "what do ya want for nothing?";
+uint8_t t2_result[16] = {0x16, 0x7f, 0x92, 0x85,
+                         0x88, 0xc5, 0xcc, 0x2e,
+                         0xef, 0x8e, 0x30, 0x93,
+                         0xca, 0xa0, 0xe8, 0X7c};
+
+uint8_t t3_key[32] = {0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+                      0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+                      0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
+                      0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa};
+uint8_t t3_data[50] = {0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
+                       0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
+                       0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
+                       0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd,
+                       0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd, 0xdd};
+uint8_t t3_result[16] = {0xcd, 0xcb, 0x12, 0x20,
+                         0xd1, 0xec, 0xcc, 0xea,
+                         0x91, 0xe5, 0x3a, 0xba,
+                         0x30, 0x92, 0xf9, 0x62};
+
+test_t tests[] = {
+    {t1_key, sizeof(t1_key), t1_data, sizeof(t1_data), t1_result},
+    {t2_key, sizeof(t2_key), t2_data, sizeof(t2_data), t2_result},
+    {t3_key, sizeof(t3_key), t3_data, sizeof(t3_data), t3_result}
+};
+
+uint8_t mac[16];
+
+int main(void)
+{
+    bool passed;
+    uint8_t i, j;
+
+    for(j = 0; j < sizeof(tests) / sizeof(tests[0]); j++)
+    {
+        passed = true;
+        hmac_sha256_128(tests[j].key, tests[j].key_size, tests[j].data, tests[j].len, mac);
+
+        for(i = 0; i < sizeof(mac); i++)
+        {
+            if(mac[i] != tests[j].result[i])
+            {
+                printf("Error with the following key and input:\n");
+                for(i = 0; i < tests[j].key_size; i++)
+                {
+                    printf("%02X ", tests[j].key[i]);
+                }
+                printf("\n");
+                for(i = 0; i < tests[j].len; i++)
+                {
+                    printf("%02X ", tests[j].data[i]);
+                }
+                printf("\nOutput:\n");
+                for(i = 0; i < sizeof(mac); i++)
+                {
+                    printf("%02X ", mac[i]);
+                }
+                printf("\nExpected:\n");
+                for(i = 0; i < 16 ;i++)
+                {
+                    printf("%02X ", tests[j].result[i]);
+                }
+                passed = false;
+                break;
+            }
+        }
+
+        if(passed)
+        {
+            printf("Test #%d passed\n", j + 1);
+        }
+        else
+        {
+            printf("\n");
+        }
+    }
+
+    return 0;
+}

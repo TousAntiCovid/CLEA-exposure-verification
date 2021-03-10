@@ -1,0 +1,24 @@
+diff --git a/Makefile b/Makefile
+index d873f2f..72ff4cb 100644
+--- a/Makefile
++++ b/Makefile
+@@ -6,7 +6,7 @@ include common.mk
+ 
+ 
+ # Static libraries to build
+-LIBS = $(LIBARITH) $(LIBEC) $(LIBSIGN)
++LIBS = $(LIBARITH) $(LIBEC) $(LIBSIGN) $(BUILD_DIR)/libexternal_deps.a
+ 
+ # Compile dynamic libraries if the user asked to
+ ifeq ($(WITH_DYNAMIC_LIBS),1)
+@@ -43,6 +43,10 @@ EXT_DEPS_SRC = $(wildcard src/external_deps/*.c)
+ EXT_DEPS_OBJECTS = $(patsubst %.c, %.o, $(EXT_DEPS_SRC))
+ EXT_DEPS_DEPS = $(patsubst %.c, %.d, $(EXT_DEPS_SRC))
+ 
++$(BUILD_DIR)/libexternal_deps.a: $(EXT_DEPS_OBJECTS)
++	$(AR) $(AR_FLAGS) $@ $^
++	$(RANLIB) $(RANLIB_FLAGS) $@
++
+ src/external_deps/%.d: src/external_deps/%.c
+ 	$(CC) $(LIB_CFLAGS) -MM $< -MF $@
+ 

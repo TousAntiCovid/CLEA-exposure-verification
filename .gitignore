@@ -1,0 +1,11 @@
+*.a
+*.o
+*.elf
+*.swp
+.classpath
+.project
+.project/
+.settings/
+target/
+.vscode
+c/build
