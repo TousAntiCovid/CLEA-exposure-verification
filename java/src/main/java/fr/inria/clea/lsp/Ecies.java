@@ -1,7 +1,7 @@
 /* 
 * Copyright (C) Inria, 2021
 */
-package clea.lsp;
+package fr.inria.clea.lsp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

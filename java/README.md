@@ -42,12 +42,12 @@ This Proof of Concept can be used as a basis for:
 * clone the project and install it (`mvn install`)
 * `java  -cp  target/clea-lsp-0.0.1-SNAPSHOT-jar-with-dependencies.jar clea.lsp.Test`
 
-Possibility to use encoding and decoding of a LSP using the main executable (`main/Test.java`)
+Possibility to use encoding and decoding of a LSP using the main executable (`LspEncoderDecoder.java`)
 
-* `Usage: Test [read  qrcode64 privKey] [build staff countryCode CRIexp venueType venueCategory1 venueCategory2 periodDuration pubkey]`
+* `Usage: LspEncoderDecoder [read  qrcode64 privKey] [build staff countryCode CRIexp venueType venueCategory1 venueCategory2 periodDuration pubkey]`
 * the result is displayed on the console
 * used for C(encoding)/Java(decoding) operability tests in the project `../test`.
-* if the executable is launched without parameters, the functional tests of Test are launched (test1-8)
+* to run tests: `mvn test`
 
 ## TODO
 
