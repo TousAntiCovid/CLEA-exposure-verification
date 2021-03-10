@@ -9,9 +9,8 @@ and Java LSP decoding
 
 # Java executable can encode or decode
 # a Clé location Specific Part (LSP)
-CMD_JAVA = ['java', '-cp',
-            '../java/target/clea-lsp-0.0.1-SNAPSHOT-jar-with-dependencies.jar',
-            'clea.lsp.Test']
+CMD_JAVA = ['java', '-jar',
+            '../java/target/clea-lsp-*-jar-with-dependencies.jar']
 # C executable can encode t a Cléa LSP
 CMD_C = ['../c/build/test_clea']
 

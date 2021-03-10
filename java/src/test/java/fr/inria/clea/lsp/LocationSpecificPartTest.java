@@ -8,12 +8,13 @@ import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.Base64;
 
+import org.bouncycastle.util.encoders.Hex;
+import org.junit.jupiter.api.Test;
+
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-
-import org.bouncycastle.util.encoders.Hex;
 
 import fr.devnied.bitlib.BytesUtils;
 
@@ -32,10 +33,11 @@ class LocationSpecificPartTest {
      * 
      * @param debug Display or not intermediate results for debug purpose
      */
-    public void test1(boolean debug) throws Exception {
+    @Test
+    public void test1() throws Exception {
 
         /* Testing ECIES */
-        Ecies ecies = new Ecies(debug);
+        Ecies ecies = new Ecies(true);
         String[] keyspair = ecies.genKeysPair(true);
         System.out.println("Private Key: " + keyspair[0]);
         System.out.println("Public Key : " + keyspair[1]);
@@ -68,14 +70,15 @@ class LocationSpecificPartTest {
      * 
      * @param debug Display or not intermediate results for debug purpose
      */
-    public void test2(boolean debug) throws Exception {
+    @Test
+    public void test2() throws Exception {
 
         /* Generate 2 keys pairs */
-        Ecies ecies = new Ecies(debug);
+        Ecies ecies = new Ecies(true);
         String[] keyspair = ecies.genKeysPair(true);
         String[] keyspair1 = ecies.genKeysPair(true);
 
-        Encode lsp = new Encode(SK_L, keyspair[1], keyspair1[1], debug);
+        Encode lsp = new Encode(SK_L, keyspair[1], keyspair1[1], true);
 
         lsp.setParam(0, 592, 10, 15, 0, 2, 3, "33800130000", "01234567");
         lsp.startNewPeriod();
@@ -87,16 +90,17 @@ class LocationSpecificPartTest {
      * 
      * @param debug Display or not intermediate results for debug purpose
      */
-    public void test3(boolean debug) throws Exception {
+    @Test
+    public void test3() throws Exception {
 
         /* Generate 2 keys pairs */
-        Ecies ecies = new Ecies(debug);
+        Ecies ecies = new Ecies(true);
         String[] keyspair = ecies.genKeysPair(true);
         String[] keyspair1 = ecies.genKeysPair(true);
 
         /* Encoder and Decoder */
-        Decode lspOut = new Decode(keyspair[0], keyspair1[0], debug);
-        Encode lspIn = new Encode(SK_L, keyspair[1], keyspair1[1], debug);
+        Decode lspOut = new Decode(keyspair[0], keyspair1[0], true);
+        Encode lspIn = new Encode(SK_L, keyspair[1], keyspair1[1], true);
 
         /* Encode a LSP with location */
         System.out.println("---- Encode LSP (with loc)");
@@ -126,7 +130,8 @@ class LocationSpecificPartTest {
      * 
      * @param debug Display or not intermediate results for debug purpose
      */
-    public void test4(boolean debug) throws Exception {
+    @Test
+    public void test4() throws Exception {
 
         /* EC private key from C package */
         final String privKey = "7422c9883c3f6c5ac70c0a08a24b5d524f36edefa04f599e316fa23ef74a4a0f";
@@ -140,7 +145,7 @@ class LocationSpecificPartTest {
         byte[] plainText = Hex.decode(plainText_S);
 
         /* Java decrypt the message using the EC private key privKey */
-        Ecies ecies = new Ecies(debug);
+        Ecies ecies = new Ecies(true);
         byte[] msg = ecies.decrypt(cipherText, privKey, true);
         System.out.println("MSG " + BytesUtils.bytesToString(msg));
 
@@ -158,11 +163,12 @@ class LocationSpecificPartTest {
      * 
      * @param debug Display or not intermediate results for debug purpose
      */
-    public void test5(boolean debug) throws Exception {
+    @Test
+    public void test5() throws Exception {
 
         int size = 200;
         /* Generate and display 2 keys pair */
-        Ecies ecies = new Ecies(debug);
+        Ecies ecies = new Ecies(true);
         String[] keyspair = ecies.genKeysPair(true);
         System.out.println("Private Key : " + keyspair[0]);
         System.out.println("Public Key  : " + keyspair[1]);
@@ -171,7 +177,7 @@ class LocationSpecificPartTest {
         System.out.println("Public Key1 : " + keyspair[1]);
 
         /* Encode the LSP */
-        Encode lsp = new Encode(SK_L, keyspair[1], keyspair1[1], debug);
+        Encode lsp = new Encode(SK_L, keyspair[1], keyspair1[1], true);
         lsp.setParam(1, 33, 2, 4, 0, 0, 3, "0612150292", "01234567");
         lsp.startNewPeriod();
 
@@ -195,7 +201,8 @@ class LocationSpecificPartTest {
      * 
      * @param debug Display or not intermediate results for debug purpose
      */
-    public void test6(boolean debug) throws Exception {
+    @Test
+    public void test6() throws Exception {
 
         String lsp64C = "APJexM7Ntkr9l2JO6mpD3HWO9OkU9nDygdP16KhNAiR9JUr05mT9+5kvJbZph/GdRbIqpQCwgFlYkWEr633BiYhJ+x/pc581PYG4aF2ZzjDJfrY5PfZodBKEiWH+Qegtp3x2bw4sfbCM8OPIvPtU7ooyyzj9h7RdKp4GfgeCz9YdikJ8uJYusQaFILrICqswxQzQPhLVHsnkMjAVpayCAxUOVgZbqj5m8lNcMhCxog==";
         String lsp64J = "AJMxSV4mHDX9iqjedPJRtpd7XTx53/ZCrZ4l53yFT7CSbiksSWm6vXApD+XeHT5nLEPbVRPXQoY8PJaTakCQNXYa2EUb8UW62n7sMua+UmZwDnf/9OPOVwWyGacP5L94sv0fCk7XnjBbDLhtORCGrdiwkOm3UniGc8gyP41zneHQSmbfzq6kEzFCX2kfKQIXIsFVyCFp7M4KdpVb2oWg2Q/FZr63cBdObwI9mrImCw==";
@@ -209,13 +216,14 @@ class LocationSpecificPartTest {
      * 
      * @param debug Display or not intermediate results for debug purpose
      */
-    public void test7(boolean debug) throws Exception {
+    @Test
+    public void test7() throws Exception {
 
         final String lsp_base64 = "AJi9dKxk4aXcRhF9lIIiGchvIbwtd2BE72nelq4/+uF0T0hE/GA0hFpEpuhVi+Xla8irZbGRmcDIfMqs0e8j/eChcYTeHo+bjWyN2GsHo+F5F46o0cM0IWuw/1MgctXYFCUw53zPL2Cs1ERN3HTpxnL9us2y//P+r8qV39YnmjFUj61Rlrosk2r81NO6BQImmg5sSV31rOTWXNrUwNQSTmXki0E+hfLgi9aMeWMnXQ==";
         final String SK_SA = "34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8";
         final String SK_MCTA = "3108f08b1485adb6f72cfba1b55c7484c906a2a3a0a027c78dcd991ca64c97bd";
 
-        Decode lspOut = new Decode(SK_SA, SK_MCTA, debug);
+        Decode lspOut = new Decode(SK_SA, SK_MCTA, true);
 
         lspOut.getLSP(lsp_base64);
         lspOut.displayData("Lsp decoded");
@@ -226,7 +234,8 @@ class LocationSpecificPartTest {
      * 
      * @param debug Display or not intermediate results for debug purpose
      */
-    public void test8(boolean debug) throws Exception {
+    @Test
+    public void test8() throws Exception {
 
         /* EC private key from C package */
         final String privKey = "34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8";
@@ -238,7 +247,7 @@ class LocationSpecificPartTest {
         System.out.println("CIFFER LSP " + BytesUtils.bytesToString(cipherText));
 
         /* Java decrypt the message using the EC private key privKey */
-        Ecies ecies = new Ecies(debug);
+        Ecies ecies = new Ecies(true);
         byte[] msg = ecies.decrypt(cipherText, privKey, true);
         System.out.println("PLAIN LSP: " + BytesUtils.bytesToString(msg));
     }
