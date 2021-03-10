@@ -1,0 +1,23 @@
+image: openjdk:11
+
+stages:
+  - build
+  - deploy
+
+build_template:
+  stage: build
+  script:
+    - cd java
+    - mvn package
+  artifacts:
+    paths:
+      - java/target/*.jar
+
+deploy_template:
+  stage: deploy
+  script:
+    - cd java
+    - mvn $MAVEN_CLI_OPTS -DskipTests=true  -DnexusReleasesUrl=$CI_SERVER_URL/api/v4/projects/$CI_PROJECT_ID/packages/maven -DnexusSnapshotsUrl=$CI_SERVER_URL/api/v4/projects/$CI_PROJECT_ID/packages/maven -s ../.gitlab-ci/ci_settings.xml deploy
+  only:
+    - master
+    - tags
