@@ -17,6 +17,7 @@ import java.util.Base64;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.google.zxing.BarcodeFormat;
@@ -84,6 +85,7 @@ class LocationSpecificPartTest {
         assertThat(decodedLocationContact).isEqualTo(locationContact);
     }
     
+    @Disabled(value="We should test encodoing / decoding together. 2 encryptions with the same data does not give the same result")
     @Test
     public void testLocationSpecificPartEncoding() throws CleaEncryptionException {
         int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
