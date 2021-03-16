@@ -3,12 +3,21 @@
 */
 package fr.inria.clea.lsp;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.Arrays;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
+import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.util.encoders.Hex;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.google.zxing.BarcodeFormat;
@@ -17,6 +26,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
 import fr.devnied.bitlib.BytesUtils;
+import fr.inria.clea.lsp.utils.TimeUtils;
 
 /**
  * Some locationSpecificPart (LSP) CLEA tests
@@ -25,116 +35,151 @@ import fr.devnied.bitlib.BytesUtils;
  */
 class LocationSpecificPartTest {
 
-    /* Exemple of a SK_L used for the tests */
-    final String SK_L = "23c9b8f36ac1c0cddaf869c3733b771c3dc409416a9695df40397cea53e7f39e21f76925fc0c74ca6ee7c7eafad92473fd85758bab8f45fe01aac504";
+    /* Example of a permanent Location Secret Key used for the tests */
+    private final String permanentLocationSecretKey = "23c9b8f36ac1c0cddaf869c3733b771c3dc409416a9695df40397cea53e7f39e21f76925fc0c74ca6ee7c7eafad92473fd85758bab8f45fe01aac504";
+    private CleaEciesEncoder cleaEciesEncoder;
+    private String[] serverAuthorityKeyPair;
+    private String[] manualContactTracingAuthorityKeyPair;
 
-    /**
-     * test1 - encryption/decryption of 'agnostic' data to test Ecies
-     * 
-     * @param debug Display or not intermediate results for debug purpose
-     */
+    @BeforeEach
+    public void setUp() throws Exception {
+        cleaEciesEncoder = new CleaEciesEncoder();
+        serverAuthorityKeyPair = cleaEciesEncoder.genKeysPair(true);
+        System.out.println("Server Authority Private Key: " + serverAuthorityKeyPair[0]);
+        System.out.println("Server Authority Public Key : " + serverAuthorityKeyPair[1]);
+        manualContactTracingAuthorityKeyPair = cleaEciesEncoder.genKeysPair(true);
+    }
+    
     @Test
-    public void test1() throws Exception {
-
-        /* Testing ECIES */
-        Ecies ecies = new Ecies(true);
-        String[] keyspair = ecies.genKeysPair(true);
-        System.out.println("Private Key: " + keyspair[0]);
-        System.out.println("Public Key : " + keyspair[1]);
-
+    public void testCleaEciesEncodingAndDecodingOfData() throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, InvalidAlgorithmParameterException, IllegalStateException, InvalidCipherTextException, IOException {
         /* Message to encrypt and decrypt */
-        String plaintext = "9F7213093CEDBBE66356550296A37DD18077E8646185EA2EA0EAFE88630F8C861A2E05F35BB2D863A28841CF";
-        String headertext = "7D1BBFB6CAD6C2E862A7AEAD7DA27FB814";
-        byte[] message = Hex.decode(plaintext);
-        byte[] header = Hex.decode(headertext);
-        byte[] out1 = ecies.encrypt(header, message, keyspair[1]);
+        String plainText = "9F7213093CEDBBE66356550296A37DD18077E8646185EA2EA0EAFE88630F8C861A2E05F35BB2D863A28841CF";
+        String headerText = "7D1BBFB6CAD6C2E862A7AEAD7DA27FB814";
+        byte[] message = Hex.decode(plainText);
+        byte[] header = Hex.decode(headerText);
+        byte[] encrypted = cleaEciesEncoder.encrypt(header, message, serverAuthorityKeyPair[1]);
         /* Display */
         System.out.println("***" + BytesUtils.bytesToString(header));
-        System.out.println("PLAINTEXT : " + plaintext);
-        System.out.println("CODEDTEXT : " + BytesUtils.bytesToString(out1));
+        System.out.println("PLAINTEXT : " + plainText);
+        System.out.println("CODEDTEXT : " + BytesUtils.bytesToString(encrypted));
 
         /* Decrypt and test the result */
-        byte[] out2 = ecies.decrypt(out1, keyspair[0], true);
+        byte[] decrypted = cleaEciesEncoder.decrypt(encrypted, serverAuthorityKeyPair[0], true);
 
-        if (!Arrays.equals(out2, ecies.concat(header, message))) {
-            System.out.println("TEST ENCRYPT/DECRYPT FAILED: \nOriginal:\n"
-                    + BytesUtils.bytesToString(ecies.concat(header, message)));
-            System.out.println("\nResult:\n" + BytesUtils.bytesToString(out2));
-        } else {
-            System.out.println("TEST ENCRYPT/DECRYPT OK");
-        }
+        assertThat(decrypted).containsExactly(cleaEciesEncoder.concat(header, message));
     }
 
-    /**
-     * test2 - Example of encoding a locationSpecificPart (LSP) with parameters
-     * 
-     * @param debug Display or not intermediate results for debug purpose
-     */
     @Test
-    public void test2() throws Exception {
-
-        /* Generate 2 keys pairs */
-        Ecies ecies = new Ecies(true);
-        String[] keyspair = ecies.genKeysPair(true);
-        String[] keyspair1 = ecies.genKeysPair(true);
-
-        Encode lsp = new Encode(SK_L, keyspair[1], keyspair1[1], true);
-
-        lsp.setParam(0, 592, 10, 15, 0, 2, 3, "33800130000", "01234567");
-        lsp.startNewPeriod();
-        System.out.println("LSP " + BytesUtils.bytesToString(lsp.getLSP()));
+    public void testEncodinsAndDecodingOfALocationMessage() throws CleaEncryptionException {
+        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        LocationContact locationContact = new LocationContact("0612150292", "01234567", periodStartTime);
+        Location location = Location.builder()
+                .contact(locationContact)
+                .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
+                .permanentLocationSecretKey(permanentLocationSecretKey)
+                .build();
+        
+        byte[] encryptedLocationContactMessage = location.getLocationContactMessageEncrypted();
+        LocationContact decodedLocationContact = new LocationContactMessageEncoder(manualContactTracingAuthorityKeyPair[0]).decode(encryptedLocationContactMessage);
+        
+        assertThat(decodedLocationContact).isEqualTo(locationContact);
+    }
+    
+    @Disabled(value="We should test encodoing / decoding together. 2 encryptions with the same data does not give the same result")
+    @Test
+    public void testLocationSpecificPartEncoding() throws CleaEncryptionException {
+        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        LocationContact locationContact = new LocationContact("33800130000", "01234567", periodStartTime);
+        LocationSpecificPart lsp = LocationSpecificPart.builder()
+            .staff(false)
+            .countryCode(592)
+            .qrCodeRenewalIntervalExponentCompact(10)
+            .venueType(15)
+            .venueCategory1(0)
+            .venueCategory2(2)
+            .periodDuration(3)
+            .qrCodeValidityStartTime(periodStartTime * 3600)
+            .build();
+        Location location = Location.builder()
+                .contact(locationContact)
+                .locationSpecificPart(lsp)
+                .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
+                .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
+                .permanentLocationSecretKey(permanentLocationSecretKey)
+                .build();
+        location.setPeriodStartTime(periodStartTime);
+        
+        byte[] encryptedLocationSpecificPart = location.getLocationSpecificPartEncrypted();
+        
+        assertThat(encryptedLocationSpecificPart).isNotNull();
+        assertThat(encryptedLocationSpecificPart).isEqualTo(0); // TODO replace by expected value
     }
 
-    /**
-     * test3 - Example of Encoding/Decoding a locationSpecificPart (LSP)
-     * 
-     * @param debug Display or not intermediate results for debug purpose
-     */
     @Test
-    public void test3() throws Exception {
-
-        /* Generate 2 keys pairs */
-        Ecies ecies = new Ecies(true);
-        String[] keyspair = ecies.genKeysPair(true);
-        String[] keyspair1 = ecies.genKeysPair(true);
-
-        /* Encoder and Decoder */
-        Decode lspOut = new Decode(keyspair[0], keyspair1[0], true);
-        Encode lspIn = new Encode(SK_L, keyspair[1], keyspair1[1], true);
-
+    public void testEncodingAndDecodingOfALocationSpecificPart() throws CleaEncryptionException {
+        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        LocationContact locationContact = new LocationContact("0612150292", "01234567", periodStartTime);
         /* Encode a LSP with location */
-        System.out.println("---- Encode LSP (with loc)");
-        lspIn.setParam(1, 33, 2, 4, 0, 0, 3, "0612150292", "01234567");
-        lspIn.startNewPeriod();
-        final String LSP64 = lspIn.getLSPTobase64();
-        lspIn.displayData("Data input");
+        LocationSpecificPart lsp = LocationSpecificPart.builder()
+                .staff(true)
+                .countryCode(33)
+                .qrCodeRenewalIntervalExponentCompact(2)
+                .venueType(4)
+                .venueCategory1(0)
+                .venueCategory2(0)
+                .periodDuration(3)
+                .build();
+        Location location = Location.builder()
+                .contact(locationContact)
+                .locationSpecificPart(lsp)
+                .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
+                .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
+                .permanentLocationSecretKey(permanentLocationSecretKey)
+                .build();
+        location.setPeriodStartTime(periodStartTime);
+        
+        /* Encode a LSP with location */
+        String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
+        assertThat(encryptedLocationSpecificPart).isNotNull();
         /* Decode the encoded LSP */
-        System.out.println("---- Decode LSP (with loc)");
-        lspOut.getLSP(LSP64);
-        lspOut.displayData("Data output");
-
-        /* Encode a LSP without location */
-        System.out.println("---- Encode LSP (without loc)");
-        lspIn.setParam(1, 33, 2, 4, 0, 0, 3);
-        lspIn.startNewPeriod();
-        final String LSP64_2 = lspIn.getLSPTobase64();
-        lspIn.displayData("Data input");
+        LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthorityKeyPair[0]).decrypt(encryptedLocationSpecificPart);
+        
+        assertThat(decodedLsp).isEqualTo(lsp);
+        assertThat(lsp.getEncryptedLocationContactMessage()).isNotNull();
+    }
+    
+    @Test
+    public void testEncodingAndDecodingOfALocationSpecificPartWithoutLocationContact() throws CleaEncryptionException {
+        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        /* Encode a LSP with location */
+        LocationSpecificPart lsp = LocationSpecificPart.builder()
+                .staff(true)
+                .countryCode(33)
+                .qrCodeRenewalIntervalExponentCompact(2)
+                .venueType(4)
+                .venueCategory1(0)
+                .venueCategory2(0)
+                .periodDuration(3)
+                .build();
+        Location location = Location.builder()
+                .locationSpecificPart(lsp)
+                .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
+                .permanentLocationSecretKey(permanentLocationSecretKey)
+                .build();
+        location.setPeriodStartTime(periodStartTime);
+        
+        /* Encode a LSP with location */
+        String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
         /* Decode the encoded LSP */
-        System.out.println("---- Decode LSP (without loc)");
-        lspOut.getLSP(LSP64_2);
-        lspOut.displayData("Data output");
+        LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthorityKeyPair[0]).decrypt(encryptedLocationSpecificPart);
+        
+        assertThat(decodedLsp).isEqualTo(lsp);
     }
 
-    /**
-     * test4 - Testing Ecies decrypting a message crypted by the C lib
-     * 
-     * @param debug Display or not intermediate results for debug purpose
-     */
     @Test
-    public void test4() throws Exception {
-
+    public void testDecryptionFromMessageEncryptedByCleaCLibrary() throws NoSuchAlgorithmException, InvalidKeySpecException, IllegalStateException, InvalidCipherTextException, IOException {
         /* EC private key from C package */
-        final String privKey = "7422c9883c3f6c5ac70c0a08a24b5d524f36edefa04f599e316fa23ef74a4a0f";
+        final String privateKey = "7422c9883c3f6c5ac70c0a08a24b5d524f36edefa04f599e316fa23ef74a4a0f";
         /* message encrypted, from C package */
         final String cipherText_S = "2f1376e97378d2e19a5d3b15cf4ff1802f971e4dc357f727098b5e0ba114318f3cdc0af35728c2ccf24641f879110fbc63f7dc9c002247d9073fc46f4e6bb2a85ae19c8e2db9de9071b1887bfe0388c333e8b8d89271f70406a86bfab0d44fc54641f1dda61292a5fe32ce128eb4";
         /* message in plain text, from C package */
@@ -142,114 +187,92 @@ class LocationSpecificPartTest {
 
         /* String -> bytes array */
         byte[] cipherText = Hex.decode(cipherText_S);
-        byte[] plainText = Hex.decode(plainText_S);
+        byte[] plainTextMessage = Hex.decode(plainText_S);
 
         /* Java decrypt the message using the EC private key privKey */
-        Ecies ecies = new Ecies(true);
-        byte[] msg = ecies.decrypt(cipherText, privKey, true);
-        System.out.println("MSG " + BytesUtils.bytesToString(msg));
+        CleaEciesEncoder cleaEncoder = new CleaEciesEncoder();
+        byte[] decryptedMessage = cleaEncoder.decrypt(cipherText, privateKey, true);
 
-        /* Test if the msg decrypted == message in plain text, from C package */
-        if (!Arrays.equals(plainText, msg)) {
-            System.out.println("TEST ENCRYPT/DECRYPT FAILED: \nOriginal:\n" + BytesUtils.bytesToString(plainText));
-            System.out.println("\nResult:\n" + BytesUtils.bytesToString(msg));
-        } else {
-            System.out.println("TEST ENCRYPT/DECRYPT OK");
-        }
+        assertThat(decryptedMessage).containsExactly(plainTextMessage);
     }
 
-    /**
-     * test5 - Testing the encoding with the lsp generation and its image
-     * 
-     * @param debug Display or not intermediate results for debug purpose
-     */
     @Test
-    public void test5() throws Exception {
-
-        int size = 200;
-        /* Generate and display 2 keys pair */
-        Ecies ecies = new Ecies(true);
-        String[] keyspair = ecies.genKeysPair(true);
-        System.out.println("Private Key : " + keyspair[0]);
-        System.out.println("Public Key  : " + keyspair[1]);
-        String[] keyspair1 = ecies.genKeysPair(true);
-        System.out.println("Private Key1: " + keyspair[0]);
-        System.out.println("Public Key1 : " + keyspair[1]);
-
+    public void testQrCodeGeneration() throws Exception {
+        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
         /* Encode the LSP */
-        Encode lsp = new Encode(SK_L, keyspair[1], keyspair1[1], true);
-        lsp.setParam(1, 33, 2, 4, 0, 0, 3, "0612150292", "01234567");
-        lsp.startNewPeriod();
+        LocationSpecificPart lsp = LocationSpecificPart.builder()
+                .staff(true)
+                .countryCode(33)
+                .qrCodeRenewalIntervalExponentCompact(2)
+                .venueType(4)
+                .venueCategory1(0)
+                .venueCategory2(0)
+                .periodDuration(3)
+                .build();
+        Location location = Location.builder()
+                .locationSpecificPart(lsp)
+                .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
+                .permanentLocationSecretKey(permanentLocationSecretKey)
+                .build();
+        location.setPeriodStartTime(periodStartTime);
 
-        /* Qrcode = "country-specific-prefix" / "Base64(location-specific-part)" */
-        String Qrcode = "https://tac.gouv.fr/" + lsp.getLSPTobase64();
+        /* QR-code = "country-specific-prefix" / "Base64(location-specific-part)" */
+        String qrCode = "https://tac.gouv.fr/" + location.getLocationSpecificPartEncryptedBase64();
 
         /* encode Qrcode with default parameters, level L */
-        BitMatrix bitMatrix = new QRCodeWriter().encode(Qrcode, BarcodeFormat.QR_CODE, size, size);
+        BitMatrix bitMatrix = new QRCodeWriter().encode(qrCode, BarcodeFormat.QR_CODE, 200, 200);
 
         /* generate an image */
         String imageFormat = "png";
-        String outputFileName = "./qrcode-" + lsp.t_qrStart + "." + imageFormat;
-        /* write in a file */
+        String outputFileName = "./qrcode-" + lsp.getQrCodeValidityStartTime() + "." + imageFormat;
         FileOutputStream fileOutputStream = new FileOutputStream(new File(outputFileName));
         MatrixToImageWriter.writeToStream(bitMatrix, imageFormat, fileOutputStream);
         fileOutputStream.close();
     }
 
     /**
-     * test6 - Testing base64 decoding from C or Java
-     * 
-     * @param debug Display or not intermediate results for debug purpose
+     * Testing base64 decoding from C or Java
      */
     @Test
-    public void test6() throws Exception {
+    public void testBase64DecodingFromCToJava() {
 
         String lsp64C = "APJexM7Ntkr9l2JO6mpD3HWO9OkU9nDygdP16KhNAiR9JUr05mT9+5kvJbZph/GdRbIqpQCwgFlYkWEr633BiYhJ+x/pc581PYG4aF2ZzjDJfrY5PfZodBKEiWH+Qegtp3x2bw4sfbCM8OPIvPtU7ooyyzj9h7RdKp4GfgeCz9YdikJ8uJYusQaFILrICqswxQzQPhLVHsnkMjAVpayCAxUOVgZbqj5m8lNcMhCxog==";
         String lsp64J = "AJMxSV4mHDX9iqjedPJRtpd7XTx53/ZCrZ4l53yFT7CSbiksSWm6vXApD+XeHT5nLEPbVRPXQoY8PJaTakCQNXYa2EUb8UW62n7sMua+UmZwDnf/9OPOVwWyGacP5L94sv0fCk7XnjBbDLhtORCGrdiwkOm3UniGc8gyP41zneHQSmbfzq6kEzFCX2kfKQIXIsFVyCFp7M4KdpVb2oWg2Q/FZr63cBdObwI9mrImCw==";
         Base64.getDecoder().decode(lsp64C);
 
+        // TODO: I do not understand this test. Result of the decoding is not used
         System.out.println("Qrcode size C=" + lsp64C.length() + " Java=" + lsp64J.length());
     }
 
-    /**
-     * test7 - Testing a LSP base 64 Java decoding
-     * 
-     * @param debug Display or not intermediate results for debug purpose
-     */
     @Test
-    public void test7() throws Exception {
-
+    public void testDecodingOfLocationSpecificPartInBase64() throws CleaEncryptionException {
         final String lsp_base64 = "AJi9dKxk4aXcRhF9lIIiGchvIbwtd2BE72nelq4/+uF0T0hE/GA0hFpEpuhVi+Xla8irZbGRmcDIfMqs0e8j/eChcYTeHo+bjWyN2GsHo+F5F46o0cM0IWuw/1MgctXYFCUw53zPL2Cs1ERN3HTpxnL9us2y//P+r8qV39YnmjFUj61Rlrosk2r81NO6BQImmg5sSV31rOTWXNrUwNQSTmXki0E+hfLgi9aMeWMnXQ==";
-        final String SK_SA = "34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8";
-        final String SK_MCTA = "3108f08b1485adb6f72cfba1b55c7484c906a2a3a0a027c78dcd991ca64c97bd";
+        final String servertAuthoritySecretKey = "34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8";
+//        final String SK_MCTA = "3108f08b1485adb6f72cfba1b55c7484c906a2a3a0a027c78dcd991ca64c97bd";
 
-        Decode lspOut = new Decode(SK_SA, SK_MCTA, true);
+        LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(servertAuthoritySecretKey);
 
-        lspOut.getLSP(lsp_base64);
-        lspOut.displayData("Lsp decoded");
+        LocationSpecificPart lsp = decoder.decrypt(lsp_base64);
+        // TODO: add assertions 
+        // assertThat(lsp.getCountryCode()).isEqualTo(??);
+        System.out.println(lsp);
     }
 
-    /**
-     * test8- Testing a LSP base 64 Java Ecies Decryption
-     * 
-     * @param debug Display or not intermediate results for debug purpose
-     */
     @Test
-    public void test8() throws Exception {
-
+    public void testLocationSpecificPartBase64EciesDecryption() throws NoSuchAlgorithmException, InvalidKeySpecException, IllegalStateException, InvalidCipherTextException, IOException {
         /* EC private key from C package */
-        final String privKey = "34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8";
+        final String privateKey = "34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8";
         /* message encrypted, from C package */
-        final String cipherText_64 = "AA3sinpPVKOpedLxzpMbgS3G4d4Up1vDcNQ28fZKB8cBnBjNYV0bPGoaBxnFFab/iM56uzSoDQ0i+N5B9shw5bBmutRONcWQBhNr1ug/0sZ62UaiWZjqfYDmpANJHfv0Kao3DUJvPLHep7N9uNlOywOhHISXoFsCNvikOv8o3hN9j7vbtW6xjILpbQP01gNtiNqliKDGWCSo/g4xlFjlbiWo4E1bL5UiWHAS9KYj8g==";
+        final String cipherTextBase64 = "AA3sinpPVKOpedLxzpMbgS3G4d4Up1vDcNQ28fZKB8cBnBjNYV0bPGoaBxnFFab/iM56uzSoDQ0i+N5B9shw5bBmutRONcWQBhNr1ug/0sZ62UaiWZjqfYDmpANJHfv0Kao3DUJvPLHep7N9uNlOywOhHISXoFsCNvikOv8o3hN9j7vbtW6xjILpbQP01gNtiNqliKDGWCSo/g4xlFjlbiWo4E1bL5UiWHAS9KYj8g==";
 
         /* String -> bytes array */
-        byte[] cipherText = Base64.getDecoder().decode(cipherText_64);
+        byte[] cipherText = Base64.getDecoder().decode(cipherTextBase64);
         System.out.println("CIFFER LSP " + BytesUtils.bytesToString(cipherText));
 
         /* Java decrypt the message using the EC private key privKey */
-        Ecies ecies = new Ecies(true);
-        byte[] msg = ecies.decrypt(cipherText, privKey, true);
-        System.out.println("PLAIN LSP: " + BytesUtils.bytesToString(msg));
+        byte[] message = new CleaEciesEncoder().decrypt(cipherText, privateKey, true);
+        System.out.println("PLAIN LSP: " + BytesUtils.bytesToString(message));
+        // TODO: add assertions 
     }
 
 }
