@@ -33,12 +33,17 @@ public class LspEncoderDecoder {
         String manualContactTracingAuthoritySecretKey = args[3];
         LocationSpecificPartDecoder lspDecoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey);
         LocationSpecificPart lsp = lspDecoder.decrypt(lspBase64);
-        System.out.print(lspDecoder);
+      
+        String valuesToreturn =  (lsp.isStaff()? 1 : 0) + " " + lsp.getCountryCode() + " " + lsp.getQrCodeRenewalIntervalExponentCompact()  + " " + lsp.getVenueType(); 
+        valuesToreturn += " " + lsp.getVenueCategory1() + " " + lsp.getVenueCategory2() + " " + lsp.getPeriodDuration() + " " + lsp.getLocationTemporaryPublicId();
+        valuesToreturn += " " + Integer.toUnsignedString(lsp.getCompressedPeriodStartTime()) + " " + Integer.toUnsignedString(lsp.getQrCodeValidityStartTime());
+
         if (lsp.isLocationContactMessagePresent()) {
             LocationContactMessageEncoder contactMessageDecode = new LocationContactMessageEncoder(manualContactTracingAuthoritySecretKey);
             LocationContact locationContact = contactMessageDecode.decode(lsp.getEncryptedLocationContactMessage());
-            System.out.println(locationContact);
-        }
+            valuesToreturn += " " + locationContact.getLocationPhone() + " " + locationContact.getLocationPin();
+        }  
+        System.out.println(valuesToreturn);
     }
 
     protected static void encodeLsp(String[] args) throws CleaEncryptionException {
@@ -69,6 +74,7 @@ public class LspEncoderDecoder {
                 .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityPublicKey)
                 .serverAuthorityPublicKey(serverAuthorityPublicKey)
                 .permanentLocationSecretKey(permanentLocationSecretKey);
+        
         if (args.length == 13) {
             final String locationPhone = args[11];
             final String locationPin = args[12];
@@ -77,6 +83,8 @@ public class LspEncoderDecoder {
 
         Location location = locationBuilder.build();
         location.setPeriodStartTime(periodStartTime);
+        //location.setQrCodeValidityStartTime(periodStartTime, (int) TimeUtils.currentNtpTime());
+        location.getLocationSpecificPart().setQrCodeValidityStartTime( (int) TimeUtils.currentNtpTime());
         
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
         

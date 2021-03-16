@@ -121,7 +121,7 @@ def lsp_decode(cfg):
     return lsp_dict
 
 
-def lsps_encode(inputfilename, outputfilename, java=False):
+def lsps_encode(inputfilename, outputfilename, java=True):
     """ Encode a list of Cléa LSP
 
     Parameters
@@ -270,7 +270,7 @@ if os.path.exists(ENC_OUT):
 if os.path.exists(DEC_OUT):
     os.remove(DEC_OUT)
 # encode_in.json -> [lsps_encode] -> encode_out.json
-lsps_encode(ENC_IN, ENC_OUT, java=False)
+lsps_encode(ENC_IN, ENC_OUT, java=True)
 # encode_out.json -> [lsps_decode] -> decode_out.json
 lsps_decode(ENC_OUT, DEC_OUT)
 # compare parameters input or generated (time, ltid) and output paramaters
