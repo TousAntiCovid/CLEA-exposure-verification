@@ -85,7 +85,7 @@ public class Location {
     }
 
     protected byte[] getLocationSpecificPartEncrypted() throws CleaEncryptionException {
-        if (this.locationSpecificPart.isLocationContactMessagePresent()) {
+        if (Objects.nonNull(this.contact)) {
             this.locationSpecificPart.setEncryptedLocationContactMessage(this.getLocationContactMessageEncrypted());
         }
         return new LocationSpecificPartEncoder(this.serverAuthorityPublicKey).encode(locationSpecificPart);
@@ -107,7 +107,8 @@ public class Location {
     }
     
     protected void setQrCodeValidityStartTime(int periodStartTime, int qrCodeValidityStartTime) {
-        if (this.locationSpecificPart.getQrCodeRenewalInterval() == 0) {
+        if ((this.locationSpecificPart.getQrCodeRenewalInterval() == 0) 
+                && (this.locationSpecificPart.getQrCodeValidityStartTime() != 0)) {
             log.warn("Cannot update QrCode validity start time. No renewal specified!");
             return;
         }
