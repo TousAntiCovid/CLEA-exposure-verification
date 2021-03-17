@@ -1,0 +1,31 @@
+/* General setup */
+
+* {
+    box-sizing: border-box;
+}
+
+html,body {
+    font-family: sans-serif;
+    line-height: 1.2rem;
+}
+
+/* Layout and styles */
+
+h1 {
+    color: green;
+    margin-left: .5rem;
+}
+
+label {
+    display: inline-block;
+    width: 380px;
+}
+
+input[type="text"] {
+    width: 600px;
+}
+
+#qrcode {
+    width:500px;
+    height:500px;
+}

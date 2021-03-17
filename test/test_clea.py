@@ -3,6 +3,7 @@
 import json
 import subprocess
 import os
+import argparse
 """ Test interoperability between C/Java location Specific Part (LSP) encoding
 and Java LSP decoding
 """
@@ -10,7 +11,8 @@ and Java LSP decoding
 # Java executable can encode or decode
 # a Clé location Specific Part (LSP)
 CMD_JAVA = ['java', '-cp',
-            '../java/target/clea-lsp-0.0.1-SNAPSHOT-jar-with-dependencies.jar', 'fr.inria.clea.lsp.LspEncoderDecoder']
+            '../java/target/clea-lsp-0.0.1-SNAPSHOT-jar-with-dependencies.jar',
+            'fr.inria.clea.lsp.LspEncoderDecoder']
 # C executable can encode t a Cléa LSP
 CMD_C = ['../c/build/test_clea']
 
@@ -223,6 +225,7 @@ def lsp_cmp(enc_in, enc_out, dec_out):
         if enc_in['locationPIN'] == dec_out['locationPIN']:
             testok += 1
     elif nbr != 0:
+        print('LocationMsg failed')
         return False
 
     return testok == nbtests
@@ -261,16 +264,27 @@ def lsps_cmp(enc_in_file, enc_out_file, dec_out_file):
     return iok == len(enc_in_s)
 
 
+# Parse command line arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("--noencode",
+                    help="test only the decoding part",
+                    action="store_true")
+parser.add_argument("--java",
+                    help="encoding part with Java lib (C lib by default)",
+                    action="store_true")
+args = parser.parse_args()
+
 # clean output files
 ENC_IN = 'encode_in.json'
 ENC_OUT = 'encode_out.json'
 DEC_OUT = 'decode_out.json'
-if os.path.exists(ENC_OUT):
+if os.path.exists(ENC_OUT) and not args.noencode:
     os.remove(ENC_OUT)
 if os.path.exists(DEC_OUT):
     os.remove(DEC_OUT)
 # encode_in.json -> [lsps_encode] -> encode_out.json
-lsps_encode(ENC_IN, ENC_OUT, java=True)
+if not args.noencode:
+    lsps_encode(ENC_IN, ENC_OUT, java=args.java)
 # encode_out.json -> [lsps_decode] -> decode_out.json
 lsps_decode(ENC_OUT, DEC_OUT)
 # compare parameters input or generated (time, ltid) and output paramaters
