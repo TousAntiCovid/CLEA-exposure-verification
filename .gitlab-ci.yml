@@ -4,18 +4,30 @@ stages:
   - build
   - deploy
 
-build_template:
+build:
   stage: build
   tags:
     - ci
   script:
     - cd java
-    - mvn package
+    # build all (for other phase such as docker) but skip tests
+    - mvn -DskipTests=true package
   artifacts:
     paths:
       - java/target/*.jar
 
-deploy_template:
+test:
+  stage: build
+  tags:
+    - ci
+  script:
+    - cd java
+    - mvn verify
+  artifacts:
+    paths:
+      - java/target/*.jar
+
+deploy:
   stage: deploy
   tags:
     - ci
