@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "ecies.h"
 #include "hash/sha256.h"
 #include "libec.h"
@@ -7,7 +8,7 @@ static const ec_str_params *secp256r1;
 static ec_params curve;
 static prj_pt Q;
 
-static void compress_point(prj_pt *P, uint8_t *buf);
+static void compress_point(prj_pt *P, uint8_t *buf, bool x_coord);
 static void kdf(uint8_t *in, uint8_t len, uint8_t *out, uint8_t out_len);
 
 void ecies_init(void)
@@ -19,7 +20,7 @@ void ecies_init(void)
 #include <stdio.h>
 int32_t ecies_encode(uint8_t *key, uint8_t *msg, uint8_t clear_len, uint8_t crypt_len)
 {
-    #define KDF_INPUT_SIZE (2 * (32 + 1) + 4) // 2 compressed points + 1 32-bit integer
+    #define KDF_INPUT_SIZE (2 * 32 + 1 + 4) // 1 compressed point + 1 X coordinate + 1 32-bit integer
     nn r;
     prj_pt C0, S;
     uint8_t buf[255]; // Must contain at least crypt_len bytes
@@ -67,8 +68,8 @@ int32_t ecies_encode(uint8_t *key, uint8_t *msg, uint8_t clear_len, uint8_t cryp
 	prj_pt_unique(&S, &S);
 
     // Compute K = KDF(E(C0) | E(S))
-    compress_point(&C0, buf);
-    compress_point(&S, &(buf[33]));
+    compress_point(&C0, buf, false);
+    compress_point(&S, &(buf[33]), true);
     kdf(buf, KDF_INPUT_SIZE, K, sizeof(K));
 
     // append compressed C0 at the end of the output buffer
@@ -92,20 +93,29 @@ int32_t ecies_encode(uint8_t *key, uint8_t *msg, uint8_t clear_len, uint8_t cryp
     return 0;
 }
 
-static void compress_point(prj_pt *P, uint8_t *buf)
+static void compress_point(prj_pt *P, uint8_t *buf, bool x_coord)
 {
     uint8_t tmp[64];
-    uint8_t i;
+    uint8_t i, offset;
 
     prj_pt_export_to_aff_buf(P, tmp, 2 * BYTECEIL(curve.ec_fp.p_bitlen));
 
-    for(i = 0; i < sizeof(tmp) / 2; i++)
+    if(x_coord)
     {
-        buf[i + 1] = tmp[i];
+        offset = 0;
+    }
+    else
+    {
+        // ANSI X9.62 encoding
+        buf[0] = (tmp[sizeof(tmp) - 1] % 2) | 0x2;
+
+        offset = 1;
     }
 
-    // ANSI X9.62 encoding
-    buf[0] = (tmp[sizeof(tmp) - 1] % 2) | 0x2;
+    for(i = 0; i < sizeof(tmp) / 2; i++)
+    {
+        buf[i + offset] = tmp[i];
+    }
 }
 
 static void kdf(uint8_t *in, uint8_t len, uint8_t *out, uint8_t out_len)

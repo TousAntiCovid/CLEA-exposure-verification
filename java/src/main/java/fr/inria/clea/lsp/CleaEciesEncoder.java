@@ -171,7 +171,8 @@ public class CleaEciesEncoder {
 
         /* Generate secret S */
         ECPoint S_Q = ecPublicKey.getQ().multiply(r); // S = r * D(PK_HA)
-        byte S[] = S_Q.getEncoded(true); // E(S)
+        //byte S[] = S_Q.getEncoded(true); // E(S)
+        byte S[] = S_Q.normalize().getAffineXCoord().getEncoded(); // S.X
 
         /* Generate AES key using KDF1 */
         KDF1BytesGenerator kdf = new KDF1BytesGenerator(new SHA256Digest());
@@ -218,8 +219,9 @@ public class CleaEciesEncoder {
 
         /* Generate secret S */
         ECPoint S_Q = C0_Q.multiply(privateKey.getD()); // S = x * D(C0)
-        byte S[] = S_Q.getEncoded(true); // E(S)
-
+        //byte S[] = S_Q.getEncoded(true); // E(S)   
+        byte S[] = S_Q.normalize().getAffineXCoord().getEncoded(); // S.X
+    
         /* Generate AES key using KDF1 */
         KDF1BytesGenerator kdf = new KDF1BytesGenerator(new SHA256Digest());
         byte[] key = new byte[32]; // 256-bits AES key

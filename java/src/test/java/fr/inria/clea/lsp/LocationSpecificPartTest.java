@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+import java.util.UUID;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.util.encoders.Hex;
@@ -68,6 +69,7 @@ class LocationSpecificPartTest {
 
         assertThat(decrypted).containsExactly(cleaEciesEncoder.concat(header, message));
     }
+    
 
     @Test
     public void testEncodinsAndDecodingOfALocationMessage() throws CleaEncryptionException {
@@ -114,7 +116,8 @@ class LocationSpecificPartTest {
         assertThat(encryptedLocationSpecificPart).isNotNull();
         assertThat(encryptedLocationSpecificPart).isEqualTo(0); // TODO replace by expected value
     }
-
+   
+ 
     @Test
     public void testEncodingAndDecodingOfALocationSpecificPart() throws CleaEncryptionException {
         int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
@@ -148,6 +151,7 @@ class LocationSpecificPartTest {
         assertThat(lsp.getEncryptedLocationContactMessage()).isNotNull();
     }
     
+
     @Test
     public void testEncodingAndDecodingOfALocationSpecificPartWithoutLocationContact() throws CleaEncryptionException {
         int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
@@ -175,15 +179,16 @@ class LocationSpecificPartTest {
         
         assertThat(decodedLsp).isEqualTo(lsp);
     }
-
+    
+    @Disabled("compute new String values with c lib")
     @Test
     public void testDecryptionFromMessageEncryptedByCleaCLibrary() throws NoSuchAlgorithmException, InvalidKeySpecException, IllegalStateException, InvalidCipherTextException, IOException {
         /* EC private key from C package */
-        final String privateKey = "7422c9883c3f6c5ac70c0a08a24b5d524f36edefa04f599e316fa23ef74a4a0f";
+        final String privateKey = "34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8";
         /* message encrypted, from C package */
-        final String cipherText_S = "2f1376e97378d2e19a5d3b15cf4ff1802f971e4dc357f727098b5e0ba114318f3cdc0af35728c2ccf24641f879110fbc63f7dc9c002247d9073fc46f4e6bb2a85ae19c8e2db9de9071b1887bfe0388c333e8b8d89271f70406a86bfab0d44fc54641f1dda61292a5fe32ce128eb4";
+        final String cipherText_S = "7d1bbfb6cad6c2e862a7aead7da27fb814cff9dbda33b7277d4bf507f04e5b901d7f4e09ff48b0f2ba8aebb4640d074f1daef17524b6f319f30e6548277e0575039d2560cfcf45d6873e4bf33a03c7c598bb6f1b7c3c4c5873ad35ff5be33e18a815af751d8cde256c7bd8318f04";
         /* message in plain text, from C package */
-        final String plainText_S = "2f1376e97378d2e19a5d3b15cf4ff1802ffd9be701f74d6f15d4a3f22fbcd296eb6bdf21ba03410a01f816b91cb2c74d709544912811e8a867dd44b8d6";
+        final String plainText_S = "7D1BBFB6CAD6C2E862A7AEAD7DA27FB8149F7213093CEDBBE66356550296A37DD18077E8646185EA2EA0EAFE88630F8C861A2E05F35BB2D863A28841CF";
 
         /* String -> bytes array */
         byte[] cipherText = Hex.decode(cipherText_S);
@@ -195,7 +200,8 @@ class LocationSpecificPartTest {
 
         assertThat(decryptedMessage).containsExactly(plainTextMessage);
     }
-
+   
+    
     @Test
     public void testQrCodeGeneration() throws Exception {
         int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
@@ -243,27 +249,37 @@ class LocationSpecificPartTest {
         // TODO: I do not understand this test. Result of the decoding is not used
         System.out.println("Qrcode size C=" + lsp64C.length() + " Java=" + lsp64J.length());
     }
-
+   
+    
     @Test
     public void testDecodingOfLocationSpecificPartInBase64() throws CleaEncryptionException {
-        final String lsp_base64 = "AJi9dKxk4aXcRhF9lIIiGchvIbwtd2BE72nelq4/+uF0T0hE/GA0hFpEpuhVi+Xla8irZbGRmcDIfMqs0e8j/eChcYTeHo+bjWyN2GsHo+F5F46o0cM0IWuw/1MgctXYFCUw53zPL2Cs1ERN3HTpxnL9us2y//P+r8qV39YnmjFUj61Rlrosk2r81NO6BQImmg5sSV31rOTWXNrUwNQSTmXki0E+hfLgi9aMeWMnXQ==";
+        final String lsp_base64 = "APK57CdeWirVk+5bqzle+Fr9ieDlSpYfYkbgTC8zxsGx0bTy9VQq9GzOEqK7YSx5DdZsh5tZ9DT0OLH6MMveQXUky80xLbXkV3glHS+4m1bF2YTnzHNUppxMcb/IpKVoSnxY4pCA5l13gl9Jlkvkl5HIHl5Lv3FmWBZ6ScK4Zuj/VJFSjKp3/+CignJcHwNR6Lz5l+R6EgDugCueAyh9HuiyKrb4ntnGEMeit59btg==";
         final String servertAuthoritySecretKey = "34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8";
-//        final String SK_MCTA = "3108f08b1485adb6f72cfba1b55c7484c906a2a3a0a027c78dcd991ca64c97bd";
 
         LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(servertAuthoritySecretKey);
 
         LocationSpecificPart lsp = decoder.decrypt(lsp_base64);
-        // TODO: add assertions 
-        // assertThat(lsp.getCountryCode()).isEqualTo(??);
+        
+        assertThat(lsp.isStaff()).isEqualTo(false);
+        assertThat(lsp.getCountryCode()).isEqualTo(492);
+        assertThat(lsp.getLocationTemporaryPublicId()).isEqualTo(UUID.fromString("f2b9ec27-5e5a-2ad5-93ee-5bab395ef85a"));
+        assertThat(lsp.getCompressedPeriodStartTime()).isEqualTo(1062479);
+        // TODO: PROBLEM TO SOLVE
+        // assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(3824926044);
+        assertThat(lsp.getPeriodDuration()).isEqualTo(3); 
+        assertThat(lsp.getQrCodeRenewalIntervalExponentCompact()).isEqualTo(5);
+        assertThat(lsp.getVenueType()).isEqualTo(12);  
+        assertThat(lsp.getVenueCategory1()).isEqualTo(0); 
+        assertThat(lsp.getVenueCategory2()).isEqualTo(0); 
         System.out.println(lsp);
     }
-
+    
     @Test
     public void testLocationSpecificPartBase64EciesDecryption() throws NoSuchAlgorithmException, InvalidKeySpecException, IllegalStateException, InvalidCipherTextException, IOException {
         /* EC private key from C package */
-        final String privateKey = "34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8";
+        final String privateKey = "3108f08b1485adb6f72cfba1b55c7484c906a2a3a0a027c78dcd991ca64c97bd";
         /* message encrypted, from C package */
-        final String cipherTextBase64 = "AA3sinpPVKOpedLxzpMbgS3G4d4Up1vDcNQ28fZKB8cBnBjNYV0bPGoaBxnFFab/iM56uzSoDQ0i+N5B9shw5bBmutRONcWQBhNr1ug/0sZ62UaiWZjqfYDmpANJHfv0Kao3DUJvPLHep7N9uNlOywOhHISXoFsCNvikOv8o3hN9j7vbtW6xjILpbQP01gNtiNqliKDGWCSo/g4xlFjlbiWo4E1bL5UiWHAS9KYj8g==";
+        final String cipherTextBase64 = "AHHp6U8wrVQuWDomdZfDS0BHC45n72pzlmAhqE7AZp3hTWt2cuUOJ78nNeZSJCrpjpl3glMI49yjLEoIi73wqsSbja1sMH0XzuNoAssCV53wTItE3Nxg+J3FI78/W6uWD8IU+dn0YEroJwH2y1g=";
 
         /* String -> bytes array */
         byte[] cipherText = Base64.getDecoder().decode(cipherTextBase64);
