@@ -9,7 +9,7 @@ build:
   tags:
     - ci
   script:
-    - cd CLEA-lib
+    - cd CLEA-lib/java
     # build all (for other phase such as docker) but skip tests
     - mvn -DskipTests=true package
   artifacts:
