@@ -148,8 +148,8 @@ The following acronyms and variable names are used:
 | `localList` | idem                           | Within the user terminal, this list contains all the `{QR code, t_qrScan}` tuples collected by a user within the current 14-day window. Entries are added in this localList as the user visits new locations and scans the corresponding QR code, and automatically deleted after 14 days. |
 | `clusterList` | idem                         | Within the backend server, this list contains all the `LTId` and timing information corresponding to a potential cluster. This list is public, it is downloaded by all the user terminals, and is updated each time a new cluster is identified. The cluster qualification happens when the hourly counter of a location exceeds a given threshold that depends on the location features. |
 | `dupScanThreshold` (in seconds) | idem       | Time tolerance in the duplicate scan mechanism: for a given `LTId`, a single QR code can be recorded in the localList every `dupScanThreshold` seconds. A similar check is performed on the server frontend. |
-| `locationPhone` | idem                       | Phone number of the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance registry. |
-| `locationPIN` | idem                         |  Secret 6 digit PIN, known only by the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance registry. |
+| `locationPhone` | idem                       | Phone number of the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance register. |
+| `locationPIN` | idem                         |  Secret 6 digit PIN, known only by the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance register. |
 
 
 ### 3.2- Initial configuration of the device(s) at the manufacturer (specialized device) or location (tablet)
@@ -631,13 +631,13 @@ It the server provide a certain degree of risk (i.e., distinguishes low and high
 However, since the `{LTId_cluster, h1_cluster}` information is public, a curious user may be able to know more about the exact time of exposure.
 
 
-### 3.9- Linking the Cléa digital system and the hand-written attendance registry
+### 3.9- Linking the Cléa digital system and the hand-written attendance register
 
-The use of the Cléa digital system is based on a voluntary decision of the user, the alternative consisting in leaving one's name in the hand-written attendance registry.
+The use of the Cléa digital system is based on a voluntary decision of the user, the alternative consisting for this user in leaving her name in the hand-written attendance register.
 Consequently, a link between the two systems should be established. 
-However, there can be specific use-cases where the hand-written attendance registry may not exist, for instance in case of digital ticketing.
-In that case, the `locContactMsg` may be ignored (i.e., locContacMsgPresent` can be set to 0).
-Similarly, a certain deployment of Cléa, following a decision of the Health Authority, may decide not to link the two systems together, in which case the `locContacMsgPresent` flag can be set to 0.
+However, there can be specific use-cases where the hand-written attendance register may not exist, for instance in case of digital ticketing.
+In that case, the `locContactMsg` may be ignored (i.e., `locContacMsgPresent` can be set to 0).
+Similarly, the Health Authority may decide not to link the two systems together, in which case the `locContacMsgPresent` flag can be set to 0.
 
 #### A user tested COVID+ has used the Cléa system
 
@@ -684,11 +684,11 @@ Therefore, the authority in charge of the backend server cannot re-identify any 
 Also, this authority cannot decrypt this message since it does not know the associated `PK_MCTA` secret key.
 
 As soon as the authority in charge of the manual contact tracing receives the encrypted message, it decrypts it and checks its integrity.
-Then the authority informs the location contact person, checking the PIN code first, and asking this latter to communicate the content of the hand-written attendance registry for the appropriate period.
+Then the authority informs the location contact person, checking the PIN code first, and asking this latter to communicate the content of the hand-written attendance register for the appropriate period.
 The details of how this is done is out of scope of the present document.
 
 
-#### A user tested COVID+ has used the hand-written attendance registry
+#### A user tested COVID+ has used the hand-written attendance register
 
 ```diff
 - TODO: short description.
