@@ -830,6 +830,8 @@ Dec(key, emsg, tag, C0):
 	-Return msg
 ```
 
+Note that in computation of K with the KDF1 function C0 is represented in its compressed form as specified in ANSI X9.62 (i.e. 33 bytes) and S is represented by its X coordinate (i.e. 32 bytes)
+
 The encrypted message out of the `Enc` function must have this format:
 
 ```
