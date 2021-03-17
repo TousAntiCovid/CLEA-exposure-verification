@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Cléa tests</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+
+  <body>
+  <h1>Cléa test</h1>
+
+  <input type="file" id="fileinput" />
+  <textarea rows=20 style="width:900px" id="area"></textarea>
+  <input id="fileoutput" type="button" value="Write"> 
+
+    <script type="text/javascript">
+
+      function readSingleFile(evt) {
+        // File	
+        var vFile = evt.target.files[0];
+        // Reader
+        var vReader = new FileReader();
+        vReader.readAsText(vFile);
+        vReader.onload = function(pEvent) {
+              // String Input
+              var vContent = pEvent.target.result;   
+              // JSON to object
+              var vJson = JSON.parse(vContent);    
+              // Query
+              var vResult = "";
+              generateLsps(vJson);
+              // Output
+              document.getElementById('area').value= vResult;
+              document.getElementById('fileoutput').disabled = false;
+        };
+      }
+
+      function download(filename, jsonObj) {
+        var element = document.createElement('a');
+        
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(jsonObj, null, "\t")));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+      }
+
+
+      document.getElementById('fileinput').addEventListener('change', readSingleFile, false); 
+      document.getElementById('fileoutput').addEventListener("click", () => {
+          write_lsps();
+          download("encode_out.json",OUTPUT);
+       });
+      document.getElementById('fileoutput').disabled = true;
+    </script>
+
+    
+
+
+ </body>
+ <script src="../js/clea.js"></script>
+ <script src="test_clea.js"></script>
+ </html>
