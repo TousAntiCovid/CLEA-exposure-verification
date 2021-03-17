@@ -1,9 +1,21 @@
-(() =>
-{
-    var qrcode = new QRCode("qrcode", {width: 500, height: 500, correctLevel: QRCode.CorrectLevel.M});
+/* 
+ * Copyright (C) Inria, 2021
+ */
+(() => {
+    verbose = true
+    var qrcode = new QRCode("qrcode", {
+        width: 500,
+        height: 500,
+        correctLevel: QRCode.CorrectLevel.M
+    });
 
-    async function generate_qrcode()
-    {
+    /**
+     * Generate a QR code
+     *  - generate the LSP using the clea.js function: cleaStartNewPeriod
+     *  - generate the Qrcode adding the prefix for France http://tac.gouv.fr/ to LSP
+     * 
+     */
+    async function generateQrcode() {
         var conf = {
             SK_L: hexToBytes($("#sk_l").val()),
             PK_SA: hexToBytes($("#pk_sa").val()),
@@ -21,10 +33,8 @@
 
         var phone = $("#locationPhone").val()
 
-        if(phone)
-        {
-            conf.locContactMsg =
-            {
+        if (phone) {
+            conf.locContactMsg = {
                 locationPhone: parseInt(phone),
                 locationPin: parseInt($("#locationPin").val())
             }
@@ -32,20 +42,26 @@
 
         console.log(conf);
 
-        var b64 = await clea_start_new_period(conf);
+        var b64 = await cleaStartNewPeriod(conf);
 
         qrcode.makeCode("http://tac.gouv.fr/" + b64);
     }
 
-    // Convert a hex string to a byte array
-    function hexToBytes(hex)
-    {
+    /** 
+     * Convert a hex string to a byte array
+     *
+     * @param {string} hex hexa string
+     * @return {bytes array} 
+     */
+    function hexToBytes(hex) {
         var bytes = new Uint8Array(Math.ceil(hex.length / 2));
         for (i = 0, c = 0; c < hex.length; i++, c += 2)
             bytes[i] = parseInt(hex.substr(c, 2), 16);
         return bytes;
     }
 
-    generate_qrcode();
-    setInterval(generate_qrcode, 10000);
+    // Generate a Qr code when the page is loaded
+    generateQrcode();
+    // renew the Qrcode every 10 secondes
+    setInterval(generateQrcode, 10000);
 })();

@@ -1,55 +1,91 @@
-var t_periodStart = get_ntp_utc(true);
-var LTId = new Uint8Array(16);
-var LTKey = new Uint8Array(32);
-// RPG
-var ct_periodStart;
-var t_qrStart;
+/* 
+ * Copyright (C) Inria, 2021
+ */
 
-async function clea_start_new_period(config) {
-  t_periodStart = get_ntp_utc(true);
+/*
+global configuration
+*/
+var gConf = {
+  LTKey: new Uint8Array(32),
+  LTId: new Uint8Array(16),
+  t_periodStart: getNtpUtc(true),
+  ct_periodStart: 0,
+  t_qrStart: 0
+}
+
+
+// Display debug information on console
+var verbose = false;
+
+
+/**
+ * Start a new period to generate a new LSP computing LTKey (Temporary location
+ * 256-bits secret key) and LTId (Temporary location public UUID)
+ * 
+ * use gConf (see above)
+ * @param {conf} config user configuration
+ *   conf = {SK_L, PK_SA, PK_MCTA, 
+ *           staff, CRIexp, venueType, venueCategory1, venueCategory2,
+ *           countryCode, periodDuration, locContactMsg}
+ * 
+ * @return
+ */
+async function cleaStartNewPeriod(config) {
+  gConf.t_periodStart = getNtpUtc(true);
 
   // Compute LTKey
   var tmp = new Uint8Array(64);
   tmp.set(config.SK_L, 0);
-  tmp[60] = (t_periodStart >> 24) & 0xFF;
-  tmp[61] = (t_periodStart >> 16) & 0xFF;
-  tmp[62] = (t_periodStart >> 8) & 0xFF;
-  tmp[63] = t_periodStart;
-  LTKey = await crypto.subtle.digest("SHA-256", tmp)
+  tmp[60] = (gConf.t_periodStart >> 24) & 0xFF;
+  tmp[61] = (gConf.t_periodStart >> 16) & 0xFF;
+  tmp[62] = (gConf.t_periodStart >> 8) & 0xFF;
+  tmp[63] = gConf.t_periodStart;
+  gConf.LTKey = await crypto.subtle.digest("SHA-256", tmp)
 
   // Compute LTId
   var one = new Uint8Array(1);
   one[0] = 0x31; // '1'
   var key = await crypto.subtle.importKey(
     "raw",
-    LTKey, {
+    gConf.LTKey, {
       name: "HMAC",
       hash: "SHA-512"
     },
     true,
     ["sign"]
   );
-  LTId = new Uint8Array(await crypto.subtle.sign("HMAC", key, one), 0, 16); // HMAC-SHA256-128
+  gConf.LTId = new Uint8Array(await crypto.subtle.sign("HMAC", key, one), 0, 16); // HMAC-SHA256-128
 
-  return clea_renew_qrcode(config);
+  return cleaRenewLSP(config);
 }
 
-async function clea_renew_qrcode(config) {
+/**
+ * Generate a new locationSpecificPart (LSP)
+ * 
+ * use gConf (see above)
+ * @param {conf} config user configuration
+ *   conf = {SK_L, PK_SA, PK_MCTA, 
+ *           staff, CRIexp, venueType, venueCategory1, venueCategory2,
+ *           countryCode, periodDuration, locContactMsg}
+ * 
+ * @return {string} encoded LSP in Base64 format
+ */
+async function cleaRenewLSP(config) {
   const CLEAR_HEADER_SIZE = 17;
   const MSG_SIZE = 44;
   const LOC_MSG_SIZE = 16;
   const TAG_AND_KEY = 49;
 
-  t_qrStart = get_ntp_utc(false);
-  ct_periodStart = t_periodStart / 3600;
-  
+  gConf.t_qrStart = getNtpUtc(false);
+  gConf.ct_periodStart = gConf.t_periodStart / 3600;
+
   var header = new Uint8Array(CLEAR_HEADER_SIZE);
   var msg = new Uint8Array(MSG_SIZE + (config.locContactMsg ? LOC_MSG_SIZE + TAG_AND_KEY : 0));
   var loc_msg = new Uint8Array(LOC_MSG_SIZE);
 
   // Fill header
   header[0] = ((config.version & 0x7) << 5) | ((config.qrType & 0x7) << 2);
-  header.set(LTId, 1);
+  header.set(gConf.LTId, 1);
 
   // Fill message
   msg[0] = ((config.staff & 0x1) << 7) | (config.locContactMsg ? 0x40 : 0) | ((config.countryCode & 0xFC0) >>> 6);
@@ -57,21 +93,21 @@ async function clea_renew_qrcode(config) {
   msg[2] = ((config.CRIexp & 0x7) << 5) | (config.venueType & 0x1F);
   msg[3] = ((config.venueCategory1 & 0xF) << 4) | (config.venueCategory2 & 0xF);
   msg[4] = config.periodDuration;
-  msg[5] = (ct_periodStart >> 16) & 0xFF; // multi-byte numbers are stored with the big endian convention as required by the specification
-  msg[6] = (ct_periodStart >> 8) & 0xFF;
-  msg[7] = ct_periodStart & 0xFF;
-  msg[8] = (t_qrStart >> 24) & 0xFF;
-  msg[9] = (t_qrStart >> 16) & 0xFF;
-  msg[10] = (t_qrStart >> 8) & 0xFF;
-  msg[11] = t_qrStart & 0xFF;
-  msg.set(LTKey, 12);
+  msg[5] = (gConf.ct_periodStart >> 16) & 0xFF; // multi-byte numbers are stored with the big endian convention as required by the specification
+  msg[6] = (gConf.ct_periodStart >> 8) & 0xFF;
+  msg[7] = gConf.ct_periodStart & 0xFF;
+  msg[8] = (gConf.t_qrStart >> 24) & 0xFF;
+  msg[9] = (gConf.t_qrStart >> 16) & 0xFF;
+  msg[10] = (gConf.t_qrStart >> 8) & 0xFF;
+  msg[11] = gConf.t_qrStart & 0xFF;
+  msg.set(gConf.LTKey, 12);
 
   if (config.locContactMsg) {
-    const phone = parse_bcd(config.locContactMsg.locationPhone, 8);
+    const phone = parseBcd(config.locContactMsg.locationPhone, 8);
     loc_msg.set(phone, 0);
-    const pin = parse_bcd(config.locContactMsg.locationPin, 4);
+    const pin = parseBcd(config.locContactMsg.locationPin, 4);
     loc_msg.set(pin, 8);
-  
+
     encrypted_loc_msg = await encrypt(new Uint8Array(0), loc_msg, config.PK_MCTA);
     msg.set(new Uint8Array(encrypted_loc_msg), 44);
   }
@@ -82,6 +118,16 @@ async function clea_renew_qrcode(config) {
   return btoa((Array.from(new Uint8Array(output))).map(ch => String.fromCharCode(ch)).join(''));
 }
 
+
+/**
+ * Encrypt, respecting CLEA protocol: | header | msg |
+ * 
+ * @param {Uint8Array} header associated data
+ * @param {Uint8Array} msg    message to encrypt
+ * @param {string} publicKey EC public key
+ * 
+ * @return {Uint8Array} data encrypted in binary format (bytes array)
+ */
 async function encrypt(header, message, publicKey) {
   // Step 1: Import the publicKey Q
   var ECPubKey = await crypto.subtle.importKey(
@@ -109,9 +155,9 @@ async function encrypt(header, message, publicKey) {
     EcKeyPair.publicKey
   );
 
-  C0_Q = ecdh_raw_pubkey_compressed(new Uint8Array(C0));
+  C0_Q = ecdhRawPubKeyCompressed(new Uint8Array(C0));
 
-  print_buf("C0", C0_Q);
+  if (verbose) printBuf("C0", C0_Q);
 
   // Step 4: Generate a shared secret (S = rQ)
   var S = await crypto.subtle.deriveBits({
@@ -123,14 +169,14 @@ async function encrypt(header, message, publicKey) {
     256
   );
 
-  print_buf("S", S);
+  if (verbose) printBuf("S", S);
 
   // Step5: Compute the AES encryption key K = KDF1(C0 | S)
   var tmp = concatBuffer(concatBuffer(C0_Q, S), new ArrayBuffer(4));
   var kdf1 = await crypto.subtle.digest("SHA-256", tmp)
 
-  print_buf("C0 | S | 0x00000000", tmp);
-  print_buf("KDF1", kdf1)
+  if (verbose) printBuf("C0 | S | 0x00000000", tmp);
+  if (verbose) printBuf("KDF1", kdf1)
 
   var derivedKey = await crypto.subtle.importKey(
     "raw",
@@ -156,12 +202,32 @@ async function encrypt(header, message, publicKey) {
   const out_msg = concatBuffer(header, encoded);
   const output = concatBuffer(out_msg, C0_Q);
 
-  print_buf("output", output);
+  if (verbose) printBuf("output", output);
 
   return output;
 }
 
-function get_ntp_utc(round) {
+/**
+ * Compress an elliptic Curve Public key
+ *
+ * @param {Uint8Array/Array Buffer} ec_raw_pubkey public key
+ * @return {Uint8Array} public key compressed
+ */
+function ecdhRawPubKeyCompressed(ec_raw_pubkey) {
+  const u8full = new Uint8Array(ec_raw_pubkey)
+  const len = u8full.byteLength
+  const u8 = u8full.slice(0, 1 + len >>> 1) // drop `y`
+  u8[0] = 0x2 | (u8full[len - 1] & 0x01) // encode sign of `y` in first bit
+  return u8.buffer
+}
+
+/**
+ * Get the NTP/UTC format time in seconds
+ * 
+ * @param {boolean} round hour rounded (multiple of 3600 sec) or not
+ * @return {integer} NTP/UTC format time in seconds
+ */
+function getNtpUtc(round) {
   const ONE_HOUR_IN_MS = 3600000;
 
   var t = Date.now();
@@ -188,10 +254,9 @@ function get_ntp_utc(round) {
 /**
  * Creates a new Uint8Array based on two different ArrayBuffers
  *
- * @private
  * @param {ArrayBuffers} buf1 The first buffer.
  * @param {ArrayBuffers} buf2 The second buffer.
- * @return {ArrayBuffers} The new ArrayBuffer created out of the two.
+ * @return {Uint8Array} The new buffer created out of the two.
  */
 function concatBuffer(buf1, buf2) {
   var out = new Uint8Array(buf1.byteLength + buf2.byteLength);
@@ -200,40 +265,55 @@ function concatBuffer(buf1, buf2) {
   return out.buffer;
 }
 
-function ecdh_raw_pubkey_compressed(ec_raw_pubkey) {
-  const u8full = new Uint8Array(ec_raw_pubkey)
-  const len = u8full.byteLength
-  const u8 = u8full.slice(0, 1 + len >>> 1) // drop `y`
-  u8[0] = 0x2 | (u8full[len - 1] & 0x01) // encode sign of `y` in first bit
-  return u8.buffer
+/**
+ * Display on console an array bytes contents
+ *
+ * @param {string} name name of the bytes array to be displayed
+ * @param {ArrayBuffers} buf array bytes
+ */
+function printBuf(name, buf) {
+  console.log(name + " = " + Array.from(new Uint8Array(buf)).map(u => ("0" + u.toString(16)).slice(-2)).join(""))
 }
 
-function print_buf(name, b) {
-  console.log(name + " = " + Array.from(new Uint8Array(b)).map(u => ("0" + u.toString(16)).slice(-2)).join(""))
-}
-
-function getInt64Bytes(x) {
+/**
+ * Convert a 34 bits int in a bytes array
+ *
+ * @param {integer} val to be converted
+ * @return {Uint8Array} bytes array
+ */
+function getInt64Bytes(val) {
   var bytes = [];
   var i = 8;
   do {
-    bytes[--i] = x & (255);
-    x = x >> 8;
+    bytes[--i] = val & (255);
+    val = val >> 8;
   } while (i)
   return bytes;
 }
 
-function parse_bcd(string, size) {
-  var i = 0, ip, k;
+/**
+ * Parse a string composed by digits ([0..9])
+ * to fill a bytes array storing as aset of 
+ * 4-bit sub-fields that each contain a digit.
+ * padding is done by 0xF
+ *
+ * @param {string} string composed by digits ([0..9])
+ * @param {integer} size max number of digits to parse
+ * @return {Uint8Array} bytes array
+ */
+function parseBcd(string, size) {
+  var i = 0,
+    ip, k;
   var array = new Uint8Array(size);
-  
+
   for (i = 0; i < string.length; i++) {
     digit = string.charAt(i) - '0';
     if (i % 2 == 0) {
       ip = i / 2;
       array[ip] = (digit << 4) | 0x0F;
-    } else { 
+    } else {
       ip = (i / 2) - 0.5;
-      array[ip] &=  (0xF0 | digit); 
+      array[ip] &= (0xF0 | digit);
     }
   }
 
