@@ -5,14 +5,15 @@
 /*
 global configuration
 */
-var globalConf = {
-  t_periodStart: getNtpUtc(true),
+var gConf = {
   LTKey: new Uint8Array(32),
   LTId: new Uint8Array(16),
   t_periodStart: getNtpUtc(true),
   ct_periodStart: 0,
   t_qrStart: 0
 }
+
+
 // Display debug information on console
 var verbose = false;
 
@@ -21,7 +22,7 @@ var verbose = false;
  * Start a new period to generate a new LSP computing LTKey (Temporary location
  * 256-bits secret key) and LTId (Temporary location public UUID)
  * 
- * use globalConf (see above)
+ * use gConf (see above)
  * @param {conf} config user configuration
  *   conf = {SK_L, PK_SA, PK_MCTA, 
  *           staff, CRIexp, venueType, venueCategory1, venueCategory2,
@@ -30,30 +31,30 @@ var verbose = false;
  * @return
  */
 async function cleaStartNewPeriod(config) {
-  t_periodStart = getNtpUtc(true);
+  gConf.t_periodStart = getNtpUtc(true);
 
   // Compute LTKey
   var tmp = new Uint8Array(64);
   tmp.set(config.SK_L, 0);
-  tmp[60] = (t_periodStart >> 24) & 0xFF;
-  tmp[61] = (t_periodStart >> 16) & 0xFF;
-  tmp[62] = (t_periodStart >> 8) & 0xFF;
-  tmp[63] = t_periodStart;
-  LTKey = await crypto.subtle.digest("SHA-256", tmp)
+  tmp[60] = (gConf.t_periodStart >> 24) & 0xFF;
+  tmp[61] = (gConf.t_periodStart >> 16) & 0xFF;
+  tmp[62] = (gConf.t_periodStart >> 8) & 0xFF;
+  tmp[63] = gConf.t_periodStart;
+  gConf.LTKey = await crypto.subtle.digest("SHA-256", tmp)
 
   // Compute LTId
   var one = new Uint8Array(1);
   one[0] = 0x31; // '1'
   var key = await crypto.subtle.importKey(
     "raw",
-    LTKey, {
+    gConf.LTKey, {
       name: "HMAC",
       hash: "SHA-512"
     },
     true,
     ["sign"]
   );
-  LTId = new Uint8Array(await crypto.subtle.sign("HMAC", key, one), 0, 16); // HMAC-SHA256-128
+  gConf.LTId = new Uint8Array(await crypto.subtle.sign("HMAC", key, one), 0, 16); // HMAC-SHA256-128
 
   return cleaRenewLSP(config);
 }
@@ -61,7 +62,7 @@ async function cleaStartNewPeriod(config) {
 /**
  * Generate a new locationSpecificPart (LSP)
  * 
- * use globalConf (see above)
+ * use gConf (see above)
  * @param {conf} config user configuration
  *   conf = {SK_L, PK_SA, PK_MCTA, 
  *           staff, CRIexp, venueType, venueCategory1, venueCategory2,
@@ -75,8 +76,8 @@ async function cleaRenewLSP(config) {
   const LOC_MSG_SIZE = 16;
   const TAG_AND_KEY = 49;
 
-  t_qrStart = getNtpUtc(false);
-  ct_periodStart = t_periodStart / 3600;
+  gConf.t_qrStart = getNtpUtc(false);
+  gConf.ct_periodStart = gConf.t_periodStart / 3600;
 
   var header = new Uint8Array(CLEAR_HEADER_SIZE);
   var msg = new Uint8Array(MSG_SIZE + (config.locContactMsg ? LOC_MSG_SIZE + TAG_AND_KEY : 0));
@@ -84,7 +85,7 @@ async function cleaRenewLSP(config) {
 
   // Fill header
   header[0] = ((config.version & 0x7) << 5) | ((config.qrType & 0x7) << 2);
-  header.set(LTId, 1);
+  header.set(gConf.LTId, 1);
 
   // Fill message
   msg[0] = ((config.staff & 0x1) << 7) | (config.locContactMsg ? 0x40 : 0) | ((config.countryCode & 0xFC0) >>> 6);
@@ -92,14 +93,14 @@ async function cleaRenewLSP(config) {
   msg[2] = ((config.CRIexp & 0x7) << 5) | (config.venueType & 0x1F);
   msg[3] = ((config.venueCategory1 & 0xF) << 4) | (config.venueCategory2 & 0xF);
   msg[4] = config.periodDuration;
-  msg[5] = (ct_periodStart >> 16) & 0xFF; // multi-byte numbers are stored with the big endian convention as required by the specification
-  msg[6] = (ct_periodStart >> 8) & 0xFF;
-  msg[7] = ct_periodStart & 0xFF;
-  msg[8] = (t_qrStart >> 24) & 0xFF;
-  msg[9] = (t_qrStart >> 16) & 0xFF;
-  msg[10] = (t_qrStart >> 8) & 0xFF;
-  msg[11] = t_qrStart & 0xFF;
-  msg.set(LTKey, 12);
+  msg[5] = (gConf.ct_periodStart >> 16) & 0xFF; // multi-byte numbers are stored with the big endian convention as required by the specification
+  msg[6] = (gConf.ct_periodStart >> 8) & 0xFF;
+  msg[7] = gConf.ct_periodStart & 0xFF;
+  msg[8] = (gConf.t_qrStart >> 24) & 0xFF;
+  msg[9] = (gConf.t_qrStart >> 16) & 0xFF;
+  msg[10] = (gConf.t_qrStart >> 8) & 0xFF;
+  msg[11] = gConf.t_qrStart & 0xFF;
+  msg.set(gConf.LTKey, 12);
 
   if (config.locContactMsg) {
     const phone = parseBcd(config.locContactMsg.locationPhone, 8);

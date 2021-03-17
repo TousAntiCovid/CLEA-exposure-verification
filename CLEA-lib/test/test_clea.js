@@ -1,7 +1,12 @@
 /* 
  * Copyright (C) Inria, 2021
  */
+
+/*
+* Global variable of json output results
+*/
 var OUTPUT = [];
+
 
 /**
  * Generate a list of Location Specific Part (LSP)
@@ -28,9 +33,9 @@ async function generateLsps(conf_tests) {
         vResult += b64 + "\n";
         lsp_base_64 = {
             lsp_base64: b64,
-            LTId: bytesToUuid(LTId),
-            ct_periodStart: ct_periodStart,
-            t_qrStart: t_qrStart,
+            LTId: bytesToUuid(gConf.LTId),
+            ct_periodStart: gConf.ct_periodStart,
+            t_qrStart: gConf.t_qrStart,
             SK_SA: conf.SK_SA,
             SK_MCTA: conf.SK_MCTA,
         }
