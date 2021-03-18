@@ -13,3 +13,5 @@ This repertoire therefore includes
 * Tests to demonstrate a cycle of encoding, in C or Java, and decoding, in Java, of a LSP (see [README.md](test/README.md)).
 
 This work can serve as inspiration for a C implementation dedicated to specialised devices or to more generic devices (PC, tablet, telephone) in Java.
+
+This source code is subject to the terms under the Mozilla Public License 2.0 (see [LICENSE.md](LICENSE.md)).
