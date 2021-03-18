@@ -227,6 +227,12 @@ def lsp_cmp(enc_in, enc_out, dec_out):
     elif nbr != 0:
         print('LocationMsg failed')
         return False
+    
+    if testok == nbtests :
+        # staff, countryCode, LTId, periodDuration, CRIexp, venueType, venueCat1, venueCat2, periodStartTime, qrStartTime, lsp_base64, SecretKey
+        print(enc_in['staff'], ',', enc_in['countryCode'], ',', enc_out['LTId'], ',', enc_in['periodDuration'],
+            ',', enc_in['CRIexp'], ',', enc_in['venueType'], ',', enc_in['venueCategory1'], ',', enc_in['venueCategory2'], 
+            ',', enc_out['ct_periodStart'], ',', enc_out['t_qrStart'], ',', enc_in['SK_SA'], ',', enc_out['lsp_base64'])
 
     return testok == nbtests
 
