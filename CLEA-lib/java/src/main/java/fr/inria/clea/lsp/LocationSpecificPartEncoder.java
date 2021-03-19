@@ -117,7 +117,6 @@ public class LocationSpecificPartEncoder {
             log.debug("message length: {}, encrypted message length: {} ", message.length, encryptedMessage.length);
             return encryptedMessage;            
         } catch (Exception e) {
-            log.error("Cannot encrypt Location Specific Part", e);
             throw new CleaEncryptionException(e);
         }
     }

@@ -100,7 +100,6 @@ public class LocationSpecificPartDecoder {
             binaryLocationSpecificPart = this.cleaEciesEncoder.decrypt(encryptedLocationSpecificPart, this.serverAuthoritySecretKey, true);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalStateException | InvalidCipherTextException
                 | IOException e) {
-            log.error("Cannot decrypt Location Specific Part", e);
             throw new CleaEncryptionException(e);
         }
         return this.decodeMessage(binaryLocationSpecificPart);
