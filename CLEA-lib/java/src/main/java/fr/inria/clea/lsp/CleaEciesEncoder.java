@@ -44,8 +44,6 @@ import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.util.encoders.Hex;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Encryption/Decription respecting ECIES-KEM (Elliptic Curve Integrated
  * Encryption Scheme with Key encapsulation mechanisms )
@@ -58,7 +56,6 @@ import lombok.extern.slf4j.Slf4j;
  *      for Public-Key Encryption”, 2006</a>
  * 
  */
-@Slf4j
 public class CleaEciesEncoder {
 
     /* Type of the elliptic curve */
@@ -329,7 +326,6 @@ public class CleaEciesEncoder {
 
             return locationTemporarySecretKey;
         } catch (IOException | NoSuchAlgorithmException e) {
-            log.error("Error when computing location temporary secret key!", e);
             throw new CleaEncryptionException(e);
         }
     }
@@ -359,7 +355,6 @@ public class CleaEciesEncoder {
     
             return locationTemporaryPublicID;
         } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalStateException | UnsupportedEncodingException e) {
-            log.error("Error when computing location temporary secret key!", e);
             throw new CleaEncryptionException(e);
         }
     }

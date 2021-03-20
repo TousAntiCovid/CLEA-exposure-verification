@@ -33,7 +33,6 @@ public class LocationContactMessageEncoder {
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException
                 | InvalidAlgorithmParameterException | IllegalStateException | InvalidCipherTextException
                 | IOException e) {
-            log.error("Cannot encrypt Location Contact Message", e);
             throw new CleaEncryptionException(e);
         }
     }
@@ -111,7 +110,6 @@ public class LocationContactMessageEncoder {
             return new LocationContact(locationPhone.toString(), locationPin.toString(), periodStartTime);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalStateException | InvalidCipherTextException
                 | IOException e) {
-            log.error("Cannot encrypt Location Contact Message", e);
             throw new CleaEncryptionException(e);
         }
     }
