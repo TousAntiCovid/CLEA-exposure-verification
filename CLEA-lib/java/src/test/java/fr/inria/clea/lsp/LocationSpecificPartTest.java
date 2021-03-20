@@ -145,7 +145,8 @@ class LocationSpecificPartTest {
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
         assertThat(encryptedLocationSpecificPart).isNotNull();
         /* Decode the encoded LSP */
-        LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthorityKeyPair[0]).decrypt(encryptedLocationSpecificPart);
+        LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthorityKeyPair[0])
+                .decrypt(encryptedLocationSpecificPart).decodeMessage();
         
         assertThat(decodedLsp).isEqualTo(lsp);
         assertThat(lsp.getEncryptedLocationContactMessage()).isNotNull();
@@ -175,7 +176,8 @@ class LocationSpecificPartTest {
         /* Encode a LSP with location */
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
         /* Decode the encoded LSP */
-        LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthorityKeyPair[0]).decrypt(encryptedLocationSpecificPart);
+        LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthorityKeyPair[0])
+                .decrypt(encryptedLocationSpecificPart).decodeMessage();
         
         assertThat(decodedLsp).isEqualTo(lsp);
     }
@@ -258,7 +260,7 @@ class LocationSpecificPartTest {
 
         LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(servertAuthoritySecretKey);
 
-        LocationSpecificPart lsp = decoder.decrypt(lsp_base64);
+        LocationSpecificPart lsp = decoder.decrypt(lsp_base64).decodeMessage();
         
         assertThat(lsp.isStaff()).isEqualTo(false);
         assertThat(lsp.getCountryCode()).isEqualTo(492);
