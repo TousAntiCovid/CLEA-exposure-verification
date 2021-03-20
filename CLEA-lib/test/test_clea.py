@@ -227,11 +227,11 @@ def lsp_cmp(enc_in, enc_out, dec_out):
     elif nbr != 0:
         print('LocationMsg failed')
         return False
-
+       
     return testok == nbtests
 
 
-def lsps_cmp(enc_in_file, enc_out_file, dec_out_file):
+def lsps_cmp(enc_in_file, enc_out_file, dec_out_file, csv_lsp_file, csv_loc_file):
     """
     Compare a list of LSP parameters
     ----------
@@ -239,7 +239,8 @@ def lsps_cmp(enc_in_file, enc_out_file, dec_out_file):
     enc_out_file: output file in json of the lsp encoder with generated lsp
                 parameters (time, TLId)
     dec_out_file: output file in json of the lsp decoder
-
+    csv_lsp_file: save LSP encoding/decoding results to be updated when necessary for junit5 test in ../java/src/test/resources
+    csv_loc_file: save location encoding/decoding results to be updated when necessary for junit5 test in ../java/src/test/resources
     Return
     -------
     True / False
@@ -255,9 +256,23 @@ def lsps_cmp(enc_in_file, enc_out_file, dec_out_file):
             return False
         iok = 0
         for idx, _ in enumerate(enc_in_s):
-            if lsp_cmp(enc_in_s[idx], enc_out_s[idx], dec_out_s[idx]):
+            enc_in = enc_in_s[idx]
+            enc_out = enc_out_s[idx]
+            dec_out = dec_out_s[idx]
+            if lsp_cmp(enc_in, enc_out, dec_out):
                 print('TEST PASS:', idx+1)
                 iok = iok + 1
+                SEP = ', '
+                if csv_lsp_file is not None:
+                    row = str(enc_in['staff']) + SEP + str(enc_in['countryCode']) + SEP + str(enc_out['LTId']) + SEP + str(enc_in['CRIexp']) + SEP
+                    row += str(enc_in['venueType']) +  SEP + str(enc_in['venueCategory1']) + SEP + str(enc_in['venueCategory2']) + SEP + str(enc_in['periodDuration']) + SEP
+                    row += str(enc_out['ct_periodStart']) +  SEP +  str(enc_out['t_qrStart']) + SEP + str(enc_in['SK_SA']) + SEP + str(enc_in['PK_SA']) + SEP + str(enc_out['lsp_base64'])
+                    csv_lsp_file.write(row+ '\n')
+                if csv_loc_file is not None and enc_in.get('locationPhone') is not None :
+                    row = str(enc_in['locationPhone']) + SEP + str(enc_in['locationPIN']) + SEP + str(enc_out['ct_periodStart']*3600) + SEP
+                    row += str(enc_in['SK_SA']) + SEP + str(enc_in['PK_SA']) + SEP
+                    row += str(enc_in['SK_MCTA']) + SEP + str(enc_in['PK_MCTA']) + SEP + str(enc_out['lsp_base64'])
+                    csv_loc_file.write(row+ '\n')
             else:
                 print('TEST FAILED:', idx+1)
 
@@ -272,9 +287,15 @@ parser.add_argument("--noencode",
 parser.add_argument("--java",
                     help="encoding part with Java lib (C lib by default)",
                     action="store_true")
+parser.add_argument("--csvtest",
+                    help="saving file testDecoding.csv",
+                    action="store_true")
 args = parser.parse_args()
 
+
 # clean output files
+CSV_LSP_TST = 'testLSPDecoding.csv'
+CSV_LOC_TST = 'testLocationDecoding.csv'
 ENC_IN = 'encode_in.json'
 ENC_OUT = 'encode_out.json'
 DEC_OUT = 'decode_out.json'
@@ -282,13 +303,29 @@ if os.path.exists(ENC_OUT) and not args.noencode:
     os.remove(ENC_OUT)
 if os.path.exists(DEC_OUT):
     os.remove(DEC_OUT)
+if os.path.exists(DEC_OUT):
+    os.remove(DEC_OUT)
+# testDecoding.csv, to be updated when necessary for junit5 test in ../java/src/test/resources
+if args.csvtest:
+    csv_lsp_file = open(CSV_LSP_TST,"w") 
+    csv_loc_file = open(CSV_LOC_TST,"w") 
+    header = 'staff, countryCode, LTId, CRIexp, venueType, venueCat1, venueCat2, periodDuration, ct_periodStart, t_qrStart, SK_SA, PK_SA, lsp_base64\n'
+    csv_lsp_file.write(header) 
+    header = 'locationPhone, locationPin, t_periodStart, SK_SA, PK_SA, SK_MCTA, PK_MCTA, lsp_base64\n'
+    csv_loc_file.write(header)
+else:
+    csv_lsp_file = None 
+    csv_loc_file = None
 # encode_in.json -> [lsps_encode] -> encode_out.json
 if not args.noencode:
     lsps_encode(ENC_IN, ENC_OUT, java=args.java)
 # encode_out.json -> [lsps_decode] -> decode_out.json
 lsps_decode(ENC_OUT, DEC_OUT)
 # compare parameters input or generated (time, ltid) and output paramaters
-if lsps_cmp(ENC_IN, ENC_OUT, DEC_OUT):
+if lsps_cmp(ENC_IN, ENC_OUT, DEC_OUT, csv_lsp_file, csv_loc_file):
     print('ALL TESTS PASS')
 else:
     print('TESTS FAILED')
+if args.csvtest: 
+    csv_lsp_file.close()
+    csv_loc_file.close()
