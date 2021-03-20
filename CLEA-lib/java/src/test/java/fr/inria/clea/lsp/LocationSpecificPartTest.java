@@ -223,7 +223,7 @@ class LocationSpecificPartTest {
                                                     String serverAuthoritySecretKey, String serverAuthorityPublicKey, String lspbase64) throws CleaEncryptionException {
                                                        
         LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey); 
-        LocationSpecificPart lsp = decoder.decrypt(lspbase64);
+        LocationSpecificPart lsp = decoder.decrypt(lspbase64).decodeMessage();
         
         assertThat(lsp.isStaff()).isEqualTo(staff==1);
         assertThat(lsp.getCountryCode()).isEqualTo(countryCode);
@@ -296,7 +296,7 @@ class LocationSpecificPartTest {
         /* Encode a LSP with location */
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
         /* Decode the encoded LSP */
-        LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthoritySecretKey).decrypt(encryptedLocationSpecificPart);
+        LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthoritySecretKey).decrypt(encryptedLocationSpecificPart).decodeMessage();
         
         assertThat(decodedLsp).isEqualTo(lsp);
     
@@ -315,7 +315,8 @@ class LocationSpecificPartTest {
                                             String lspbase64) throws CleaEncryptionException {
          /* Decode the encoded LSP */                                               
         LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey); 
-        LocationSpecificPart lsp = decoder.decrypt(lspbase64);
+        LocationSpecificPart lsp = decoder.decrypt(lspbase64).decodeMessage();
+;
         
         byte[] encryptedLocationContactMessage = lsp.getEncryptedLocationContactMessage();
         LocationContact decodedLocationContact = new LocationContactMessageEncoder(manualContactTracingAuthoritySecretKey).decode(encryptedLocationContactMessage);
