@@ -37,7 +37,7 @@ public class LocationSpecificPartEncoder {
      * 
      * @return data header in binary format
      */
-    private byte[] binaryEncodedHeader(LocationSpecificPart locationSpecificPart) {
+    public byte[] binaryEncodedHeader(LocationSpecificPart locationSpecificPart) {
         BitUtils header = new BitUtils(8 * CleaEciesEncoder.HEADER_BYTES_SIZE);
         /* version (3 bits) */
         header.setNextInteger(locationSpecificPart.getVersion(), 3);
@@ -62,7 +62,7 @@ public class LocationSpecificPartEncoder {
      * @throws CleaEncryptionException 
      * @throws Exception
      */
-    private byte[] binaryEncodedMessage(LocationSpecificPart locationSpecificPart) throws CleaEncryptionException {
+    public byte[] binaryEncodedMessage(LocationSpecificPart locationSpecificPart) throws CleaEncryptionException {
         BitUtils message = new BitUtils(8 * CleaEciesEncoder.MSG_BYTES_SIZE);
 
         /* staff (1 bit) */

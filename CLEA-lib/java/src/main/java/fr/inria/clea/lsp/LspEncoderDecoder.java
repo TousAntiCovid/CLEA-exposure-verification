@@ -27,7 +27,7 @@ public class LspEncoderDecoder {
         }
     }
 
-    protected static void decodeLsp(String[] args) throws CleaEncryptionException {
+    protected static void decodeLsp(String[] args) throws CleaEncryptionException, CleaEncodingException {
         String lspBase64 = args[1];
         String serverAuthoritySecretKey = args[2];
         String manualContactTracingAuthoritySecretKey = args[3];

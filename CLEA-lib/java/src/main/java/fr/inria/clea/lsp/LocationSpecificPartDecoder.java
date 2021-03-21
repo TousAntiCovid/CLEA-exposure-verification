@@ -36,7 +36,10 @@ public class LocationSpecificPartDecoder {
      * Unpack the data decrypted header (binary format): 
      * | version | LSPtype | pad | LTId | to extract parameters
      */
-    private EncryptedLocationSpecificPart decodeHeader(byte[] binaryLocationSpecificPart) {
+    public EncryptedLocationSpecificPart decodeHeader(byte[] binaryLocationSpecificPart) throws CleaEncodingException {
+        if (binaryLocationSpecificPart.length < CleaEciesEncoder.HEADER_BYTES_SIZE + CleaEciesEncoder.MSG_BYTES_SIZE) {
+            throw new CleaEncodingException("Bad message length: " + binaryLocationSpecificPart.length);
+        }
         byte[] headerBinary = Arrays.copyOfRange(binaryLocationSpecificPart, 0, CleaEciesEncoder.HEADER_BYTES_SIZE);
         BitUtils header = new BitUtils(headerBinary);
 
@@ -61,8 +64,9 @@ public class LocationSpecificPartDecoder {
      * 
      * @param lspBase64 Location Specific Part in base64
      * @throws CleaEncryptionException 
+     * @throws CleaEncodingException 
      */
-    public EncryptedLocationSpecificPart decrypt(String lspBase64) throws CleaEncryptionException {
+    public EncryptedLocationSpecificPart decrypt(String lspBase64) throws CleaEncryptionException, CleaEncodingException {
         byte[] encryptedLocationSpecificPart = Base64.getDecoder().decode(lspBase64);
         log.debug("Base 64 decoded LSP: {}", encryptedLocationSpecificPart);
         byte[] binaryLocationSpecificPart;
