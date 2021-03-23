@@ -117,7 +117,9 @@ public class Location {
                     qrCodeValidityStartTime, periodStartTime, this.locationSpecificPart.getPeriodDuration());
             return;
         }
-        if (((qrCodeValidityStartTime - periodStartTime) % this.locationSpecificPart.getQrCodeRenewalInterval()) != 0) {
+        
+        if ((this.locationSpecificPart.getQrCodeRenewalInterval() != 0)  &&
+            (((qrCodeValidityStartTime - periodStartTime) % this.locationSpecificPart.getQrCodeRenewalInterval()) != 0)) {
             log.warn("Cannot set QrCode validity start time to {}. It is not a multiple of qrCodeRenewalInterval (qrCodeValidityStartTime: {}, periodStartTime: {}, qrCodeRenewalInterval: {}", 
                     qrCodeValidityStartTime, periodStartTime, this.locationSpecificPart.getQrCodeRenewalInterval());
             return;
