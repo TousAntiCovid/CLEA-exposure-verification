@@ -662,7 +662,7 @@ The following binary format must be used:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |              locationPhone (60 bits)                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              ...                                      |       |
+|              ...                                      | pad   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |locationRegion |          locationPIN (3 bytes)                |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -676,7 +676,10 @@ The phone number must be encoded using the [E.164](https://www.itu.int/rec/T-REC
 For instance, in case of France, `+33 1 02 03 04 05` will be stored as (binary) `0011 0011  0001 0000  0010 0000  0011 0000  0100 0000  0101 1111  1111 1111  1111`.
 Unused nibbles must contain the `1111` / `0xF` value.
 
-- `locationRegion` (12 bits)
+- `padding`(4 bits):
+this field is unused in the current specification and must be set to zero.
+
+- `locationRegion` (1 byte):
 this field contains coarse grain geographical information for the location, in order to facilitate the work of the Manual Contact Tracing team (e.g., for countries that rely on a regional organisation, it enables the cluster record to be routed directly to the right regional Manual Contact Tracing team).
 In case of France, it can contain a department number.
 
