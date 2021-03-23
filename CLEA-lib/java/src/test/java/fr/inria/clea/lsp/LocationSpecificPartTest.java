@@ -13,15 +13,15 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
-import java.util.UUID;
 import java.util.Random;
+import java.util.UUID;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest; 
+import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 
 import com.google.zxing.BarcodeFormat;
@@ -53,9 +53,11 @@ class LocationSpecificPartTest {
         System.out.println("Server Authority Public Key : " + serverAuthorityKeyPair[1]);
         manualContactTracingAuthorityKeyPair = cleaEciesEncoder.genKeysPair(true);
     }
-    
+
     @Test
-    public void testCleaEciesEncodingAndDecodingOfData() throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, InvalidAlgorithmParameterException, IllegalStateException, InvalidCipherTextException, IOException {
+    public void testCleaEciesEncodingAndDecodingOfData()
+            throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException,
+            InvalidAlgorithmParameterException, IllegalStateException, InvalidCipherTextException, IOException {
         /* Message to encrypt and decrypt */
         String plainText = "9F7213093CEDBBE66356550296A37DD18077E8646185EA2EA0EAFE88630F8C861A2E05F35BB2D863A28841CF";
         String headerText = "7D1BBFB6CAD6C2E862A7AEAD7DA27FB814";
@@ -72,92 +74,73 @@ class LocationSpecificPartTest {
 
         assertThat(decrypted).containsExactly(cleaEciesEncoder.concat(header, message));
     }
-    
 
     @Test
     public void testEncodinsAndDecodingOfALocationMessage() throws CleaEncryptionException {
         int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
-        LocationContact locationContact = new LocationContact("33800130000", "01234567", periodStartTime);
-        Location location = Location.builder()
-                .contact(locationContact)
+        LocationContact locationContact = new LocationContact("0612150292", "01234567", periodStartTime);
+        Location location = Location.builder().contact(locationContact)
                 .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
-                .permanentLocationSecretKey(permanentLocationSecretKey)
-                .build();
-        
+                .permanentLocationSecretKey(permanentLocationSecretKey).build();
+
         byte[] encryptedLocationContactMessage = location.getLocationContactMessageEncrypted();
-        LocationContact decodedLocationContact = new LocationContactMessageEncoder(manualContactTracingAuthorityKeyPair[0]).decode(encryptedLocationContactMessage);
-        
+        LocationContact decodedLocationContact = new LocationContactMessageEncoder(
+                manualContactTracingAuthorityKeyPair[0]).decode(encryptedLocationContactMessage);
+
         assertThat(decodedLocationContact).isEqualTo(locationContact);
     }
-    
 
     @Test
-    public void testEncodingAndDecodingOfALocationSpecificPart() throws CleaEncryptionException {
+    public void testEncodingAndDecodingOfALocationSpecificPart() throws CleaEncryptionException, CleaEncodingException {
         int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
         LocationContact locationContact = new LocationContact("33800130000", "01234567", periodStartTime);
         /* Encode a LSP with location */
-        LocationSpecificPart lsp = LocationSpecificPart.builder()
-                .staff(true)
-                .countryCode(33)
-                .qrCodeRenewalIntervalExponentCompact(2)
-                .venueType(4)
-                .venueCategory1(0)
-                .venueCategory2(0)
-                .periodDuration(3)
-                .build();
-        Location location = Location.builder()
-                .contact(locationContact)
-                .locationSpecificPart(lsp)
+        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
+                .qrCodeRenewalIntervalExponentCompact(2).venueType(4).venueCategory1(0).venueCategory2(0)
+                .periodDuration(3).build();
+        Location location = Location.builder().contact(locationContact).locationSpecificPart(lsp)
                 .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
                 .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
-                .permanentLocationSecretKey(permanentLocationSecretKey)
-                .build();
+                .permanentLocationSecretKey(permanentLocationSecretKey).build();
         location.setPeriodStartTime(periodStartTime);
-        
+
         /* Encode a LSP with location */
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
         assertThat(encryptedLocationSpecificPart).isNotNull();
         /* Decode the encoded LSP */
         LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthorityKeyPair[0])
                 .decrypt(encryptedLocationSpecificPart).decodeMessage();
-        
+
         assertThat(decodedLsp).isEqualTo(lsp);
         assertThat(lsp.getEncryptedLocationContactMessage()).isNotNull();
     }
-    
 
     @Test
-    public void testEncodingAndDecodingOfALocationSpecificPartWithoutLocationContact() throws CleaEncryptionException {
+    public void testEncodingAndDecodingOfALocationSpecificPartWithoutLocationContact()
+            throws CleaEncryptionException, CleaEncodingException {
         int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
         /* Encode a LSP with location */
-        LocationSpecificPart lsp = LocationSpecificPart.builder()
-                .staff(true)
-                .countryCode(33)
-                .qrCodeRenewalIntervalExponentCompact(2)
-                .venueType(4)
-                .venueCategory1(0)
-                .venueCategory2(0)
-                .periodDuration(3)
-                .build();
-        Location location = Location.builder()
-                .locationSpecificPart(lsp)
+        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
+                .qrCodeRenewalIntervalExponentCompact(2).venueType(4).venueCategory1(0).venueCategory2(0)
+                .periodDuration(3).build();
+        Location location = Location.builder().locationSpecificPart(lsp)
                 .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
-                .permanentLocationSecretKey(permanentLocationSecretKey)
-                .build();
+                .permanentLocationSecretKey(permanentLocationSecretKey).build();
         location.setPeriodStartTime(periodStartTime);
-        
+
         /* Encode a LSP with location */
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
         /* Decode the encoded LSP */
         LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthorityKeyPair[0])
                 .decrypt(encryptedLocationSpecificPart).decodeMessage();
-        
+
         assertThat(decodedLsp).isEqualTo(lsp);
     }
-    
+
     @Disabled("compute new String values with c lib")
     @Test
-    public void testDecryptionFromMessageEncryptedByCleaCLibrary() throws NoSuchAlgorithmException, InvalidKeySpecException, IllegalStateException, InvalidCipherTextException, IOException {
+    public void testDecryptionFromMessageEncryptedByCleaCLibrary() throws NoSuchAlgorithmException,
+            InvalidKeySpecException, IllegalStateException, InvalidCipherTextException, IOException {
         /* EC private key from C package */
         final String privateKey = "34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8";
         /* message encrypted, from C package */
@@ -175,26 +158,18 @@ class LocationSpecificPartTest {
 
         assertThat(decryptedMessage).containsExactly(plainTextMessage);
     }
-   
+
     @Disabled("Keep this piece of code as example how to generate a Qrcode image")
     @Test
     public void testQrCodeGeneration() throws Exception {
         int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
         /* Encode the LSP */
-        LocationSpecificPart lsp = LocationSpecificPart.builder()
-                .staff(true)
-                .countryCode(33)
-                .qrCodeRenewalIntervalExponentCompact(2)
-                .venueType(4)
-                .venueCategory1(0)
-                .venueCategory2(0)
-                .periodDuration(3)
-                .build();
-        Location location = Location.builder()
-                .locationSpecificPart(lsp)
+        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
+                .qrCodeRenewalIntervalExponentCompact(2).venueType(4).venueCategory1(0).venueCategory2(0)
+                .periodDuration(3).build();
+        Location location = Location.builder().locationSpecificPart(lsp)
                 .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
-                .permanentLocationSecretKey(permanentLocationSecretKey)
-                .build();
+                .permanentLocationSecretKey(permanentLocationSecretKey).build();
         location.setPeriodStartTime(periodStartTime);
 
         /* QR-code = "country-specific-prefix" / "Base64(location-specific-part)" */
@@ -210,62 +185,45 @@ class LocationSpecificPartTest {
         MatrixToImageWriter.writeToStream(bitMatrix, imageFormat, fileOutputStream);
         fileOutputStream.close();
     }
-     
+
     /**
-     * Testing the decoding of a LSP in base64 (encoded by C lib) 
-     * testLSPDecoding.csv values are generated by the interoperability test 
+     * Testing the decoding of a LSP in base64 (encoded by C lib)
+     * testLSPDecoding.csv values are generated by the interoperability test
      * launched manually in python (in project/test)
      */
-    @ParameterizedTest 
+    @ParameterizedTest
     @CsvFileSource(resources = "/testLSPDecoding.csv", numLinesToSkip = 1)
-    void testDecodingOfLocationSpecificPartInBase64(int staff, int countryCode, String locationTemporaryPublicID, int qrCodeRenewalIntervalExponentCompact, 
-                                                    int venueType, int venueCat1, int venueCat2, int periodDuration, int periodStartTime, long qrStartTime, 
-                                                    String serverAuthoritySecretKey, String serverAuthorityPublicKey, String lspbase64) throws CleaEncryptionException {
-                                                       
-        LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey); 
+    public void testDecodingOfLocationSpecificPartInBase64(int staff, int countryCode, String locationTemporaryPublicID,
+            int qrCodeRenewalIntervalExponentCompact, int venueType, int venueCat1, int venueCat2, int periodDuration,
+            int periodStartTime, long qrStartTime, String serverAuthoritySecretKey, String serverAuthorityPublicKey,
+            String lspbase64) throws CleaEncryptionException, CleaEncodingException {
+        LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey);
         LocationSpecificPart lsp = decoder.decrypt(lspbase64).decodeMessage();
-        
-        assertThat(lsp.isStaff()).isEqualTo(staff==1);
+
+        assertThat(lsp.isStaff()).isEqualTo(staff == 1);
         assertThat(lsp.getCountryCode()).isEqualTo(countryCode);
         assertThat(lsp.getQrCodeRenewalIntervalExponentCompact()).isEqualTo(qrCodeRenewalIntervalExponentCompact);
         assertThat(lsp.getLocationTemporaryPublicId()).isEqualTo(UUID.fromString(locationTemporaryPublicID));
-        assertThat(lsp.getPeriodDuration()).isEqualTo(periodDuration); 
-        assertThat(lsp.getVenueType()).isEqualTo(venueType);  
-        assertThat(lsp.getVenueCategory1()).isEqualTo(venueCat1); 
-        assertThat(lsp.getVenueCategory2()).isEqualTo(venueCat2);  
+        assertThat(lsp.getPeriodDuration()).isEqualTo(periodDuration);
+        assertThat(lsp.getVenueType()).isEqualTo(venueType);
+        assertThat(lsp.getVenueCategory1()).isEqualTo(venueCat1);
+        assertThat(lsp.getVenueCategory2()).isEqualTo(venueCat2);
         assertThat(lsp.getCompressedPeriodStartTime()).isEqualTo(periodStartTime);
         // TODO: PROBLEM TO SOLVE: int-> long for qrCodeValidityStartTime
         // assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(qrStartTime);
-    }  
-    
-    /**
-     * Generates a random long with n digits
-     */
-    private String generateRandomDigits(int n) {
-
-        String randomNumString = "";
-        Random r = new Random();
-        //Generate the first digit from 0-9
-        randomNumString += r.nextInt(10);
-        //Generate the remaining digits between 0-9
-        for(int x = 1; x < n; x++){
-            randomNumString += r.nextInt(9);
-        }
-
-        return randomNumString;
     }
 
     /**
-     * Testing the encoding/decoding of a LSP in base64 
-     * testLSPDecoding.csv values are generated by the interoperability test 
-     * launched manually in python (in project/test)
+     * Testing the encoding/decoding of a LSP in base64 testLSPDecoding.csv values
+     * are generated by the interoperability test launched manually in python (in
+     * project/test)
      */
-    @ParameterizedTest 
+    @ParameterizedTest
     @CsvFileSource(resources = "/testLSPDecoding.csv", numLinesToSkip = 1)
-    void testEncodingDecodingOfLSPSpecificPartInBase64(int staff, int countryCode, String locationTemporaryPublicID, int qrCodeRenewalIntervalExponentCompact, 
-                                                    int venueType, int venueCat1, int venueCat2, int periodDuration, int periodStartTime, long qrStartTime, 
-                                                    String serverAuthoritySecretKey, String serverAuthorityPublicKey, String lspbase64) throws CleaEncryptionException {
-      
+    public void testEncodingDecodingOfLSPSpecificPartInBase64(int staff, int countryCode,
+            String locationTemporaryPublicID, int qrCodeRenewalIntervalExponentCompact, int venueType, int venueCat1,
+            int venueCat2, int periodDuration, int periodStartTime, long qrStartTime, String serverAuthoritySecretKey,
+            String serverAuthorityPublicKey, String lspbase64) throws CleaEncryptionException, CleaEncodingException {
         /* Use only testLSPDecoding.csv parameters to have a variety of parameters */
         /* times parameters and location are generated */
         int myPeriodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
@@ -275,74 +233,88 @@ class LocationSpecificPartTest {
         String pinCode = generateRandomDigits(8);
         LocationContact locationContact = new LocationContact(phone, pinCode, myPeriodStartTime);
         /* Encode a LSP with location */
-        LocationSpecificPart lsp = LocationSpecificPart.builder()
-                .staff(staff==1)
-                .countryCode(countryCode)
-                .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact)
-                .venueType(venueType)
-                .venueCategory1(venueCat1)
-                .venueCategory2(venueCat2)
-                .periodDuration(periodDuration)
-                .build();
-        Location location = Location.builder()
-                .locationSpecificPart(lsp)
-                .contact(locationContact)
+        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(staff == 1).countryCode(countryCode)
+                .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact).venueType(venueType)
+                .venueCategory1(venueCat1).venueCategory2(venueCat2).periodDuration(periodDuration).build();
+        Location location = Location.builder().locationSpecificPart(lsp).contact(locationContact)
                 .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
                 .serverAuthorityPublicKey(serverAuthorityPublicKey)
-                .permanentLocationSecretKey(permanentLocationSecretKey)
-                .build();
+                .permanentLocationSecretKey(permanentLocationSecretKey).build();
         location.setPeriodStartTime(myPeriodStartTime);
-        
+
         /* Encode a LSP with location */
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
         /* Decode the encoded LSP */
-        LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthoritySecretKey).decrypt(encryptedLocationSpecificPart).decodeMessage();
-        
-        assertThat(decodedLsp).isEqualTo(lsp);
-    
-    }  
+        LocationSpecificPart decodedLsp = new LocationSpecificPartDecoder(serverAuthoritySecretKey)
+                .decrypt(encryptedLocationSpecificPart).decodeMessage();
 
-     /**
-     * Testing the decoding of a Location inside a LSP in base64 (encoded by C lib) 
-     * testLocationDecoding.csv values are generated by the interoperability test 
+        assertThat(decodedLsp).isEqualTo(lsp);
+    }
+
+    /**
+     * Testing the decoding of a Location inside a LSP in base64 (encoded by C lib)
+     * testLocationDecoding.csv values are generated by the interoperability test
      * launched manually in python (in project/test)
      */
-    @ParameterizedTest 
+    @ParameterizedTest
     @CsvFileSource(resources = "/testLocationDecoding.csv", numLinesToSkip = 1)
-    void testDecodingOfLocationOnlyInBase64(String locationPhone, String locationPin, long t_periodStart,
-                                            String serverAuthoritySecretKey, String serverAuthorityPublicKey, 
-                                            String manualContactTracingAuthoritySecretKey, String manualContactTracingAuthorityPublicKey,
-                                            String lspbase64) throws CleaEncryptionException {
-         /* Decode the encoded LSP */                                               
-        LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey); 
+    public void testDecodingOfLocationOnlyInBase64(String locationPhone, String locationPin, long t_periodStart,
+            String serverAuthoritySecretKey, String serverAuthorityPublicKey,
+            String manualContactTracingAuthoritySecretKey, String manualContactTracingAuthorityPublicKey,
+            String lspbase64) throws CleaEncryptionException, CleaEncodingException {
+        /* Decode the encoded LSP */
+        LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey);
         LocationSpecificPart lsp = decoder.decrypt(lspbase64).decodeMessage();
-;
-        
-        byte[] encryptedLocationContactMessage = lsp.getEncryptedLocationContactMessage();
-        LocationContact decodedLocationContact = new LocationContactMessageEncoder(manualContactTracingAuthoritySecretKey).decode(encryptedLocationContactMessage);
 
-       assertThat(decodedLocationContact.getLocationPhone()).isEqualTo(locationPhone);
-       assertThat(decodedLocationContact.getLocationPin()).isEqualTo(locationPin); 
-       // TODO: PROBLEM TO SOLVE: int-> long for PeriodStartTime
-       // assertThat(decodedLocationContact.getPeriodStartTime()).isEqualTo(t_periodStart);
-    }  
-    
+        byte[] encryptedLocationContactMessage = lsp.getEncryptedLocationContactMessage();
+        LocationContact decodedLocationContact = new LocationContactMessageEncoder(
+                manualContactTracingAuthoritySecretKey).decode(encryptedLocationContactMessage);
+
+        assertThat(decodedLocationContact.getLocationPhone()).isEqualTo(locationPhone);
+        assertThat(decodedLocationContact.getLocationPin()).isEqualTo(locationPin);
+        // TODO: PROBLEM TO SOLVE: int-> long for PeriodStartTime
+        // assertThat(decodedLocationContact.getPeriodStartTime()).isEqualTo(t_periodStart);
+    }
+
     @Test
-    public void testLocationSpecificPartBase64EciesDecryption() throws NoSuchAlgorithmException, InvalidKeySpecException, IllegalStateException, InvalidCipherTextException, IOException {
+    public void testLocationSpecificPartBase64EciesDecryption() throws NoSuchAlgorithmException,
+            InvalidKeySpecException, IllegalStateException, InvalidCipherTextException, IOException {
         /* EC private key from C package */
         final String privateKey = "3108f08b1485adb6f72cfba1b55c7484c906a2a3a0a027c78dcd991ca64c97bd";
         /* message encrypted, from C package */
         final String cipherTextBase64 = "AHHp6U8wrVQuWDomdZfDS0BHC45n72pzlmAhqE7AZp3hTWt2cuUOJ78nNeZSJCrpjpl3glMI49yjLEoIi73wqsSbja1sMH0XzuNoAssCV53wTItE3Nxg+J3FI78/W6uWD8IU+dn0YEroJwH2y1g=";
-        /* plain text message byte array */ 
-        byte[] plainTextBytes = { (byte) 0x00, (byte)0x71, (byte)0xE9, (byte)0xE9, (byte)0x4F, (byte)0x30, (byte)0xAD, (byte)0x54, (byte)0x2E, (byte)0x58, (byte)0x3A, (byte)0x26, (byte)0x75, (byte)0x97, (byte)0xC3, (byte)0x4B, (byte)0x40, (byte)0x89, (byte)0x43, (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0x10, (byte)0x36, (byte)0x50, (byte)0xE3, (byte)0xFB, (byte)0xC4, (byte)0x2F, (byte)0x13, (byte)0xAD, (byte)0x1A, (byte)0x0B, (byte)0x2C, (byte)0x7B, (byte)0xD2, (byte)0xAD, (byte)0xD1, (byte)0xC6, (byte)0xCB, (byte)0x4E, (byte)0xDF, (byte)0x03, (byte)0x92, (byte)0x76, (byte)0x0A, (byte)0xA7, (byte)0xCB, (byte)0xFE, (byte)0xE8, (byte)0x09, (byte)0x0B, (byte)0x97, (byte)0x08, (byte)0x00, (byte)0x19, (byte)0x96, (byte)0xEA, (byte)0xEB, (byte)0x4B, (byte)0xAF};
+        /* plain text message byte array */
+        byte[] plainTextBytes = { (byte) 0x00, (byte) 0x71, (byte) 0xE9, (byte) 0xE9, (byte) 0x4F, (byte) 0x30,
+                (byte) 0xAD, (byte) 0x54, (byte) 0x2E, (byte) 0x58, (byte) 0x3A, (byte) 0x26, (byte) 0x75, (byte) 0x97,
+                (byte) 0xC3, (byte) 0x4B, (byte) 0x40, (byte) 0x89, (byte) 0x43, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+                (byte) 0x10, (byte) 0x36, (byte) 0x50, (byte) 0xE3, (byte) 0xFB, (byte) 0xC4, (byte) 0x2F, (byte) 0x13,
+                (byte) 0xAD, (byte) 0x1A, (byte) 0x0B, (byte) 0x2C, (byte) 0x7B, (byte) 0xD2, (byte) 0xAD, (byte) 0xD1,
+                (byte) 0xC6, (byte) 0xCB, (byte) 0x4E, (byte) 0xDF, (byte) 0x03, (byte) 0x92, (byte) 0x76, (byte) 0x0A,
+                (byte) 0xA7, (byte) 0xCB, (byte) 0xFE, (byte) 0xE8, (byte) 0x09, (byte) 0x0B, (byte) 0x97, (byte) 0x08,
+                (byte) 0x00, (byte) 0x19, (byte) 0x96, (byte) 0xEA, (byte) 0xEB, (byte) 0x4B, (byte) 0xAF };
         /* String -> bytes array */
         byte[] cipherText = Base64.getDecoder().decode(cipherTextBase64);
         System.out.println("CIFFER LSP " + BytesUtils.bytesToString(cipherText));
 
         /* Java decrypt the message using the EC private key privKey */
         byte[] message = new CleaEciesEncoder().decrypt(cipherText, privateKey, true);
-                
+
         assertThat(message).isEqualTo(plainTextBytes);
     }
 
+    /**
+     * Generates a random long with n digits
+     */
+    private String generateRandomDigits(int n) {
+        String randomNumString = "";
+        Random r = new Random();
+        // Generate the first digit from 0-9
+        randomNumString += r.nextInt(10);
+        // Generate the remaining digits between 0-9
+        for (int x = 1; x < n; x++) {
+            randomNumString += r.nextInt(9);
+        }
+    
+        return randomNumString;
+    }
 }
