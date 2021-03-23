@@ -9,13 +9,18 @@ PRIVATICS team, Inria, France
 **_Preliminary Draft (Work in Progress), current version, March XXX, 2021_**
 
 
-————
-
 [comment]: # ( [[_TOC_]] )
 [comment]: # ( ———— )
 
-# ( [[_TOC_]] )
-# ( ———— )
+----
+
+## Table of content
+{:.no_toc}
+
+- TOC
+{:toc}
+
+----
 
 
 ## 1- Introduction
