@@ -14,6 +14,9 @@ PRIVATICS team, Inria, France
 [comment]: # ( [[_TOC_]] )
 [comment]: # ( ———— )
 
+# ( [[_TOC_]] )
+# ( ———— )
+
 
 ## 1- Introduction
 
@@ -647,7 +650,7 @@ Since the re-identification of the location is the responsibility of the authori
 The `locContactMsg` message is structured as follows (high-level view):
 
 ```
-locContactMsg = [ locationPhone | locationPIN | t_periodStart ]
+locContactMsg = [ locationPhone | locationRegion | locationPIN | t_periodStart ]
 ```
 
 The following binary format must be used:
@@ -655,33 +658,36 @@ The following binary format must be used:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              locationPhone (8 bytes)                          |
+|              locationPhone (60 bits)                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              ...                                              |
+|              ...                                      |       |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              locationPIN (4 bytes)                            |
+|locationRegion |          locationPIN (3 bytes)                |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |              t_periodStart (4 bytes)                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
 
-- `locationPhone` (8 bytes):
-this field contains a 16 digit phone number, where each digit is stored one by one in a 4-bit nibble.
-The phone number must be encoded using the [E.164](https://www.itu.int/rec/T-REC-E.164/) standard.
-For instance: `+33 1 02 03 04 05` will be stored as (binary): `0011 0011  0001 0000  0010 0000  0011 0000  0100 0000  0101 1111  1111 1111  1111 1111`.
-Unused nibbles must contain the `1111` value (i.e., value `0xF` does not encode a valid decimal digit).
+- `locationPhone` (60 bits):
+this field contains a phone number, where each digit is stored one by one in a 4-bit nibble.
+The phone number must be encoded using the [E.164](https://www.itu.int/rec/T-REC-E.164/) standard that requires phone numbers to have a maximum length of 15 digits.
+For instance, in case of France, `+33 1 02 03 04 05` will be stored as (binary) `0011 0011  0001 0000  0010 0000  0011 0000  0100 0000  0101 1111  1111 1111  1111`.
+Unused nibbles must contain the `1111` / `0xF` value.
 
-- `locationPIN` (4 bytes):
-this field contains a 8-digit secret PIN known only by the location contact, communicated when registering to the device manufacturer or on the web site when generating a static QR code.
+- `locationRegion` (12 bits)
+this field contains coarse grain geographical information for the location, in order to facilitate the work of the Manual Contact Tracing team (e.g., for countries that rely on a regional organisation, it enables the cluster record to be routed directly to the right regional Manual Contact Tracing team).
+In case of France, it can contain a department number.
+
+- `locationPIN` (3 bytes):
+this field contains a 6-digit secret PIN known only by the location contact, communicated when registering to the device manufacturer or on the web site when generating a static QR code.
 It is meant to prevent an attacker who knows the contact phone number of a target location (this phone number is usually public) to forge a new QR code and handle it to a user tested COVID+.
-This `locationPIN` enables the manual contact tracing team to check the QR code validity with the location contact: if the two pin codes do not match, the QR code is reputed invalid and ignored (note that the Cléa users have no risk, the forged `LTKey` and `LTId` being totally distinct from the ones actually used in this location).
+Thanks to the `locationPIN`, the manual contact tracing team can check the QR code validity with the location contact: if the two pin codes do not match, the QR code is reputed invalid and ignored (note that the Cléa users have no risk, the forged `LTKey` and `LTId` being totally distinct from the ones actually used in this location).
 
 - `t_periodStart` (4 bytes):
 Starting time of the period.
-
-Including the `t_periodStart` field in the `locContactMsg` has a major benefit: it prevents the `Enc(PK_MCTA, locContactMsg)` to remain constant over the time for a given location.
-Therefore, the authority in charge of the backend server cannot re-identify any of the locations across different periods, the encrypted message changing altogether as soon as the `t_periodStart` changes.
-Also, this authority cannot decrypt this message since it does not know the associated `PK_MCTA` secret key.
+With a dynamic QR code, including the `t_periodStart` field in the `locContactMsg` has a major benefit: it prevents the `Enc(PK_MCTA, locContactMsg)` to remain constant over the time for this location.
+Therefore, the authority in charge of the backend server cannot re-identify this locations across different periods, the encrypted message changing altogether as soon as the `t_periodStart` changes.
+If the location chooses to use a static QR code, this protection is of course meaningless, the location pseudonym remaining constant by definition.
 
 As soon as the authority in charge of the manual contact tracing receives the encrypted message, it decrypts it and checks its integrity.
 Then the authority informs the location contact person, checking the PIN code first, and asking this latter to communicate the content of the hand-written attendance register for the appropriate period.
