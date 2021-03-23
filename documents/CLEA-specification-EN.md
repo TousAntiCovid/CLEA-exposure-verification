@@ -640,9 +640,15 @@ However, since the `{LTId_cluster, h1_cluster}` information is public, a curious
 
 The use of the Cléa digital system is based on a voluntary decision of the user, the alternative consisting for this user in leaving her name in the hand-written attendance register.
 Consequently, a link between the two systems should be established. 
-However, there can be specific use-cases where the hand-written attendance register may not exist, for instance in case of digital ticketing.
-In that case, the `locContactMsg` may be ignored (i.e., `locContacMsgPresent` can be set to 0).
-Similarly, the Health Authority may decide not to link the two systems together, in which case the `locContacMsgPresent` flag can be set to 0.
+The following sections explain how this can be done, depending on whether a user tested COVID+ has used the Cléa system or the hand-written attendance register.
+
+It should also be noted that there are use-cases where the hand-written attendance register may not exist, for instance in case of digital ticketing.
+In that case, the `locContactMsg` should be ignored, by setting the `locContacMsgPresent` flag to 0.
+Similarly, the Health Authority may decide not to link the two systems together, in which case the `locContacMsgPresent` flag should be set to 0.
+
+It should also be noted that the link between the two systems is not perfect.
+If the cluster qualification threshold is strictly superior to `1`, it can happen that a given location should be qualified as cluster because the total number of COVID+ persons who were there at the same time is sufficient, but no alert is raised because some of them used the Cléa application, and the others the attendance register.
+
 
 #### A user tested COVID+ has used the Cléa system
 
@@ -652,7 +658,7 @@ Since the re-identification of the location is the responsibility of the authori
 The `locContactMsg` message is structured as follows (high-level view):
 
 ```
-locContactMsg = [ locationPhone | locationRegion | locationPIN | t_periodStart ]
+locContactMsg = [ locationPhone | padding | locationRegion | locationPIN | t_periodStart ]
 ```
 
 The following binary format must be used:
@@ -676,7 +682,7 @@ The phone number must be encoded using the [E.164](https://www.itu.int/rec/T-REC
 For instance, in case of France, `+33 1 02 03 04 05` will be stored as (binary) `0011 0011  0001 0000  0010 0000  0011 0000  0100 0000  0101 1111  1111 1111  1111`.
 Unused nibbles must contain the `1111` / `0xF` value.
 
-- `padding`(4 bits):
+- `padding`(4 bits) (`pad` in figure):
 this field is unused in the current specification and must be set to zero.
 
 - `locationRegion` (1 byte):
@@ -701,9 +707,13 @@ The details of how this is done is out of scope of the present document.
 
 #### A user tested COVID+ has used the hand-written attendance register
 
-```diff
-- TODO: short description.
-```
+Here, the Manual Contact Tracing team determined that a certain location, at a certain time, should be qualified as cluster.
+However, since the person(s) tested COVID+ used the hand-written attendance register of the location, there is no scanned QR code that could be used to trigger the cluster qualification at the backend server.
+In order to make it possible, the Manual Contact Tracing team needs to ask the location manager to recover and upload the QR code of this period.
+For instance, the team can physically visit the location, discuss with the manager and help her upload her own scanned QR code of that day, using a dedicated authorization token.
+In case of a static QR code, obtaining the required QR code is not an issue.
+In case of a dynamic QR code, this scenario requires that the location manager scans her location QR code everyday, as any employee is supposed to do.
+Although there is a risk that she omitted to do so on that day (thereby preventing a notification through the Cléa applications), the probability this happened is reasonable.
 
 
 ### 3.10- Management of the location employees
