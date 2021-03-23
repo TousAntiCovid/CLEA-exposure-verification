@@ -27,9 +27,17 @@ public class LocationSpecificPartDecoder {
     /* EC private key in String format used to decrypt the message part */
     String serverAuthoritySecretKey;
 
-    public LocationSpecificPartDecoder(String servertAuthoritySecretKey) {
+    /**
+     * This default constructor should only be used for decoding.
+     * The server secret key is mandatory to decrypt.
+     */
+    public LocationSpecificPartDecoder() {
         this.cleaEciesEncoder = new CleaEciesEncoder();
-        this.serverAuthoritySecretKey = servertAuthoritySecretKey;
+    }
+
+    public LocationSpecificPartDecoder(String serverAuthoritySecretKey) {
+        this();
+        this.serverAuthoritySecretKey = serverAuthoritySecretKey;
     }
 
     /**
