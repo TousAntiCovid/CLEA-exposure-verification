@@ -101,6 +101,9 @@ public class Location {
         this.locationSpecificPart.setPeriodStartTime(periodStartTime);
         this.locationSpecificPart.setLocationTemporarySecretKey(locationTemporarySecretKey);
         this.locationSpecificPart.setLocationTemporaryPublicId(currentLocationTemporaryPublicId);
+        if (Objects.nonNull(this.contact)) {
+            this.contact.setPeriodStartTime(periodStartTime);
+        }
         log.debug("new periodStartTime: {} ", Integer.toUnsignedString(periodStartTime));
         log.debug("locationTemporarySecretKey*: {}*", BytesUtils.bytesToString(locationTemporarySecretKey));
         log.debug("locationTemporaryPublicID: " + currentLocationTemporaryPublicId.toString());
