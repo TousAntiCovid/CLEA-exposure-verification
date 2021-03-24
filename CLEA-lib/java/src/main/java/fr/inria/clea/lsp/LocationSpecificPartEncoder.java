@@ -4,6 +4,8 @@
 package fr.inria.clea.lsp;
 
 import java.io.IOException;
+import java.util.Objects;
+import java.util.UUID;
 
 import fr.devnied.bitlib.BitUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +21,19 @@ public class LocationSpecificPartEncoder {
     private CleaEciesEncoder cleaEciesEncoder;
     private String serverAuthorityPublicKey;
 
-    public LocationSpecificPartEncoder(String serverAuthorityPublicKey) {
+    public LocationSpecificPartEncoder() {
         this.cleaEciesEncoder = new CleaEciesEncoder();
+    }
+    
+    public LocationSpecificPartEncoder(String serverAuthorityPublicKey) {
+        this();
         this.serverAuthorityPublicKey = serverAuthorityPublicKey;
     }
   
     public byte[] encode(LocationSpecificPart locationSpecificPart) throws CleaEncryptionException {
+        if (Objects.isNull(serverAuthorityPublicKey)) {
+            throw new CleaEncryptionException("Cannot encrypt, serverAuthorityPublicKey is null!");
+        }
         byte[] header = this.binaryEncodedHeader(locationSpecificPart);
         byte[] msg = this.binaryEncodedMessage(locationSpecificPart);
         byte[] encryptedLocationSpecificPart = this.encrypt(header, msg, this.serverAuthorityPublicKey);
@@ -38,18 +47,28 @@ public class LocationSpecificPartEncoder {
      * @return data header in binary format
      */
     public byte[] binaryEncodedHeader(LocationSpecificPart locationSpecificPart) {
+        return this.binaryEncodedHeader(locationSpecificPart.getVersion(),
+                locationSpecificPart.getType(),
+                locationSpecificPart.getLocationTemporaryPublicId());
+    }
+
+    /**
+     * Encode the data header in binary format: | version | LSPtype | pad | LTId |
+     * @return data header in binary format
+     */
+    public byte[] binaryEncodedHeader(int version, int type, UUID locationTemporaryPublicId) {
         BitUtils header = new BitUtils(8 * CleaEciesEncoder.HEADER_BYTES_SIZE);
         /* version (3 bits) */
-        header.setNextInteger(locationSpecificPart.getVersion(), 3);
+        header.setNextInteger(version, 3);
         /* LSPtype (3 bits) */
-        header.setNextInteger(locationSpecificPart.getType(), 3);
+        header.setNextInteger(type, 3);
         /* padding (2 bits) */
         header.setNextInteger(0x0, 2);
         /* LTId (16 bytes) */
         byte[] uuidB = new byte[16];
-        uuidB = this.cleaEciesEncoder.uuidToBytes(locationSpecificPart.getLocationTemporaryPublicId());
+        uuidB = this.cleaEciesEncoder.uuidToBytes(locationTemporaryPublicId);
         header.setNextByte(uuidB, 128);
-
+    
         return header.getData();
     }
 

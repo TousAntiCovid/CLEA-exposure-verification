@@ -9,4 +9,8 @@ public class CleaEncryptionException extends Exception {
     public CleaEncryptionException(Throwable cause) {
         super(cause);
     }
+
+    public CleaEncryptionException(String message) {
+        super(message);
+    }
 }
