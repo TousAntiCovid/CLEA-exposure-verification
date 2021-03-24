@@ -32,7 +32,7 @@ public class LspEncoderDecoder {
         String serverAuthoritySecretKey = args[2];
         String manualContactTracingAuthoritySecretKey = args[3];
         LocationSpecificPartDecoder lspDecoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey);
-        LocationSpecificPart lsp = lspDecoder.decrypt(lspBase64).decodeMessage();
+        LocationSpecificPart lsp = lspDecoder.decrypt(lspBase64);
       
         String valuesToreturn =  (lsp.isStaff()? 1 : 0) + " " + lsp.getCountryCode() + " " + lsp.getQrCodeRenewalIntervalExponentCompact()  + " " + lsp.getVenueType(); 
         valuesToreturn += " " + lsp.getVenueCategory1() + " " + lsp.getVenueCategory2() + " " + lsp.getPeriodDuration() + " " + lsp.getLocationTemporaryPublicId();
