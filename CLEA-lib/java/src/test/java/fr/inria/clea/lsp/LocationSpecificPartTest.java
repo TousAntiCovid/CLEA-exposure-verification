@@ -116,6 +116,81 @@ class LocationSpecificPartTest {
         assertThat(lsp.getEncryptedLocationContactMessage()).isNotNull();
     }
 
+    @Test 
+    public void testSettingQrCodeValidityStartTimeWithPositiveQrCodeRenewalInterval(){
+        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        LocationContact locationContact = new LocationContact("0612150292", "01234567", periodStartTime);
+        int qrCodeRenewalIntervalExponentCompact = 2;
+        int qrCodeRenewalInterval = 1 << qrCodeRenewalIntervalExponentCompact;
+        int periodDuration = 3;
+
+        LocationSpecificPart lsp = LocationSpecificPart.builder()
+                .staff(true)
+                .countryCode(33)
+                .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact)
+                .venueType(4)
+                .venueCategory1(0)
+                .venueCategory2(0)
+                .periodDuration(periodDuration)
+                .build();
+        Location location = Location.builder()
+                .contact(locationContact)
+                .locationSpecificPart(lsp)
+                .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
+                .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
+                .permanentLocationSecretKey(permanentLocationSecretKey)
+                .build();
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime);
+        assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(periodStartTime);
+
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime - 1);
+        assertThat(lsp.getQrCodeValidityStartTime()).isNotEqualTo(periodStartTime - 1);
+
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime + qrCodeRenewalInterval);
+        assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(periodStartTime + qrCodeRenewalInterval);
+
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime + 1);
+        assertThat(lsp.getQrCodeValidityStartTime()).isNotEqualTo(periodStartTime + 1);
+
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime + (periodDuration+1)*3600);
+        assertThat(lsp.getQrCodeValidityStartTime()).isNotEqualTo(periodStartTime + (periodDuration+1)*3600);
+
+    }
+
+    @Test 
+    public void testSettingQrCodeValidityStartTimeWithNoQrCodeRenewalInterval(){
+        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        LocationContact locationContact = new LocationContact("0612150292", "01234567", periodStartTime);
+        int qrCodeRenewalIntervalExponentCompact = 0x1F;
+        int periodDuration = 3;
+
+        LocationSpecificPart lsp = LocationSpecificPart.builder()
+                .staff(true)
+                .countryCode(33)
+                .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact)
+                .venueType(4)
+                .venueCategory1(0)
+                .venueCategory2(0)
+                .periodDuration(periodDuration)
+                .build();
+        Location location = Location.builder()
+                .contact(locationContact)
+                .locationSpecificPart(lsp)
+                .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
+                .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
+                .permanentLocationSecretKey(permanentLocationSecretKey)
+                .build();
+
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime);
+        assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(periodStartTime);
+        
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime+1);
+        assertThat(lsp.getQrCodeValidityStartTime()).isNotEqualTo(periodStartTime+1);
+    }
+
+
+    
+
     @Test
     public void testEncodingAndDecodingOfALocationSpecificPartWithoutLocationContact()
             throws CleaEncryptionException, CleaEncodingException {

@@ -115,6 +115,13 @@ public class Location {
             log.warn("Cannot update QrCode validity start time. No renewal specified!");
             return;
         }
+
+        if(qrCodeValidityStartTime < periodStartTime){
+            log.warn("Cannot set QrCode validity start time to {}. It preceeds period validity (start: {}, duration (in hours): {}", 
+                    qrCodeValidityStartTime, periodStartTime, this.locationSpecificPart.getPeriodDuration());
+            return;
+        }
+
         if (qrCodeValidityStartTime > periodStartTime + this.locationSpecificPart.getPeriodDuration() * TimeUtils.NB_SECONDS_PER_HOUR) {
             log.warn("Cannot set QrCode validity start time to {}. It exceeds period validity (start: {}, duration (in hours): {}", 
                     qrCodeValidityStartTime, periodStartTime, this.locationSpecificPart.getPeriodDuration());
