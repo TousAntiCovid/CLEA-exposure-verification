@@ -50,7 +50,7 @@ public class Location {
      */
     public String newDeepLink(int periodStartTime) throws CleaEncryptionException {
         // QR-code validity starts at period start time 
-        return this.newDeepLink(periodStartTime * TimeUtils.NB_SECONDS_PER_HOUR);
+        return this.newDeepLink(periodStartTime, periodStartTime);
     }
     
     /**
