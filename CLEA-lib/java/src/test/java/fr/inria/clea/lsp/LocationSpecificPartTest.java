@@ -128,6 +128,7 @@ class LocationSpecificPartTest {
                 .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
                 .permanentLocationSecretKey(permanentLocationSecretKey).build();
         location.setPeriodStartTime(periodStartTime);
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime+120);
 
         /* Encode a LSP with location */
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
@@ -210,8 +211,10 @@ class LocationSpecificPartTest {
         assertThat(lsp.getVenueCategory1()).isEqualTo(venueCat1);
         assertThat(lsp.getVenueCategory2()).isEqualTo(venueCat2);
         assertThat(lsp.getCompressedPeriodStartTime()).isEqualTo(periodStartTime);
-        // TODO: PROBLEM TO SOLVE: int-> long for qrCodeValidityStartTime
-        // assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(qrStartTime);
+        /* Be careful the int qrCodeValidityStartTime is unsigned */
+        System.out.println("qrCodeValidityStartTime = " + Integer.toUnsignedString(lsp.getQrCodeValidityStartTime()));
+        int tstQrCodeValidityStartTime = Integer.compareUnsigned(lsp.getQrCodeValidityStartTime(), (int) qrStartTime);
+        assertThat(tstQrCodeValidityStartTime).isEqualTo(0);
     }
 
     /**
@@ -275,8 +278,10 @@ class LocationSpecificPartTest {
 
         assertThat(decodedLocationContact.getLocationPhone()).isEqualTo(locationPhone);
         assertThat(decodedLocationContact.getLocationPin()).isEqualTo(locationPin);
-        // TODO: PROBLEM TO SOLVE: int-> long for PeriodStartTime
-        // assertThat(decodedLocationContact.getPeriodStartTime()).isEqualTo(t_periodStart);
+        /* Be careful the int PeriodStartTime is unsigned */
+        System.out.println("PeriodStartTime = " + Integer.toUnsignedString(decodedLocationContact.getPeriodStartTime()));
+        int tstPeriodStartTime = Integer.compareUnsigned(decodedLocationContact.getPeriodStartTime(), (int) t_periodStart);
+        assertThat(tstPeriodStartTime).isEqualTo(0);
     }
 
     @Test
@@ -311,9 +316,9 @@ class LocationSpecificPartTest {
     private String generateRandomDigits(int n) {
         String randomNumString = "";
         Random r = new Random();
-        // Generate the first digit from 0-9
+        /* Generate the first digit from 0-9 */
         randomNumString += r.nextInt(10);
-        // Generate the remaining digits between 0-9
+        /* Generate the remaining digits between 0-9 */
         for (int x = 1; x < n; x++) {
             randomNumString += r.nextInt(9);
         }
