@@ -188,6 +188,43 @@ class LocationSpecificPartTest {
         assertThat(lsp.getQrCodeValidityStartTime()).isNotEqualTo(periodStartTime+1);
     }
 
+    @Test
+    public void testNewDeepLink() throws CleaEncryptionException{
+        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        LocationContact locationContact = new LocationContact("0612150292", "01234567", periodStartTime);
+        int qrCodeRenewalIntervalExponentCompact = 2;
+        int periodDuration = 3;
+
+        LocationSpecificPart lsp = LocationSpecificPart.builder()
+                .staff(true)
+                .countryCode(33)
+                .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact)
+                .venueType(4)
+                .venueCategory1(0)
+                .venueCategory2(0)
+                .periodDuration(periodDuration)
+                .build();
+        Location location = Location.builder()
+                .contact(locationContact)
+                .locationSpecificPart(lsp)
+                .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
+                .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
+                .permanentLocationSecretKey(permanentLocationSecretKey)
+                .build();
+
+        String deepLink = location.newDeepLink();
+        assertThat(deepLink).isNotEmpty();
+        assertThat(deepLink).startsWith(Location.COUNTRY_SPECIFIC_PREFIX);
+
+        deepLink = location.newDeepLink(periodStartTime);
+        assertThat(deepLink).isNotEmpty();
+        assertThat(deepLink).startsWith(Location.COUNTRY_SPECIFIC_PREFIX);
+
+        deepLink = location.newDeepLink(periodStartTime, periodStartTime);
+        assertThat(deepLink).isNotEmpty();
+        assertThat(deepLink).startsWith(Location.COUNTRY_SPECIFIC_PREFIX);
+
+    }
 
     
 
