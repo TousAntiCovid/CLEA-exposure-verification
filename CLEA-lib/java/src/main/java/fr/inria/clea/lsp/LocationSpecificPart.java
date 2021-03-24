@@ -9,26 +9,29 @@ import java.util.UUID;
 import javax.validation.constraints.Max;
 
 import fr.inria.clea.lsp.utils.TimeUtils;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * LocationSpecificPart (LSP) contents data respecting the CLEA protocol
  * 
  * @see <a href="https://hal.inria.fr/hal-03146022">CLEA protocol</a>
  */
-@Builder
+@SuperBuilder(toBuilder = true)
 @Getter
 @EqualsAndHashCode
+@AllArgsConstructor
 @ToString
 public class LocationSpecificPart {
     /* Clea protocol version number */
     @Builder.Default
     @Max(value = 8)
-    private int version = 0;
+    protected int version = 0;
     
     /*
      * LSP type, in order to be able to use multiple formats in parallel in the
@@ -36,7 +39,7 @@ public class LocationSpecificPart {
      */
     @Builder.Default
     @Max(value = 8)
-    private int type = 0;
+    protected int type = 0;
     
     /*
      * Country code, coded as the ISO 3166-1 country code, for instance 0x250 for
@@ -44,55 +47,55 @@ public class LocationSpecificPart {
      */
     @Builder.Default
     @Max(value = 4096)
-    private int countryCode = 33;
+    protected int countryCode = 33;
     
     /* regular users or staff member of the location */
-    private boolean staff;
+    protected boolean staff;
     
     /*
      * Location Temporary public universally unique Identifier (UUID), specific to a
      * given location at a given period.
      */
     @Setter
-    private UUID locationTemporaryPublicId;
+    protected UUID locationTemporaryPublicId;
     
     /*
      * qrCodeRenewalInterval value in a compact manner, as the exponent of a power
      * of two.
      */
     @Max(value = 32)
-    private int qrCodeRenewalIntervalExponentCompact;
+    protected int qrCodeRenewalIntervalExponentCompact;
     
     /* Type of the location/venue */
     @Max(value = 32)
-    private int venueType;
+    protected int venueType;
     
     /* Reserved: a first level of venue category */
     @Max(value = 16)
-    private int venueCategory1;
+    protected int venueCategory1;
     
     /* Reserved: a second level of venue category */
     @Max(value = 16)
-    private int venueCategory2;
+    protected int venueCategory2;
     
     /* Duration, in terms of number of hours, of the period */
     @Max(value = 255)
-    private int periodDuration;
+    protected int periodDuration;
     
     /* Starting time of the period in a compressed manner (round hour) */
     @Max(value = 16777216)
-    private int compressedPeriodStartTime;
+    protected int compressedPeriodStartTime;
     
     /* Starting time of the QR code validity timespan in seconds */
     @Setter
-    private int qrCodeValidityStartTime;
+    protected int qrCodeValidityStartTime;
     
     /* Temporary location key for the period */
     @Setter
-    private byte[] locationTemporarySecretKey;
+    protected byte[] locationTemporarySecretKey;
     
     @Setter
-    private byte[] encryptedLocationContactMessage;
+    protected byte[] encryptedLocationContactMessage;
     
     /**
      *  Indicates if the location contact message is present in the message 
