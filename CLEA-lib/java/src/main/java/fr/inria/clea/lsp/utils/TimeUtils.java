@@ -47,7 +47,7 @@ public class TimeUtils {
      * @param instant timestamp as an Instant
      * @return rounded timestamp limited to 32 bits (java int)
      */
-    public static long hourRoundedTimeTimestamp32FromInstant(Instant instant){
+    public static int hourRoundedTimeTimestamp32FromInstant(Instant instant){
         return (int) hourRoundedTimestamp(instant.getEpochSecond() + SECONDS_FROM_01_01_1900_TO_01_01_1970);
     }
     
