@@ -3,13 +3,12 @@
  */
 package fr.inria.clea.lsp;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
 
-import fr.devnied.bitlib.BitUtils;
-import fr.inria.clea.lsp.LocationSpecificPart.LocationSpecificPartBuilder;
+import org.bouncycastle.util.Arrays;
+
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -49,38 +48,16 @@ public class EncryptedLocationSpecificPart {
      */
     private byte[] encryptedLocationMessage;
     
-    /**
-     * Unpack the data message (binary format) :
-     * | Staff | pad2 |CRIexp | vType |
-     * vCat1 | vCat2 | countryCode | | periodDuration | ct_periodStart | t_qrStart |
-     * LTKey | to extract parameters
-     */
-    public LocationSpecificPart decodeMessage() {
-        byte[] messageBinary = Arrays.copyOfRange(encryptedLocationMessage, 0, CleaEciesEncoder.MSG_BYTES_SIZE);
-        BitUtils message = new BitUtils(messageBinary);
-        byte[] encryptedLocationContactMessage = Arrays.copyOfRange(encryptedLocationMessage, 
-                CleaEciesEncoder.MSG_BYTES_SIZE, encryptedLocationMessage.length);
-        if (encryptedLocationContactMessage.length == 0) {
-            encryptedLocationContactMessage = null;
-        }
-        
-        LocationSpecificPartBuilder locationSpecificPartbuilder = LocationSpecificPart.builder()
-            .version(version)
-            .type(type)
-            .locationTemporaryPublicId(locationTemporaryPublicId)
-            .staff(message.getNextInteger(1) == 1);
-        message.getNextInteger(1); // skip locationContactMessagePresent
-        locationSpecificPartbuilder
-            .countryCode(message.getNextInteger(12))
-            .qrCodeRenewalIntervalExponentCompact(message.getNextInteger(5))
-            .venueType(message.getNextInteger(5))
-            .venueCategory1(message.getNextInteger(4))
-            .venueCategory2(message.getNextInteger(4))
-            .periodDuration(message.getNextInteger(8))
-            .compressedPeriodStartTime(message.getNextInteger(24))
-            .qrCodeValidityStartTime(message.getNextInteger(32))
-            .locationTemporarySecretKey(message.getNextByte(256))
-            .encryptedLocationContactMessage(encryptedLocationContactMessage);
-        return locationSpecificPartbuilder.build();            
+
+    public LocationSpecificPart decrypt(LocationSpecificPartDecoder decoder) throws CleaEncryptionException, CleaEncodingException {
+        return decoder.decrypt(this.binaryEncoded());
+    }
+
+    protected byte[] binaryEncoded() {
+        return Arrays.concatenate(this.binaryEncodedHeader(), encryptedLocationMessage);
+    }
+    
+    public byte[] binaryEncodedHeader() {
+        return new LocationSpecificPartEncoder().binaryEncodedHeader(this.type, this.version, this.locationTemporaryPublicId);
     }
 }

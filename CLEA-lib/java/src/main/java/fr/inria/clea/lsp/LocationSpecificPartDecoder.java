@@ -8,11 +8,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Objects;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 import fr.devnied.bitlib.BitUtils;
 import fr.inria.clea.lsp.EncryptedLocationSpecificPart.EncryptedLocationSpecificPartBuilder;
+import fr.inria.clea.lsp.LocationSpecificPart.LocationSpecificPartBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -41,7 +43,7 @@ public class LocationSpecificPartDecoder {
     }
 
     /**
-     * Unpack the data decrypted header (binary format): 
+     * Unpack the data header (binary format, already base64 decrypted): 
      * | version | LSPtype | pad | LTId | to extract parameters
      */
     public EncryptedLocationSpecificPart decodeHeader(byte[] binaryLocationSpecificPart) throws CleaEncodingException {
@@ -74,17 +76,83 @@ public class LocationSpecificPartDecoder {
      * @throws CleaEncryptionException 
      * @throws CleaEncodingException 
      */
-    public EncryptedLocationSpecificPart decrypt(String lspBase64) throws CleaEncryptionException, CleaEncodingException {
+    public LocationSpecificPart decrypt(String lspBase64) throws CleaEncryptionException, CleaEncodingException {
         byte[] encryptedLocationSpecificPart = Base64.getDecoder().decode(lspBase64);
         log.debug("Base 64 decoded LSP: {}", encryptedLocationSpecificPart);
+        return this.decrypt(encryptedLocationSpecificPart);
+    }
+    
+    /**
+     * Decrypt and unpack a location Specific Part (LSP)
+     * 
+     * @param encryptedLocationSpecificPart Location Specific Part base64-decoded
+     * @throws CleaEncryptionException 
+     * @throws CleaEncodingException 
+     */
+    public LocationSpecificPart decrypt(byte[] encryptedLocationSpecificPart) throws CleaEncryptionException, CleaEncodingException {
+        if (Objects.isNull(serverAuthoritySecretKey)) {
+            throw new CleaEncryptionException("Cannot encrypt, serverAuthoritySecretKey is null!");
+        }
+        EncryptedLocationSpecificPart encryptedLsp = this.decodeHeader(encryptedLocationSpecificPart);
+        return this.decrypt(encryptedLsp);
+    }
+    
+    /**
+     * Decrypt and unpack a location Specific Part (LSP)
+     * 
+     * @param encryptedLocationSpecificPart Encrypted Location Specific Part (Header decoded)
+     * @throws CleaEncryptionException 
+     * @throws CleaEncodingException 
+     */
+    public LocationSpecificPart decrypt(EncryptedLocationSpecificPart encryptedLocationSpecificPart) throws CleaEncryptionException, CleaEncodingException {
         byte[] binaryLocationSpecificPart;
         try {
-            binaryLocationSpecificPart = this.cleaEciesEncoder.decrypt(encryptedLocationSpecificPart, this.serverAuthoritySecretKey, true);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalStateException | InvalidCipherTextException
-                | IOException e) {
+            binaryLocationSpecificPart = this.cleaEciesEncoder.decrypt(
+                    encryptedLocationSpecificPart.binaryEncoded(), this.serverAuthoritySecretKey, true);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalStateException 
+                | InvalidCipherTextException | IOException e) {
             throw new CleaEncryptionException(e);
         }
-        return this.decodeHeader(binaryLocationSpecificPart);
-                //this.decodeMessage(binaryLocationSpecificPart);
+        return this.decodeMessage(binaryLocationSpecificPart, newLocationSpecificPartBuilder(encryptedLocationSpecificPart));
+    }
+    
+    private LocationSpecificPartBuilder newLocationSpecificPartBuilder(EncryptedLocationSpecificPart encryptedLocationSpecificPart) {
+        return LocationSpecificPart.builder()
+            .version(encryptedLocationSpecificPart.getVersion())
+            .type(encryptedLocationSpecificPart.getType())
+            .locationTemporaryPublicId(encryptedLocationSpecificPart.getLocationTemporaryPublicId());
+    }
+    
+    /**
+     * Unpack the data message (binary format) :
+     * | Staff | pad2 |CRIexp | vType |
+     * vCat1 | vCat2 | countryCode | | periodDuration | ct_periodStart | t_qrStart |
+     * LTKey | to extract parameters
+     */
+    public LocationSpecificPart decodeMessage(byte[] binaryLocationSpecificPart, LocationSpecificPartBuilder locationSpecificPartbuilder) {
+        byte[] messageBinary = Arrays.copyOfRange(binaryLocationSpecificPart, CleaEciesEncoder.HEADER_BYTES_SIZE, 
+                CleaEciesEncoder.HEADER_BYTES_SIZE + CleaEciesEncoder.MSG_BYTES_SIZE);
+        BitUtils message = new BitUtils(messageBinary);
+        byte[] encryptedLocationContactMessage = Arrays.copyOfRange(binaryLocationSpecificPart, 
+                CleaEciesEncoder.HEADER_BYTES_SIZE + CleaEciesEncoder.MSG_BYTES_SIZE, binaryLocationSpecificPart.length);
+        if (encryptedLocationContactMessage.length == 0) {
+            encryptedLocationContactMessage = null;
+        }
+        
+        locationSpecificPartbuilder
+            .staff(message.getNextInteger(1) == 1);
+        message.getNextInteger(1); // skip locationContactMessagePresent
+        locationSpecificPartbuilder
+            .countryCode(message.getNextInteger(12))
+            .qrCodeRenewalIntervalExponentCompact(message.getNextInteger(5))
+            .venueType(message.getNextInteger(5))
+            .venueCategory1(message.getNextInteger(4))
+            .venueCategory2(message.getNextInteger(4))
+            .periodDuration(message.getNextInteger(8))
+            .compressedPeriodStartTime(message.getNextInteger(24))
+            .qrCodeValidityStartTime(message.getNextInteger(32))
+            .locationTemporarySecretKey(message.getNextByte(256))
+            .encryptedLocationContactMessage(encryptedLocationContactMessage);
+        return locationSpecificPartbuilder.build();            
     }
 }
