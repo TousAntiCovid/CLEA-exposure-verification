@@ -88,13 +88,17 @@ public class LocationTest {
         assertThat(deepLink).isNotEmpty();
         assertThat(deepLink).startsWith(Location.COUNTRY_SPECIFIC_PREFIX);
 
-        deepLink = location.newDeepLink(periodStartTime);
-        assertThat(deepLink).isNotEmpty();
-        assertThat(deepLink).startsWith(Location.COUNTRY_SPECIFIC_PREFIX);
+        String deepLink2 = location.newDeepLink(periodStartTime);
+        assertThat(deepLink2).isNotEmpty();
+        assertThat(deepLink2).startsWith(Location.COUNTRY_SPECIFIC_PREFIX);
 
-        deepLink = location.newDeepLink(periodStartTime, periodStartTime);
-        assertThat(deepLink).isNotEmpty();
-        assertThat(deepLink).startsWith(Location.COUNTRY_SPECIFIC_PREFIX);
+        String deepLink3 = location.newDeepLink(periodStartTime, periodStartTime);
+        assertThat(deepLink3).isNotEmpty();
+        assertThat(deepLink3).startsWith(Location.COUNTRY_SPECIFIC_PREFIX);
+        
+        assertThat(deepLink).isNotIn(deepLink2, deepLink3);
+        assertThat(deepLink2).isNotIn(deepLink, deepLink3);
+        assertThat(deepLink3).isNotIn(deepLink, deepLink2);
     }
 
     protected LocationSpecificPart newLocationSpecificPart(int qrCodeRenewalIntervalExponentCompact,
