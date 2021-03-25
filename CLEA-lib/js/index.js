@@ -35,7 +35,8 @@
 
         if (phone) {
             conf.locContactMsg = {
-                locationPhone: parseInt(phone),
+                locationPhone: parseInt(phone), 
+                locationRegion: parseInt($("#locationRegion").val()),
                 locationPin: parseInt($("#locationPin").val())
             }
         }
