@@ -18,7 +18,7 @@ public class LspEncoderDecoder {
             System.exit(0);
         }
 
-        if ("encode".equals(args[0]) && ((args.length == 13) || (args.length == 11))) {
+        if ("encode".equals(args[0]) && ((args.length == 14) || (args.length == 11))) {
             encodeLsp(args);
         } else if ("decode".equals(args[0]) && args.length == 4) {
             decodeLsp(args);
@@ -34,14 +34,14 @@ public class LspEncoderDecoder {
         LocationSpecificPartDecoder lspDecoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey);
         LocationSpecificPart lsp = lspDecoder.decrypt(lspBase64);
       
-        String valuesToreturn =  (lsp.isStaff()? 1 : 0) + " " + lsp.getCountryCode() + " " + lsp.getQrCodeRenewalIntervalExponentCompact()  + " " + lsp.getVenueType(); 
+        String valuesToreturn =  "=VALUES="+ (lsp.isStaff()? 1 : 0) + " " + lsp.getCountryCode() + " " + lsp.getQrCodeRenewalIntervalExponentCompact()  + " " + lsp.getVenueType(); 
         valuesToreturn += " " + lsp.getVenueCategory1() + " " + lsp.getVenueCategory2() + " " + lsp.getPeriodDuration() + " " + lsp.getLocationTemporaryPublicId();
         valuesToreturn += " " + Integer.toUnsignedString(lsp.getCompressedPeriodStartTime()) + " " + Integer.toUnsignedString(lsp.getQrCodeValidityStartTime());
 
         if (lsp.isLocationContactMessagePresent()) {
             LocationContactMessageEncoder contactMessageDecode = new LocationContactMessageEncoder(manualContactTracingAuthoritySecretKey);
             LocationContact locationContact = contactMessageDecode.decode(lsp.getEncryptedLocationContactMessage());
-            valuesToreturn += " " + locationContact.getLocationPhone() + " " + locationContact.getLocationPin();
+            valuesToreturn += " " + locationContact.getLocationPhone() + " " + locationContact.getLocationRegion() + " " + locationContact.getLocationPin();
         }  
         System.out.println(valuesToreturn);
     }
@@ -75,10 +75,11 @@ public class LspEncoderDecoder {
                 .serverAuthorityPublicKey(serverAuthorityPublicKey)
                 .permanentLocationSecretKey(permanentLocationSecretKey);
         
-        if (args.length == 13) {
+        if (args.length == 14) {
             final String locationPhone = args[11];
-            final String locationPin = args[12];
-            locationBuilder.contact( new LocationContact(locationPhone, locationPin, periodStartTime));
+            final int locationRegion = Integer.parseInt(args[12]);
+            final String locationPin = args[13];
+            locationBuilder.contact( new LocationContact(locationPhone, locationRegion, locationPin, periodStartTime));
         }
 
         Location location = locationBuilder.build();
@@ -88,7 +89,7 @@ public class LspEncoderDecoder {
         
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
         
-        final String valuesToreturn = encryptedLocationSpecificPart + " " 
+        final String valuesToreturn = "=VALUES=" + encryptedLocationSpecificPart + " " 
                 + location.getLocationSpecificPart().getLocationTemporaryPublicId() + " "
                 + Integer.toUnsignedString(location.getLocationSpecificPart().getCompressedPeriodStartTime()) + " "
                 + Integer.toUnsignedString(location.getLocationSpecificPart().getQrCodeValidityStartTime());

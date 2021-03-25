@@ -14,8 +14,12 @@ import lombok.AccessLevel;
 @EqualsAndHashCode
 @ToString
 public class LocationContact {
-    /* Phone number of the location contact person, one digit = one character */
+    /* Phone number of the location contact person, one digit = one character, 15 digits max */
+    @Max(value = 15)
     String locationPhone;
+    /* Coarse grain geographical information for the location */
+    @Max(value = 255)
+    int locationRegion;
     /* Secret 6 digit PIN, one digit = one character */
     @Max(value = 6)
     String locationPin;
