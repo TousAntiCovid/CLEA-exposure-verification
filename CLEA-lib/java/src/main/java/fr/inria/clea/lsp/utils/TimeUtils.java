@@ -24,7 +24,7 @@ public class TimeUtils {
     }
 
     /**
-     * Get timestamp rounded to the closest hour.
+     * Get NTP UTC timestamp rounded to the closest hour.
      * @param timestamp the timestamp in seconds
      * @return the rounded timestamp
      */
@@ -34,32 +34,32 @@ public class TimeUtils {
     }
 
     /**
-     * get timestamp rounded to the closest hour from an Instant
+     * Get NTP UTC timestamp rounded to the closest hour from an Instant
      * @param instant timestamp as an Instant
      * @return rounded timestamp
      */
-    public static long hourRoundedTimeTimestampFromInstant(Instant instant){
+    public static long hourRoundedTimestampFromInstant(Instant instant){
         return hourRoundedTimestamp(instant.getEpochSecond() + SECONDS_FROM_01_01_1900_TO_01_01_1970);
     }
 
     /**
-     * get timestamp rounded to the closest hour from an Instant limited to 32 bits (java int)
+     * Get NTP UTC timestamp rounded to the closest hour from an Instant limited to 32 bits (java int)
      * @param instant timestamp as an Instant
      * @return rounded timestamp limited to 32 bits (java int)
      */
-    public static int hourRoundedTimeTimestamp32FromInstant(Instant instant){
+    public static int hourRoundedTimestamp32FromInstant(Instant instant){
         return (int) hourRoundedTimestamp(instant.getEpochSecond() + SECONDS_FROM_01_01_1900_TO_01_01_1970);
     }
     
     /**
-     * @return the current timestamp in seconds rounded to the closest hour.
+     * @return the current NTP UTC timestamp in seconds rounded to the closest hour.
      */
     public static long hourRoundedCurrentTimeTimestamp() {
         return hourRoundedTimestamp(currentNtpTime());
     }
 
     /**
-     * @return the current timestamp in seconds rounded to the closest hour 
+     * @return the current NTP UTC timestamp in seconds rounded to the closest hour 
      *      limited to 32 bits (java int).
      */
     public static int hourRoundedCurrentTimeTimestamp32() {
