@@ -46,5 +46,52 @@ public class TimeUtilsTest {
     public void testTimestampIsRoundedUpToTheNextLongWhenModuloIsEqualToHalfTimeRoundingValue() {
         assertThat(TimeUtils.hourRoundedTimestamp(1606141800)).isEqualTo(1606143600);
     }
+
+    @Test
+    public void testTimestampFromInstantIsRoundedDownWhenModuloLowerThanHalfTimeRoundingValue(){
+        Instant instant = Instant.parse("1970-01-01T00:10:00.00Z");
+        assertThat(TimeUtils.hourRoundedTimestampFromInstant(instant)).isEqualTo(TimeUtils.SECONDS_FROM_01_01_1900_TO_01_01_1970);
+    }
+
+    @Test
+    public void testTimestampFromInstantIsRoundedUpWhenModuloGreaterThanHalfTimeRoundingValue(){
+        Instant instant = Instant.parse("1969-12-31T23:50:00.00Z");
+        assertThat(TimeUtils.hourRoundedTimestampFromInstant(instant)).isEqualTo(TimeUtils.SECONDS_FROM_01_01_1900_TO_01_01_1970);
+    }
+
+    @Test
+    public void testTimestampFromInstantIsNotRoundedWhenMultipleOfTimeRoundingValue(){
+        Instant instant = Instant.parse("1970-01-01T00:00:00.00Z");
+        assertThat(TimeUtils.hourRoundedTimestampFromInstant(instant)).isEqualTo(TimeUtils.SECONDS_FROM_01_01_1900_TO_01_01_1970);
+    }
     
+    @Test
+    public void testTimestampFromInstantIsRoundedUpToTheNextLongWhenModuloIsEqualToHalfTimeRoundingValue(){
+        Instant instant = Instant.parse("1969-12-31T23:30:00.00Z");
+        assertThat(TimeUtils.hourRoundedTimestampFromInstant(instant)).isEqualTo(TimeUtils.SECONDS_FROM_01_01_1900_TO_01_01_1970);
+    }
+
+    @Test
+    public void testIntTimestampFromInstantIsRoundedDownWhenModuloLowerThanHalfTimeRoundingValue(){
+        Instant instant = Instant.parse("1970-01-01T00:10:00.00Z");
+        assertThat(TimeUtils.hourRoundedTimestamp32FromInstant(instant)).isEqualTo((int)TimeUtils.SECONDS_FROM_01_01_1900_TO_01_01_1970);
+    }
+
+    @Test
+    public void testIntTimestampFromInstantIsRoundedUpWhenModuloGreaterThanHalfTimeRoundingValue(){
+        Instant instant = Instant.parse("1969-12-31T23:50:00.00Z");
+        assertThat(TimeUtils.hourRoundedTimestamp32FromInstant(instant)).isEqualTo((int)TimeUtils.SECONDS_FROM_01_01_1900_TO_01_01_1970);
+    }
+
+    @Test
+    public void testIntTimestampFromInstantIsNotRoundedWhenMultipleOfTimeRoundingValue(){
+        Instant instant = Instant.parse("1970-01-01T00:00:00.00Z");
+        assertThat(TimeUtils.hourRoundedTimestamp32FromInstant(instant)).isEqualTo((int)TimeUtils.SECONDS_FROM_01_01_1900_TO_01_01_1970);
+    }
+    
+    @Test
+    public void testIntTimestampFromInstantIsRoundedUpToTheNextLongWhenModuloIsEqualToHalfTimeRoundingValue(){
+        Instant instant = Instant.parse("1969-12-31T23:30:00.00Z");
+        assertThat(TimeUtils.hourRoundedTimestamp32FromInstant(instant)).isEqualTo((int)TimeUtils.SECONDS_FROM_01_01_1900_TO_01_01_1970);
+    }
 }

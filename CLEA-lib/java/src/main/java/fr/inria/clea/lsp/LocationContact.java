@@ -5,7 +5,9 @@ import javax.validation.constraints.Max;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
+import lombok.AccessLevel;
 
 @Builder
 @Getter
@@ -18,5 +20,6 @@ public class LocationContact {
     @Max(value = 6)
     String locationPin;
     /* Starting time of the period in seconds */
+    @Setter(AccessLevel.PROTECTED)
     int periodStartTime;
 }

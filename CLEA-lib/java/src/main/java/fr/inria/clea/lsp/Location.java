@@ -50,7 +50,7 @@ public class Location {
      */
     public String newDeepLink(int periodStartTime) throws CleaEncryptionException {
         // QR-code validity starts at period start time 
-        return this.newDeepLink(periodStartTime * TimeUtils.NB_SECONDS_PER_HOUR);
+        return this.newDeepLink(periodStartTime, periodStartTime);
     }
     
     /**
@@ -101,6 +101,9 @@ public class Location {
         this.locationSpecificPart.setPeriodStartTime(periodStartTime);
         this.locationSpecificPart.setLocationTemporarySecretKey(locationTemporarySecretKey);
         this.locationSpecificPart.setLocationTemporaryPublicId(currentLocationTemporaryPublicId);
+        if (Objects.nonNull(this.contact)) {
+            this.contact.setPeriodStartTime(periodStartTime);
+        }
         log.debug("new periodStartTime: {} ", Integer.toUnsignedString(periodStartTime));
         log.debug("locationTemporarySecretKey*: {}*", BytesUtils.bytesToString(locationTemporarySecretKey));
         log.debug("locationTemporaryPublicID: " + currentLocationTemporaryPublicId.toString());
@@ -112,12 +115,21 @@ public class Location {
             log.warn("Cannot update QrCode validity start time. No renewal specified!");
             return;
         }
+
+        if(qrCodeValidityStartTime < periodStartTime){
+            log.warn("Cannot set QrCode validity start time to {}. It preceeds period validity (start: {}, duration (in hours): {}", 
+                    qrCodeValidityStartTime, periodStartTime, this.locationSpecificPart.getPeriodDuration());
+            return;
+        }
+
         if (qrCodeValidityStartTime > periodStartTime + this.locationSpecificPart.getPeriodDuration() * TimeUtils.NB_SECONDS_PER_HOUR) {
             log.warn("Cannot set QrCode validity start time to {}. It exceeds period validity (start: {}, duration (in hours): {}", 
                     qrCodeValidityStartTime, periodStartTime, this.locationSpecificPart.getPeriodDuration());
             return;
         }
-        if (((qrCodeValidityStartTime - periodStartTime) % this.locationSpecificPart.getQrCodeRenewalInterval()) != 0) {
+        
+        if ((this.locationSpecificPart.getQrCodeRenewalInterval() != 0)  &&
+            (((qrCodeValidityStartTime - periodStartTime) % this.locationSpecificPart.getQrCodeRenewalInterval()) != 0)) {
             log.warn("Cannot set QrCode validity start time to {}. It is not a multiple of qrCodeRenewalInterval (qrCodeValidityStartTime: {}, periodStartTime: {}, qrCodeRenewalInterval: {}", 
                     qrCodeValidityStartTime, periodStartTime, this.locationSpecificPart.getQrCodeRenewalInterval());
             return;
