@@ -9,10 +9,15 @@ PRIVATICS team, Inria, France
 **_Preliminary Draft (Work in Progress), current version, March XXX, 2021_**
 
 
-————
+----
 
 [comment]: # ( [[_TOC_]] )
 [comment]: # ( ———— )
+
+
+[[_TOC_]]
+
+----
 
 
 ## 1- Introduction
@@ -149,6 +154,7 @@ The following acronyms and variable names are used:
 | `clusterList` | idem                         | Within the backend server, this list contains all the `LTId` and timing information corresponding to a potential cluster. This list is public, it is downloaded by all the user terminals, and is updated each time a new cluster is identified. The cluster qualification happens when the hourly counter of a location exceeds a given threshold that depends on the location features. |
 | `dupScanThreshold` (in seconds) | idem       | Time tolerance in the duplicate scan mechanism: for a given `LTId`, a single QR code can be recorded in the localList every `dupScanThreshold` seconds. A similar check is performed on the server frontend. |
 | `locationPhone` | idem                       | Phone number of the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance register. |
+| `locationRegion` | idem                      | Coarse grain geographical information for the location, in order to facilitate the work of the Manual Contact Tracing team. In case of France, it can contain a department number. |
 | `locationPIN` | idem                         |  Secret 6 digit PIN, known only by the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance register. |
 
 
@@ -635,9 +641,15 @@ However, since the `{LTId_cluster, h1_cluster}` information is public, a curious
 
 The use of the Cléa digital system is based on a voluntary decision of the user, the alternative consisting for this user in leaving her name in the hand-written attendance register.
 Consequently, a link between the two systems should be established. 
-However, there can be specific use-cases where the hand-written attendance register may not exist, for instance in case of digital ticketing.
-In that case, the `locContactMsg` may be ignored (i.e., `locContacMsgPresent` can be set to 0).
-Similarly, the Health Authority may decide not to link the two systems together, in which case the `locContacMsgPresent` flag can be set to 0.
+The following sections explain how this can be done, depending on whether a user tested COVID+ has used the Cléa system or the hand-written attendance register.
+
+It should also be noted that there are use-cases where the hand-written attendance register may not exist, for instance in case of digital ticketing.
+In that case, the `locContactMsg` should be ignored, by setting the `locContacMsgPresent` flag to 0.
+Similarly, the Health Authority may decide not to link the two systems together, in which case the `locContacMsgPresent` flag should be set to 0.
+
+It should also be noted that the link between the two systems is not perfect.
+If the cluster qualification threshold is strictly superior to `1`, it can happen that a given location should be qualified as cluster because the total number of COVID+ persons who were there at the same time is sufficient, but no alert is raised because some of them used the Cléa application, and the others the attendance register.
+
 
 #### A user tested COVID+ has used the Cléa system
 
@@ -647,7 +659,7 @@ Since the re-identification of the location is the responsibility of the authori
 The `locContactMsg` message is structured as follows (high-level view):
 
 ```
-locContactMsg = [ locationPhone | locationPIN | t_periodStart ]
+locContactMsg = [ locationPhone | padding | locationRegion | locationPIN | t_periodStart ]
 ```
 
 The following binary format must be used:
@@ -655,33 +667,39 @@ The following binary format must be used:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              locationPhone (8 bytes)                          |
+|              locationPhone (60 bits)                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              ...                                              |
+|              ...                                      | pad   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              locationPIN (4 bytes)                            |
+|locationRegion |          locationPIN (3 bytes)                |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |              t_periodStart (4 bytes)                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
 
-- `locationPhone` (8 bytes):
-this field contains a 16 digit phone number, where each digit is stored one by one in a 4-bit nibble.
-The phone number must be encoded using the [E.164](https://www.itu.int/rec/T-REC-E.164/) standard.
-For instance: `+33 1 02 03 04 05` will be stored as (binary): `0011 0011  0001 0000  0010 0000  0011 0000  0100 0000  0101 1111  1111 1111  1111 1111`.
-Unused nibbles must contain the `1111` value (i.e., value `0xF` does not encode a valid decimal digit).
+- `locationPhone` (60 bits):
+this field contains a phone number, where each digit is stored one by one in a 4-bit nibble.
+The phone number must be encoded using the [E.164](https://www.itu.int/rec/T-REC-E.164/) standard that requires phone numbers to have a maximum length of 15 digits.
+For instance, in case of France, `+33 1 02 03 04 05` will be stored as (binary) `0011 0011  0001 0000  0010 0000  0011 0000  0100 0000  0101 1111  1111 1111  1111`.
+Unused nibbles must contain the `1111` / `0xF` value.
 
-- `locationPIN` (4 bytes):
-this field contains a 8-digit secret PIN known only by the location contact, communicated when registering to the device manufacturer or on the web site when generating a static QR code.
+- `padding`(4 bits) (`pad` in figure):
+this field is unused in the current specification and must be set to zero.
+
+- `locationRegion` (1 byte):
+this field contains coarse grain geographical information for the location, in order to facilitate the work of the Manual Contact Tracing team (e.g., for countries that rely on a regional organisation, it enables the cluster record to be routed directly to the right regional Manual Contact Tracing team).
+In case of France, it can contain a department number.
+
+- `locationPIN` (3 bytes):
+this field contains a 6-digit secret PIN known only by the location contact, communicated when registering to the device manufacturer or on the web site when generating a static QR code.
 It is meant to prevent an attacker who knows the contact phone number of a target location (this phone number is usually public) to forge a new QR code and handle it to a user tested COVID+.
-This `locationPIN` enables the manual contact tracing team to check the QR code validity with the location contact: if the two pin codes do not match, the QR code is reputed invalid and ignored (note that the Cléa users have no risk, the forged `LTKey` and `LTId` being totally distinct from the ones actually used in this location).
+Thanks to the `locationPIN`, the manual contact tracing team can check the QR code validity with the location contact: if the two pin codes do not match, the QR code is reputed invalid and ignored (note that the Cléa users have no risk, the forged `LTKey` and `LTId` being totally distinct from the ones actually used in this location).
 
 - `t_periodStart` (4 bytes):
 Starting time of the period.
-
-Including the `t_periodStart` field in the `locContactMsg` has a major benefit: it prevents the `Enc(PK_MCTA, locContactMsg)` to remain constant over the time for a given location.
-Therefore, the authority in charge of the backend server cannot re-identify any of the locations across different periods, the encrypted message changing altogether as soon as the `t_periodStart` changes.
-Also, this authority cannot decrypt this message since it does not know the associated `PK_MCTA` secret key.
+With a dynamic QR code, including the `t_periodStart` field in the `locContactMsg` has a major benefit: it prevents the `Enc(PK_MCTA, locContactMsg)` to remain constant over the time for this location.
+Therefore, the authority in charge of the backend server cannot re-identify this locations across different periods, the encrypted message changing altogether as soon as the `t_periodStart` changes.
+If the location chooses to use a static QR code, this protection is of course meaningless, the location pseudonym remaining constant by definition.
 
 As soon as the authority in charge of the manual contact tracing receives the encrypted message, it decrypts it and checks its integrity.
 Then the authority informs the location contact person, checking the PIN code first, and asking this latter to communicate the content of the hand-written attendance register for the appropriate period.
@@ -690,9 +708,13 @@ The details of how this is done is out of scope of the present document.
 
 #### A user tested COVID+ has used the hand-written attendance register
 
-```diff
-- TODO: short description.
-```
+Here, the Manual Contact Tracing team determined that a certain location, at a certain time, should be qualified as cluster.
+However, since the person(s) tested COVID+ used the hand-written attendance register of the location, there is no scanned QR code that could be used to trigger the cluster qualification at the backend server.
+In order to make it possible, the Manual Contact Tracing team needs to ask the location manager to recover and upload the QR code of this period.
+For instance, the team can physically visit the location, discuss with the manager and help her upload her own scanned QR code of that day, using a dedicated authorization token.
+In case of a static QR code, obtaining the required QR code is not an issue.
+In case of a dynamic QR code, this scenario requires that the location manager scans her location QR code everyday, as any employee is supposed to do.
+Although there is a risk that she omitted to do so on that day (thereby preventing a notification through the Cléa applications), the probability this happened is reasonable.
 
 
 ### 3.10- Management of the location employees
