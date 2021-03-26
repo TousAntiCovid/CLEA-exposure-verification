@@ -1,5 +1,7 @@
 package fr.inria.clea.lsp;
 
+import java.time.Instant;
+
 import javax.validation.constraints.Max;
 
 import lombok.Builder;
@@ -21,5 +23,5 @@ public class LocationContact {
     String locationPin;
     /* Starting time of the period in seconds */
     @Setter(AccessLevel.PROTECTED)
-    int periodStartTime;
+    Instant periodStartTime;
 }

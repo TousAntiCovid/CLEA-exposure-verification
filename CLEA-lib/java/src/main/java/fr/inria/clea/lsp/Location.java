@@ -1,11 +1,12 @@
 package fr.inria.clea.lsp;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
 
 import fr.devnied.bitlib.BytesUtils;
-import fr.inria.clea.lsp.utils.TimeUtils;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,7 @@ public class Location {
      * @throws CleaEncryptionException
      */
     public String newDeepLink() throws CleaEncryptionException {
-        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         return this.newDeepLink(periodStartTime);
     }
     
@@ -41,14 +42,11 @@ public class Location {
      * at the given period start time with a QR code validaty
      * starting at the period start time.
      * 
-     * @param periodStartTime Starting time of the period, expressed as the number 
-     * of seconds since January 1st, 1900 (NTP timestamp limited to the 32-bit 
-     * seconds field), by convention in the UTC (Coordinated Universal Time) timezone.
-     * A period necessarily starts at a round hour.
+     * @param periodStartTime Starting time of the period. A period necessarily starts at a round hour.
      * @return the deep link as a String
      * @throws CleaEncryptionException
      */
-    public String newDeepLink(int periodStartTime) throws CleaEncryptionException {
+    public String newDeepLink(Instant periodStartTime) throws CleaEncryptionException {
         // QR-code validity starts at period start time 
         return this.newDeepLink(periodStartTime, periodStartTime);
     }
@@ -58,18 +56,12 @@ public class Location {
      * at the given period start time with a QR code validaty
      * starting at the period start time.
      * 
-     * @param periodStartTime Starting time of the period, expressed as the number 
-     * of seconds since January 1st, 1900 (NTP timestamp limited to the 32-bit 
-     * seconds field), by convention in the UTC (Coordinated Universal Time) timezone.
-     * A period necessarily starts at a round hour.
-     * @param qrCodeValidityStartTime Starting time of the QR code validity timespan,
-     *  expressed as the number of seconds since January 1st, 1900 (NTP timestamp 
-     *  limited to the 32-bit seconds field),
-     *  by convention in UTC (Coordinated Universal Time) timezone.
+     * @param periodStartTime Starting time of the period. A period necessarily starts at a round hour.
+     * @param qrCodeValidityStartTime Starting time of the QR code validity timespan.
      * @return the deep link as a String
      * @throws CleaEncryptionException
      */
-    public String newDeepLink(int periodStartTime, int qrCodeValidityStartTime) throws CleaEncryptionException {
+    public String newDeepLink(Instant periodStartTime, Instant qrCodeValidityStartTime) throws CleaEncryptionException {
         this.setPeriodStartTime(periodStartTime);
         this.setQrCodeValidityStartTime(periodStartTime, qrCodeValidityStartTime);
         return COUNTRY_SPECIFIC_PREFIX + this.getLocationSpecificPartEncryptedBase64();
@@ -95,7 +87,7 @@ public class Location {
         return new LocationContactMessageEncoder(this.manualContactTracingAuthorityPublicKey).encode(contact);
     }
     
-    protected void setPeriodStartTime(int periodStartTime) throws CleaEncryptionException {
+    protected void setPeriodStartTime(Instant periodStartTime) throws CleaEncryptionException {
         byte[] locationTemporarySecretKey = this.getCleaEncoder().computeLocationTemporarySecretKey(this.permanentLocationSecretKey, periodStartTime);
         UUID currentLocationTemporaryPublicId = this.getCleaEncoder().computeLocationTemporaryPublicId(locationTemporarySecretKey);
         this.locationSpecificPart.setPeriodStartTime(periodStartTime);
@@ -104,32 +96,32 @@ public class Location {
         if (Objects.nonNull(this.contact)) {
             this.contact.setPeriodStartTime(periodStartTime);
         }
-        log.debug("new periodStartTime: {} ", Integer.toUnsignedString(periodStartTime));
+        log.debug("new periodStartTime: {} ", periodStartTime);
         log.debug("locationTemporarySecretKey*: {}*", BytesUtils.bytesToString(locationTemporarySecretKey));
         log.debug("locationTemporaryPublicID: " + currentLocationTemporaryPublicId.toString());
     }
     
-    protected void setQrCodeValidityStartTime(int periodStartTime, int qrCodeValidityStartTime) {
+    protected void setQrCodeValidityStartTime(Instant periodStartTime, Instant qrCodeValidityStartTime) {
         if ((this.locationSpecificPart.getQrCodeRenewalInterval() == 0) 
-                && (this.locationSpecificPart.getQrCodeValidityStartTime() != 0)) {
+                && Objects.nonNull(this.locationSpecificPart.getQrCodeValidityStartTime())) {
             log.warn("Cannot update QrCode validity start time. No renewal specified!");
             return;
         }
 
-        if(qrCodeValidityStartTime < periodStartTime){
+        if (qrCodeValidityStartTime.isBefore(periodStartTime)) {
             log.warn("Cannot set QrCode validity start time to {}. It preceeds period validity (start: {}, duration (in hours): {}", 
                     qrCodeValidityStartTime, periodStartTime, this.locationSpecificPart.getPeriodDuration());
             return;
         }
 
-        if (qrCodeValidityStartTime > periodStartTime + this.locationSpecificPart.getPeriodDuration() * TimeUtils.NB_SECONDS_PER_HOUR) {
+        if (qrCodeValidityStartTime.isAfter(periodStartTime.plus(this.locationSpecificPart.getPeriodDuration(), ChronoUnit.HOURS))) {
             log.warn("Cannot set QrCode validity start time to {}. It exceeds period validity (start: {}, duration (in hours): {}", 
                     qrCodeValidityStartTime, periodStartTime, this.locationSpecificPart.getPeriodDuration());
             return;
         }
         
         if ((this.locationSpecificPart.getQrCodeRenewalInterval() != 0)  &&
-            (((qrCodeValidityStartTime - periodStartTime) % this.locationSpecificPart.getQrCodeRenewalInterval()) != 0)) {
+            (((qrCodeValidityStartTime.getEpochSecond() - periodStartTime.getEpochSecond()) % this.locationSpecificPart.getQrCodeRenewalInterval()) != 0)) {
             log.warn("Cannot set QrCode validity start time to {}. It is not a multiple of qrCodeRenewalInterval (qrCodeValidityStartTime: {}, periodStartTime: {}, qrCodeRenewalInterval: {}", 
                     qrCodeValidityStartTime, periodStartTime, this.locationSpecificPart.getQrCodeRenewalInterval());
             return;

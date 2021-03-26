@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import fr.devnied.bitlib.BitUtils;
+import fr.inria.clea.lsp.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -103,7 +104,8 @@ public class LocationSpecificPartEncoder {
         /* ct_periodStart (24 bits) */
         message.setNextInteger(locationSpecificPart.getCompressedPeriodStartTime(), 24);
         /* t_qrStart (32 bits) */
-        message.setNextInteger(locationSpecificPart.getQrCodeValidityStartTime(), 32);
+        int qrCodeValidityStartTime = (int) TimeUtils.ntpTimestampFromInstant(locationSpecificPart.getQrCodeValidityStartTime());
+        message.setNextInteger(qrCodeValidityStartTime, 32);
         /* LTKey (32 bytes) */
         message.setNextByte(locationSpecificPart.getLocationTemporarySecretKey(), 256);
         /* Encode the locContactMsg with encryption if required */

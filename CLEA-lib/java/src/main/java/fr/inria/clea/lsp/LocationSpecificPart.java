@@ -3,6 +3,7 @@
  */
 package fr.inria.clea.lsp;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -88,7 +89,7 @@ public class LocationSpecificPart {
     
     /* Starting time of the QR code validity timespan in seconds */
     @Setter
-    protected int qrCodeValidityStartTime;
+    protected Instant qrCodeValidityStartTime;
     
     /* Temporary location key for the period */
     @Setter
@@ -104,10 +105,18 @@ public class LocationSpecificPart {
         return Objects.nonNull(this.encryptedLocationContactMessage);
     }
 
-    public void setPeriodStartTime(int periodStartTime) {
-        this.compressedPeriodStartTime = Integer.divideUnsigned(periodStartTime, TimeUtils.NB_SECONDS_PER_HOUR);
+    public Instant getPeriodStartTime() {
+        return TimeUtils.instantFromTimestamp((long) this.compressedPeriodStartTime * TimeUtils.NB_SECONDS_PER_HOUR);
     }
     
+    public void setPeriodStartTime(Instant periodStartTime) {
+        long periodStartTimeAsNtpTimestamp = TimeUtils.ntpTimestampFromInstant(periodStartTime);
+        this.compressedPeriodStartTime = (int) (periodStartTimeAsNtpTimestamp / TimeUtils.NB_SECONDS_PER_HOUR);
+    }
+    
+    /**
+     * @return the number of seconds between a new QR code generation.
+     */
     public int getQrCodeRenewalInterval() {
         if (this.qrCodeRenewalIntervalExponentCompact == 0x1F) {
             return 0;

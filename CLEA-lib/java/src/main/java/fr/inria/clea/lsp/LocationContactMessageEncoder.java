@@ -9,6 +9,7 @@ import java.security.spec.InvalidKeySpecException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 import fr.devnied.bitlib.BitUtils;
+import fr.inria.clea.lsp.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -67,7 +68,8 @@ public class LocationContactMessageEncoder {
         }
 
         /* t_periodStart (32 bits) */
-        locationContactMessage.setNextInteger(message.getPeriodStartTime(), 32);
+        int periodStartTime = (int) TimeUtils.ntpTimestampFromInstant(message.getPeriodStartTime());
+        locationContactMessage.setNextInteger(periodStartTime, 32);
 
         return locationContactMessage.getData();
     }
@@ -107,7 +109,8 @@ public class LocationContactMessageEncoder {
             /* t_periodStart (32 bits) */
             int periodStartTime = bitLocationContactMessage.getNextInteger(32);
             
-            return new LocationContact(locationPhone.toString(), locationPin.toString(), periodStartTime);
+            return new LocationContact(locationPhone.toString(), 
+                    locationPin.toString(), TimeUtils.instantFromTimestamp(periodStartTime));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalStateException | InvalidCipherTextException
                 | IOException e) {
             throw new CleaEncryptionException(e);
