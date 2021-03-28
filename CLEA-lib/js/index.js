@@ -31,13 +31,15 @@
             locContactMsg: null
         };
 
-        var phone = $("#locationPhone").val()
+        var phone = $("#locationPhone").val();
+        var locationRegion = parseInt($("#locationRegion").val());
+        var locationPin = $("#locationPin").val();
 
-        if (phone) {
+        if (phone && locationRegion && locationPin) {
             conf.locContactMsg = {
-                locationPhone: parseInt(phone), 
-                locationRegion: parseInt($("#locationRegion").val()),
-                locationPin: parseInt($("#locationPin").val())
+                locationPhone: phone, 
+                locationRegion: locationRegion,
+                locationPin: locationPin
             }
         }
 
