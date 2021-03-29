@@ -5,12 +5,19 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 import fr.devnied.bitlib.BitUtils;
 import fr.inria.clea.lsp.exception.CleaCryptoException;
 import fr.inria.clea.lsp.exception.CleaEncryptionException;
+import fr.inria.clea.lsp.exception.CleaInvalidLocationContactMessageException;
 import fr.inria.clea.lsp.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,14 +25,18 @@ import lombok.extern.slf4j.Slf4j;
 public class LocationContactMessageEncoder {
     private String manualContactTracingAuthorityPublicKey;
     private CleaEciesEncoder cleaEncoder;
+    private Validator validator;
     
     public LocationContactMessageEncoder(String manualContactTracingAuthorityPublicKey) {
         super();
         this.manualContactTracingAuthorityPublicKey = manualContactTracingAuthorityPublicKey;
         cleaEncoder = new CleaEciesEncoder();
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
     }
 
     public byte[] encode(LocationContact message) throws CleaCryptoException {
+        this.validateMessage(message);
         try {
             byte[] messageBinary = this.getBinaryMessage(message);
             byte[] encryptedLocationContactMessage = cleaEncoder.encrypt(null, messageBinary, manualContactTracingAuthorityPublicKey);
@@ -37,6 +48,16 @@ public class LocationContactMessageEncoder {
                 | InvalidAlgorithmParameterException | IllegalStateException | InvalidCipherTextException
                 | IOException e) {
             throw new CleaEncryptionException(e);
+        }
+    }
+
+    protected void validateMessage(LocationContact message) throws CleaInvalidLocationContactMessageException {
+        Set<ConstraintViolation<LocationContact>> violations = validator.validate(message);
+        for (ConstraintViolation<LocationContact> violation : violations) {
+            log.error(violation.getMessage()); 
+        }
+        if (!violations.isEmpty()) {
+            throw new CleaInvalidLocationContactMessageException(violations);
         }
     }
     
@@ -111,8 +132,10 @@ public class LocationContactMessageEncoder {
             /* t_periodStart (32 bits) */
             long periodStartTime = bitLocationContactMessage.getNextLong(32);
             
-            return new LocationContact(locationPhone.toString(), 
+            LocationContact locationContact = new LocationContact(locationPhone.toString(), 
                     locationPin.toString(), TimeUtils.instantFromTimestamp(periodStartTime));
+            this.validateMessage(locationContact);            
+            return locationContact;
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | IllegalStateException | InvalidCipherTextException
                 | IOException e) {
             throw new CleaEncryptionException(e);

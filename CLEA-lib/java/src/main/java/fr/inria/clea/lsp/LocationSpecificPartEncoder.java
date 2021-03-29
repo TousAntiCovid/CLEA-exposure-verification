@@ -5,10 +5,18 @@ package fr.inria.clea.lsp;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+
 import fr.devnied.bitlib.BitUtils;
+import fr.inria.clea.lsp.exception.CleaCryptoException;
 import fr.inria.clea.lsp.exception.CleaEncryptionException;
+import fr.inria.clea.lsp.exception.CleaInvalidLocationMessageException;
 import fr.inria.clea.lsp.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,9 +30,12 @@ public class LocationSpecificPartEncoder {
     /* ECIES crytography */
     private CleaEciesEncoder cleaEciesEncoder;
     private String serverAuthorityPublicKey;
+    private Validator validator;
 
     public LocationSpecificPartEncoder() {
         this.cleaEciesEncoder = new CleaEciesEncoder();
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
     }
     
     public LocationSpecificPartEncoder(String serverAuthorityPublicKey) {
@@ -32,10 +43,11 @@ public class LocationSpecificPartEncoder {
         this.serverAuthorityPublicKey = serverAuthorityPublicKey;
     }
   
-    public byte[] encode(LocationSpecificPart locationSpecificPart) throws CleaEncryptionException {
+    public byte[] encode(LocationSpecificPart locationSpecificPart) throws CleaCryptoException {
         if (Objects.isNull(serverAuthorityPublicKey)) {
             throw new CleaEncryptionException("Cannot encrypt, serverAuthorityPublicKey is null!");
         }
+        this.validateMessage(locationSpecificPart);
         byte[] header = this.binaryEncodedHeader(locationSpecificPart);
         byte[] msg = this.binaryEncodedMessage(locationSpecificPart);
         byte[] encryptedLocationSpecificPart = this.encrypt(header, msg, this.serverAuthorityPublicKey);
@@ -145,4 +157,13 @@ public class LocationSpecificPartEncoder {
         }
     }
     
+    protected void validateMessage(LocationSpecificPart message) throws CleaInvalidLocationMessageException {
+        Set<ConstraintViolation<LocationSpecificPart>> violations = validator.validate(message);
+        for (ConstraintViolation<LocationSpecificPart> violation : violations) {
+            log.error(violation.getMessage()); 
+        }
+        if (!violations.isEmpty()) {
+            throw new CleaInvalidLocationMessageException(violations);
+        }
+    }
 }
