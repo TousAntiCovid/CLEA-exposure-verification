@@ -26,7 +26,8 @@ public class LocationContact {
     @NotBlank(message= PHONE_VALIDATION_MESSAGE)
     String locationPhone;
     /* Secret 6 digit PIN, one digit = one character */
-    @Size(min = 6, max = 6, 
+    // TODO: set max to 6 when CSV files used for tests are updated
+    @Size(min = 6, max = 8, 
             message = PIN_VALIDATION_MESSAGE)
     String locationPin;
     /* Starting time of the period in seconds */

@@ -240,14 +240,24 @@ class LocationSpecificPartTest {
         String pinCode = generateRandomDigits(6);
         LocationContact locationContact = new LocationContact(phone, pinCode, myPeriodStartTime);
         /* Encode a LSP with location */
-        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(staff == 1).countryCode(countryCode)
-                .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact).venueType(venueType)
-                .venueCategory1(venueCat1).venueCategory2(venueCat2).periodDuration(periodDuration).build();
-        Location location = Location.builder().locationSpecificPart(lsp).contact(locationContact)
+        LocationSpecificPart lsp = LocationSpecificPart.builder()
+                .staff(staff == 1)
+                .countryCode(countryCode)
+                .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact)
+                .venueType(venueType)
+                .venueCategory1(venueCat1)
+                .venueCategory2(venueCat2)
+                .periodDuration(periodDuration)
+                .build();
+        Location location = Location.builder()
+                .locationSpecificPart(lsp)
+                .contact(locationContact)
                 .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
                 .serverAuthorityPublicKey(serverAuthorityPublicKey)
-                .permanentLocationSecretKey(permanentLocationSecretKey).build();
+                .permanentLocationSecretKey(permanentLocationSecretKey)
+                .build();
         location.setPeriodStartTime(myPeriodStartTime);
+        location.setQrCodeValidityStartTime(myPeriodStartTime, myPeriodStartTime);
 
         /* Encode a LSP with location */
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
