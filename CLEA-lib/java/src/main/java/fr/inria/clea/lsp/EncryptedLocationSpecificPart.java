@@ -9,6 +9,8 @@ import javax.validation.constraints.Max;
 
 import org.bouncycastle.util.Arrays;
 
+import fr.inria.clea.lsp.exception.CleaEncodingException;
+import fr.inria.clea.lsp.exception.CleaEncryptionException;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

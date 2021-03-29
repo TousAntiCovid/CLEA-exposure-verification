@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import fr.devnied.bitlib.BitUtils;
+import fr.inria.clea.lsp.exception.CleaEncryptionException;
 import fr.inria.clea.lsp.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 

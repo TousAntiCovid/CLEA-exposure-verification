@@ -33,6 +33,9 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
 import fr.devnied.bitlib.BytesUtils;
+import fr.inria.clea.lsp.exception.CleaCryptoException;
+import fr.inria.clea.lsp.exception.CleaEncodingException;
+import fr.inria.clea.lsp.exception.CleaEncryptionException;
 import fr.inria.clea.lsp.utils.TimeUtils;
 
 /**
@@ -79,7 +82,7 @@ class LocationSpecificPartTest {
     }
 
     @Test
-    public void testEncodinsAndDecodingOfALocationMessage() throws CleaEncryptionException {
+    public void testEncodinsAndDecodingOfALocationMessage() throws CleaCryptoException {
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         LocationContact locationContact = new LocationContact("0612150292", "01234567", periodStartTime);
         Location location = Location.builder().contact(locationContact)
@@ -94,7 +97,7 @@ class LocationSpecificPartTest {
     }
 
     @Test
-    public void testEncodingAndDecodingOfALocationSpecificPart() throws CleaEncryptionException, CleaEncodingException {
+    public void testEncodingAndDecodingOfALocationSpecificPart() throws CleaCryptoException {
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         LocationContact locationContact = new LocationContact("33800130000", "01234567", periodStartTime);
         /* Encode a LSP with location */
@@ -106,6 +109,7 @@ class LocationSpecificPartTest {
                 .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
                 .permanentLocationSecretKey(permanentLocationSecretKey).build();
         location.setPeriodStartTime(periodStartTime);
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime);
 
         /* Encode a LSP with location */
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
@@ -120,7 +124,7 @@ class LocationSpecificPartTest {
 
     @Test
     public void testEncodingAndDecodingOfALocationSpecificPartWithoutLocationContact()
-            throws CleaEncryptionException, CleaEncodingException {
+            throws CleaCryptoException {
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         /* Encode a LSP with location */
         LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
@@ -226,14 +230,14 @@ class LocationSpecificPartTest {
     public void testEncodingDecodingOfLSPSpecificPartInBase64(int staff, int countryCode,
             String locationTemporaryPublicID, int qrCodeRenewalIntervalExponentCompact, int venueType, int venueCat1,
             int venueCat2, int periodDuration, int periodStartTime, long qrStartTime, String serverAuthoritySecretKey,
-            String serverAuthorityPublicKey, String lspbase64) throws CleaEncryptionException, CleaEncodingException {
+            String serverAuthorityPublicKey, String lspbase64) throws CleaCryptoException {
         /* Use only testLSPDecoding.csv parameters to have a variety of parameters */
         /* times parameters and location are generated */
         Instant myPeriodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         Random rn = new Random();
         int nbDigits = rn.nextInt(6) + 10;
         String phone = generateRandomDigits(nbDigits);
-        String pinCode = generateRandomDigits(8);
+        String pinCode = generateRandomDigits(6);
         LocationContact locationContact = new LocationContact(phone, pinCode, myPeriodStartTime);
         /* Encode a LSP with location */
         LocationSpecificPart lsp = LocationSpecificPart.builder().staff(staff == 1).countryCode(countryCode)
@@ -264,7 +268,7 @@ class LocationSpecificPartTest {
     public void testDecodingOfLocationOnlyInBase64(String locationPhone, String locationPin, long t_periodStart,
             String serverAuthoritySecretKey, String serverAuthorityPublicKey,
             String manualContactTracingAuthoritySecretKey, String manualContactTracingAuthorityPublicKey,
-            String lspbase64) throws CleaEncryptionException, CleaEncodingException {
+            String lspbase64) throws CleaCryptoException {
         /* Decode the encoded LSP */
         LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey);
         LocationSpecificPart lsp = decoder.decrypt(lspbase64);

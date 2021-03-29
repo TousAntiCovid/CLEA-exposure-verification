@@ -15,6 +15,8 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
 import fr.devnied.bitlib.BitUtils;
 import fr.inria.clea.lsp.EncryptedLocationSpecificPart.EncryptedLocationSpecificPartBuilder;
 import fr.inria.clea.lsp.LocationSpecificPart.LocationSpecificPartBuilder;
+import fr.inria.clea.lsp.exception.CleaEncodingException;
+import fr.inria.clea.lsp.exception.CleaEncryptionException;
 import fr.inria.clea.lsp.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -151,7 +153,7 @@ public class LocationSpecificPartDecoder {
             .venueCategory2(message.getNextInteger(4))
             .periodDuration(message.getNextInteger(8))
             .compressedPeriodStartTime(message.getNextInteger(24))
-            .qrCodeValidityStartTime(TimeUtils.instantFromTimestamp(message.getNextInteger(32)))
+            .qrCodeValidityStartTime(TimeUtils.instantFromTimestamp(message.getNextLong(32)))
             .locationTemporarySecretKey(message.getNextByte(256))
             .encryptedLocationContactMessage(encryptedLocationContactMessage);
         return locationSpecificPartbuilder.build();            

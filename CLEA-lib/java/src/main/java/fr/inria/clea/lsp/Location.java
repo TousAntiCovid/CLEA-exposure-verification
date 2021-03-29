@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 import fr.devnied.bitlib.BytesUtils;
+import fr.inria.clea.lsp.exception.CleaCryptoException;
+import fr.inria.clea.lsp.exception.CleaEncryptionException;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +34,7 @@ public class Location {
      * @return the deep link as a String
      * @throws CleaEncryptionException
      */
-    public String newDeepLink() throws CleaEncryptionException {
+    public String newDeepLink() throws CleaCryptoException {
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         return this.newDeepLink(periodStartTime);
     }
@@ -46,7 +48,7 @@ public class Location {
      * @return the deep link as a String
      * @throws CleaEncryptionException
      */
-    public String newDeepLink(Instant periodStartTime) throws CleaEncryptionException {
+    public String newDeepLink(Instant periodStartTime) throws CleaCryptoException {
         // QR-code validity starts at period start time 
         return this.newDeepLink(periodStartTime, periodStartTime);
     }
@@ -61,7 +63,7 @@ public class Location {
      * @return the deep link as a String
      * @throws CleaEncryptionException
      */
-    public String newDeepLink(Instant periodStartTime, Instant qrCodeValidityStartTime) throws CleaEncryptionException {
+    public String newDeepLink(Instant periodStartTime, Instant qrCodeValidityStartTime) throws CleaCryptoException {
         this.setPeriodStartTime(periodStartTime);
         this.setQrCodeValidityStartTime(periodStartTime, qrCodeValidityStartTime);
         return COUNTRY_SPECIFIC_PREFIX + this.getLocationSpecificPartEncryptedBase64();
@@ -72,18 +74,18 @@ public class Location {
      * @return the base 64 encoded location specific part
      * @throws CleaEncryptionException
      */
-    public String getLocationSpecificPartEncryptedBase64() throws CleaEncryptionException {
+    public String getLocationSpecificPartEncryptedBase64() throws CleaCryptoException {
         return Base64.getEncoder().encodeToString(this.getLocationSpecificPartEncrypted());
     }
 
-    protected byte[] getLocationSpecificPartEncrypted() throws CleaEncryptionException {
+    protected byte[] getLocationSpecificPartEncrypted() throws CleaCryptoException {
         if (Objects.nonNull(this.contact)) {
             this.locationSpecificPart.setEncryptedLocationContactMessage(this.getLocationContactMessageEncrypted());
         }
         return new LocationSpecificPartEncoder(this.serverAuthorityPublicKey).encode(locationSpecificPart);
     }
     
-    protected byte[] getLocationContactMessageEncrypted() throws CleaEncryptionException {
+    protected byte[] getLocationContactMessageEncrypted() throws CleaCryptoException {
         return new LocationContactMessageEncoder(this.manualContactTracingAuthorityPublicKey).encode(contact);
     }
     

@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 import fr.inria.clea.lsp.Location.LocationBuilder;
+import fr.inria.clea.lsp.exception.CleaCryptoException;
 import fr.inria.clea.lsp.utils.TimeUtils;
 
 public class LspEncoderDecoder {
@@ -30,7 +31,7 @@ public class LspEncoderDecoder {
         }
     }
 
-    protected static void decodeLsp(String[] args) throws CleaEncryptionException, CleaEncodingException {
+    protected static void decodeLsp(String[] args) throws CleaCryptoException {
         String lspBase64 = args[1];
         String serverAuthoritySecretKey = args[2];
         String manualContactTracingAuthoritySecretKey = args[3];
@@ -49,7 +50,7 @@ public class LspEncoderDecoder {
         System.out.println(valuesToreturn);
     }
 
-    protected static void encodeLsp(String[] args) throws CleaEncryptionException {
+    protected static void encodeLsp(String[] args) throws CleaCryptoException {
         int staff = Integer.parseInt(args[1]);
         int countryCode = Integer.parseInt(args[2]);
         int qrCodeRenewalIntervalExponentCompact = Integer.parseInt(args[3]);

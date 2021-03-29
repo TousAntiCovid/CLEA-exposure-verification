@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import fr.inria.clea.lsp.exception.CleaCryptoException;
+
 // @ExtendWith(MockitoJUnitRunner.class)
 public class LocationTest {
 
@@ -80,7 +82,7 @@ public class LocationTest {
     }
 
     @Test
-    public void testNewDeepLink() throws CleaEncryptionException {
+    public void testNewDeepLink() throws CleaCryptoException {
         int qrCodeRenewalIntervalExponentCompact = 2;
         int periodDuration = 3;
 

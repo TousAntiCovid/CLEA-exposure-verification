@@ -9,6 +9,8 @@ import java.security.spec.InvalidKeySpecException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 import fr.devnied.bitlib.BitUtils;
+import fr.inria.clea.lsp.exception.CleaCryptoException;
+import fr.inria.clea.lsp.exception.CleaEncryptionException;
 import fr.inria.clea.lsp.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,7 +25,7 @@ public class LocationContactMessageEncoder {
         cleaEncoder = new CleaEciesEncoder();
     }
 
-    public byte[] encode(LocationContact message) throws CleaEncryptionException {
+    public byte[] encode(LocationContact message) throws CleaCryptoException {
         try {
             byte[] messageBinary = this.getBinaryMessage(message);
             byte[] encryptedLocationContactMessage = cleaEncoder.encrypt(null, messageBinary, manualContactTracingAuthorityPublicKey);
@@ -79,7 +81,7 @@ public class LocationContactMessageEncoder {
      * | locationPhone | locationPIN | t_periodStart |
      * @throws CleaEncryptionException 
      */
-    public LocationContact decode(byte[] encryptedLocationContactMessage) throws CleaEncryptionException {
+    public LocationContact decode(byte[] encryptedLocationContactMessage) throws CleaCryptoException {
         try {
             /* Decrypt the data */
             byte[] binaryLocationContactMessage = cleaEncoder.decrypt(encryptedLocationContactMessage, this.manualContactTracingAuthorityPublicKey , false);
