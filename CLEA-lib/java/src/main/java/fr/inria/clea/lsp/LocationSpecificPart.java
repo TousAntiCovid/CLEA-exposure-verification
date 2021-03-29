@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @ToString
 @Slf4j
 public class LocationSpecificPart {
-    public static final short LOCATION_TEMPORARY_SECRET_KEY_SIZE = 64;
+    public static final short LOCATION_TEMPORARY_SECRET_KEY_SIZE = 32; // 256 bits
     public static final String VERSION_VALIDATION_MESSAGE = "Version should have a value between 0 and 8 (included)";
     public static final String TYPE_VALIDATION_MESSAGE = "Type should have a value between 0 and 8 (included)";
     public static final String COUNTRY_CODE_VALIDATION_MESSAGE = "Country code should have a value between 0 and 4096 (included)";
@@ -77,7 +77,7 @@ public class LocationSpecificPart {
     protected boolean staff;
     
     /*
-     * Location Temporary public universally unique Identifier (UUID), specific to a
+     * Location Temporary public universally unique Identifier (UUID) 128-bits, specific to a
      * given location at a given period.
      */
     @Setter
