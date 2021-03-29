@@ -70,8 +70,8 @@ public class LocationContactMessageEncoder {
         }
 
         /* t_periodStart (32 bits) */
-        int periodStartTime = (int) TimeUtils.ntpTimestampFromInstant(message.getPeriodStartTime());
-        locationContactMessage.setNextInteger(periodStartTime, 32);
+        long periodStartTime = TimeUtils.ntpTimestampFromInstant(message.getPeriodStartTime());
+        locationContactMessage.setNextLong(periodStartTime, 32);
 
         return locationContactMessage.getData();
     }
@@ -109,7 +109,7 @@ public class LocationContactMessageEncoder {
             }
 
             /* t_periodStart (32 bits) */
-            int periodStartTime = bitLocationContactMessage.getNextInteger(32);
+            long periodStartTime = bitLocationContactMessage.getNextLong(32);
             
             return new LocationContact(locationPhone.toString(), 
                     locationPin.toString(), TimeUtils.instantFromTimestamp(periodStartTime));

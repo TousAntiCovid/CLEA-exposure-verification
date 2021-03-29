@@ -105,8 +105,10 @@ public class LocationSpecificPartEncoder {
         /* ct_periodStart (24 bits) */
         message.setNextInteger(locationSpecificPart.getCompressedPeriodStartTime(), 24);
         /* t_qrStart (32 bits) */
-        int qrCodeValidityStartTime = (int) TimeUtils.ntpTimestampFromInstant(locationSpecificPart.getQrCodeValidityStartTime());
-        message.setNextInteger(qrCodeValidityStartTime, 32);
+        long qrCodeValidityStartTime = Objects.isNull(locationSpecificPart.getQrCodeValidityStartTime()) ?
+                0 :
+                TimeUtils.ntpTimestampFromInstant(locationSpecificPart.getQrCodeValidityStartTime());
+        message.setNextLong(qrCodeValidityStartTime, 32);
         /* LTKey (32 bytes) */
         message.setNextByte(locationSpecificPart.getLocationTemporarySecretKey(), 256);
         /* Encode the locContactMsg with encryption if required */
