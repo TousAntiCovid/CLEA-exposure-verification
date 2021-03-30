@@ -4,11 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import fr.inria.clea.lsp.utils.TimeUtils;
+import fr.inria.clea.lsp.exception.CleaCryptoException;
 
 // @ExtendWith(MockitoJUnitRunner.class)
 public class LocationTest {
@@ -17,7 +20,7 @@ public class LocationTest {
     private final String permanentLocationSecretKey = "23c9b8f36ac1c0cddaf869c3733b771c3dc409416a9695df40397cea53e7f39e21f76925fc0c74ca6ee7c7eafad92473fd85758bab8f45fe01aac504";
     private String[] serverAuthorityKeyPair;
     private String[] manualContactTracingAuthorityKeyPair;
-    private int periodStartTime;
+    private Instant periodStartTime;
     private LocationContact locationContact;
     //@Mock
     private LocationSpecificPart lsp;
@@ -28,7 +31,7 @@ public class LocationTest {
         CleaEciesEncoder cleaEciesEncoder = new CleaEciesEncoder();
         serverAuthorityKeyPair = cleaEciesEncoder.genKeysPair(true);
         manualContactTracingAuthorityKeyPair = cleaEciesEncoder.genKeysPair(true);
-        periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         locationContact = new LocationContact("0612150292", "01234567", periodStartTime);
     }
 
@@ -43,8 +46,9 @@ public class LocationTest {
         location.setQrCodeValidityStartTime(periodStartTime, periodStartTime);
         assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(periodStartTime);
         
-        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime + qrCodeRenewalInterval);
-        assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(periodStartTime + qrCodeRenewalInterval);
+        Instant qrCodeValidityStartTime = periodStartTime.plus(qrCodeRenewalInterval, ChronoUnit.SECONDS);
+        location.setQrCodeValidityStartTime(periodStartTime, qrCodeValidityStartTime);
+        assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(qrCodeValidityStartTime);
     }
 
     @Test
@@ -54,11 +58,11 @@ public class LocationTest {
         lsp = Mockito.spy(newLocationSpecificPart(qrCodeRenewalIntervalExponentCompact, periodDuration));
         location = newLocation(locationContact, lsp);
         
-        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime - 1);
-        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime + 1);
-        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime + (periodDuration + 1) * 3600);
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime.minus(1, ChronoUnit.SECONDS));
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime.plus(1, ChronoUnit.SECONDS));
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime.plus(periodDuration + 1, ChronoUnit.HOURS));
 
-        verify(lsp, never()).setQrCodeValidityStartTime(Mockito.anyInt());
+        verify(lsp, never()).setQrCodeValidityStartTime(Mockito.any());
     }
 
     @Test
@@ -72,12 +76,13 @@ public class LocationTest {
         location.setQrCodeValidityStartTime(periodStartTime, periodStartTime);
         assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(periodStartTime);
 
-        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime + 1);
-        assertThat(lsp.getQrCodeValidityStartTime()).isNotEqualTo(periodStartTime + 1);
+        Instant newQrCodeValidityStartTime = periodStartTime.plus(1, ChronoUnit.SECONDS);
+        location.setQrCodeValidityStartTime(periodStartTime, newQrCodeValidityStartTime);
+        assertThat(lsp.getQrCodeValidityStartTime()).isNotEqualTo(newQrCodeValidityStartTime);
     }
 
     @Test
-    public void testNewDeepLink() throws CleaEncryptionException {
+    public void testNewDeepLink() throws CleaCryptoException {
         int qrCodeRenewalIntervalExponentCompact = 2;
         int periodDuration = 3;
 
