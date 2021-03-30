@@ -84,7 +84,7 @@ class LocationSpecificPartTest {
     @Test
     public void testEncodinsAndDecodingOfALocationMessage() throws CleaCryptoException {
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
-        LocationContact locationContact = new LocationContact("33800130000", "012345", periodStartTime);
+        LocationContact locationContact = new LocationContact("33800130000", 12, "012345", periodStartTime);
         Location location = Location.builder().contact(locationContact)
                 .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
                 .permanentLocationSecretKey(permanentLocationSecretKey).build();
@@ -99,7 +99,7 @@ class LocationSpecificPartTest {
     @Test
     public void testEncodingAndDecodingOfALocationSpecificPart() throws CleaCryptoException {
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
-        LocationContact locationContact = new LocationContact("33800130000", "01234567", periodStartTime);
+        LocationContact locationContact = new LocationContact("33800130000", 12, "012345", periodStartTime);
         /* Encode a LSP with location */
         LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
                 .qrCodeRenewalIntervalExponentCompact(2).venueType(4).venueCategory1(0).venueCategory2(0)
