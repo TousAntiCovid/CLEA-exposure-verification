@@ -1,6 +1,10 @@
 package fr.inria.clea.lsp;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 import fr.inria.clea.lsp.Location.LocationBuilder;
+import fr.inria.clea.lsp.exception.CleaCryptoException;
 import fr.inria.clea.lsp.utils.TimeUtils;
 
 public class LspEncoderDecoder {
@@ -27,7 +31,7 @@ public class LspEncoderDecoder {
         }
     }
 
-    protected static void decodeLsp(String[] args) throws CleaEncryptionException, CleaEncodingException {
+    protected static void decodeLsp(String[] args) throws CleaCryptoException {
         String lspBase64 = args[1];
         String serverAuthoritySecretKey = args[2];
         String manualContactTracingAuthoritySecretKey = args[3];
@@ -36,7 +40,7 @@ public class LspEncoderDecoder {
       
         String valuesToreturn =  "=VALUES="+ (lsp.isStaff()? 1 : 0) + " " + lsp.getCountryCode() + " " + lsp.getQrCodeRenewalIntervalExponentCompact()  + " " + lsp.getVenueType(); 
         valuesToreturn += " " + lsp.getVenueCategory1() + " " + lsp.getVenueCategory2() + " " + lsp.getPeriodDuration() + " " + lsp.getLocationTemporaryPublicId();
-        valuesToreturn += " " + Integer.toUnsignedString(lsp.getCompressedPeriodStartTime()) + " " + Integer.toUnsignedString(lsp.getQrCodeValidityStartTime());
+        valuesToreturn += " " + Integer.toUnsignedString(lsp.getCompressedPeriodStartTime()) + " " + TimeUtils.ntpTimestampFromInstant(lsp.getQrCodeValidityStartTime());
 
         if (lsp.isLocationContactMessagePresent()) {
             LocationContactMessageEncoder contactMessageDecode = new LocationContactMessageEncoder(manualContactTracingAuthoritySecretKey);
@@ -46,7 +50,7 @@ public class LspEncoderDecoder {
         System.out.println(valuesToreturn);
     }
 
-    protected static void encodeLsp(String[] args) throws CleaEncryptionException {
+    protected static void encodeLsp(String[] args) throws CleaCryptoException {
         int staff = Integer.parseInt(args[1]);
         int countryCode = Integer.parseInt(args[2]);
         int qrCodeRenewalIntervalExponentCompact = Integer.parseInt(args[3]);
@@ -58,7 +62,7 @@ public class LspEncoderDecoder {
         final String manualContactTracingAuthorityPublicKey = args[9];
         final String permanentLocationSecretKey = args[10];
         
-        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         /* Encode a LSP with location */
         LocationSpecificPart lsp = LocationSpecificPart.builder()
                 .staff(staff == 1)
@@ -85,14 +89,14 @@ public class LspEncoderDecoder {
         Location location = locationBuilder.build();
         location.setPeriodStartTime(periodStartTime);
         //location.setQrCodeValidityStartTime(periodStartTime, (int) TimeUtils.currentNtpTime());
-        location.getLocationSpecificPart().setQrCodeValidityStartTime( (int) TimeUtils.currentNtpTime());
+        location.getLocationSpecificPart().setQrCodeValidityStartTime(Instant.now().truncatedTo(ChronoUnit.HOURS));
         
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
         
         final String valuesToreturn = "=VALUES=" + encryptedLocationSpecificPart + " " 
                 + location.getLocationSpecificPart().getLocationTemporaryPublicId() + " "
                 + Integer.toUnsignedString(location.getLocationSpecificPart().getCompressedPeriodStartTime()) + " "
-                + Integer.toUnsignedString(location.getLocationSpecificPart().getQrCodeValidityStartTime());
+                + TimeUtils.ntpTimestampFromInstant(location.getLocationSpecificPart().getQrCodeValidityStartTime());
         System.out.println(valuesToreturn);
     }
 

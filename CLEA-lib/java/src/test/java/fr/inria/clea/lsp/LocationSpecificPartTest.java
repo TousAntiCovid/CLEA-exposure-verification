@@ -12,6 +12,8 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Random;
@@ -31,6 +33,9 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
 import fr.devnied.bitlib.BytesUtils;
+import fr.inria.clea.lsp.exception.CleaCryptoException;
+import fr.inria.clea.lsp.exception.CleaEncodingException;
+import fr.inria.clea.lsp.exception.CleaEncryptionException;
 import fr.inria.clea.lsp.utils.TimeUtils;
 
 /**
@@ -77,9 +82,9 @@ class LocationSpecificPartTest {
     }
 
     @Test
-    public void testEncodinsAndDecodingOfALocationMessage() throws CleaEncryptionException {
-        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
-        LocationContact locationContact = new LocationContact("33800130000", 11, "012345", periodStartTime);
+    public void testEncodinsAndDecodingOfALocationMessage() throws CleaCryptoException {
+        Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
+        LocationContact locationContact = new LocationContact("33800130000", "012345", periodStartTime);
         Location location = Location.builder().contact(locationContact)
                 .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
                 .permanentLocationSecretKey(permanentLocationSecretKey).build();
@@ -92,9 +97,9 @@ class LocationSpecificPartTest {
     }
 
     @Test
-    public void testEncodingAndDecodingOfALocationSpecificPart() throws CleaEncryptionException, CleaEncodingException {
-        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
-        LocationContact locationContact = new LocationContact("33800130000", 11, "012345", periodStartTime);
+    public void testEncodingAndDecodingOfALocationSpecificPart() throws CleaCryptoException {
+        Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
+        LocationContact locationContact = new LocationContact("33800130000", "01234567", periodStartTime);
         /* Encode a LSP with location */
         LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
                 .qrCodeRenewalIntervalExponentCompact(2).venueType(4).venueCategory1(0).venueCategory2(0)
@@ -104,6 +109,7 @@ class LocationSpecificPartTest {
                 .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
                 .permanentLocationSecretKey(permanentLocationSecretKey).build();
         location.setPeriodStartTime(periodStartTime);
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime);
 
         /* Encode a LSP with location */
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
@@ -118,8 +124,8 @@ class LocationSpecificPartTest {
 
     @Test
     public void testEncodingAndDecodingOfALocationSpecificPartWithoutLocationContact()
-            throws CleaEncryptionException, CleaEncodingException {
-        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+            throws CleaCryptoException {
+        Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         /* Encode a LSP with location */
         LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
                 .qrCodeRenewalIntervalExponentCompact(2).venueType(4).venueCategory1(0).venueCategory2(0)
@@ -128,7 +134,7 @@ class LocationSpecificPartTest {
                 .serverAuthorityPublicKey(serverAuthorityKeyPair[1])
                 .permanentLocationSecretKey(permanentLocationSecretKey).build();
         location.setPeriodStartTime(periodStartTime);
-        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime+120);
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime.plus(120, ChronoUnit.SECONDS));
 
         /* Encode a LSP with location */
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
@@ -164,7 +170,7 @@ class LocationSpecificPartTest {
     @Disabled("Keep this piece of code as example how to generate a Qrcode image")
     @Test
     public void testQrCodeGeneration() throws Exception {
-        int periodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         /* Encode the LSP */
         LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
                 .qrCodeRenewalIntervalExponentCompact(2).venueType(4).venueCategory1(0).venueCategory2(0)
@@ -211,10 +217,7 @@ class LocationSpecificPartTest {
         assertThat(lsp.getVenueCategory1()).isEqualTo(venueCat1);
         assertThat(lsp.getVenueCategory2()).isEqualTo(venueCat2);
         assertThat(lsp.getCompressedPeriodStartTime()).isEqualTo(periodStartTime);
-        /* Be careful the int qrCodeValidityStartTime is unsigned */
-        System.out.println("qrCodeValidityStartTime = " + Integer.toUnsignedString(lsp.getQrCodeValidityStartTime()));
-        int tstQrCodeValidityStartTime = Integer.compareUnsigned(lsp.getQrCodeValidityStartTime(), (int) qrStartTime);
-        assertThat(tstQrCodeValidityStartTime).isEqualTo(0);
+        assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(TimeUtils.instantFromTimestamp(qrStartTime));
     }
 
     /**
@@ -227,10 +230,10 @@ class LocationSpecificPartTest {
     public void testEncodingDecodingOfLSPSpecificPartInBase64(int staff, int countryCode,
             String locationTemporaryPublicID, int qrCodeRenewalIntervalExponentCompact, int venueType, int venueCat1,
             int venueCat2, int periodDuration, int periodStartTime, long qrStartTime, String serverAuthoritySecretKey,
-            String serverAuthorityPublicKey, String lspbase64) throws CleaEncryptionException, CleaEncodingException {
+            String serverAuthorityPublicKey, String lspbase64) throws CleaCryptoException {
         /* Use only testLSPDecoding.csv parameters to have a variety of parameters */
         /* times parameters and location are generated */
-        int myPeriodStartTime = TimeUtils.hourRoundedCurrentTimeTimestamp32();
+        Instant myPeriodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         Random rn = new Random();
         int nbDigits = rn.nextInt(6) + 10;
         String phone = generateRandomDigits(nbDigits);
@@ -238,14 +241,24 @@ class LocationSpecificPartTest {
         String pinCode = generateRandomDigits(6);
         LocationContact locationContact = new LocationContact(phone, region, pinCode, myPeriodStartTime);
         /* Encode a LSP with location */
-        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(staff == 1).countryCode(countryCode)
-                .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact).venueType(venueType)
-                .venueCategory1(venueCat1).venueCategory2(venueCat2).periodDuration(periodDuration).build();
-        Location location = Location.builder().locationSpecificPart(lsp).contact(locationContact)
+        LocationSpecificPart lsp = LocationSpecificPart.builder()
+                .staff(staff == 1)
+                .countryCode(countryCode)
+                .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact)
+                .venueType(venueType)
+                .venueCategory1(venueCat1)
+                .venueCategory2(venueCat2)
+                .periodDuration(periodDuration)
+                .build();
+        Location location = Location.builder()
+                .locationSpecificPart(lsp)
+                .contact(locationContact)
                 .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
                 .serverAuthorityPublicKey(serverAuthorityPublicKey)
-                .permanentLocationSecretKey(permanentLocationSecretKey).build();
+                .permanentLocationSecretKey(permanentLocationSecretKey)
+                .build();
         location.setPeriodStartTime(myPeriodStartTime);
+        location.setQrCodeValidityStartTime(myPeriodStartTime, myPeriodStartTime);
 
         /* Encode a LSP with location */
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
@@ -266,7 +279,7 @@ class LocationSpecificPartTest {
     public void testDecodingOfLocationOnlyInBase64(String locationPhone, int locationRegion, String locationPin, long t_periodStart,
             String serverAuthoritySecretKey, String serverAuthorityPublicKey,
             String manualContactTracingAuthoritySecretKey, String manualContactTracingAuthorityPublicKey,
-            String lspbase64) throws CleaEncryptionException, CleaEncodingException {
+            String lspbase64) throws CleaCryptoException {
         /* Decode the encoded LSP */
         LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey);
         LocationSpecificPart lsp = decoder.decrypt(lspbase64);
@@ -280,10 +293,7 @@ class LocationSpecificPartTest {
         assertThat(decodedLocationContact.getLocationPhone()).isEqualTo(locationPhone);
         assertThat(decodedLocationContact.getLocationRegion()).isEqualTo(locationRegion);
         assertThat(decodedLocationContact.getLocationPin()).isEqualTo(locationPin);
-        /* Be careful the int PeriodStartTime is unsigned */
-        System.out.println("PeriodStartTime = " + Integer.toUnsignedString(decodedLocationContact.getPeriodStartTime()));
-        int tstPeriodStartTime = Integer.compareUnsigned(decodedLocationContact.getPeriodStartTime(), (int) t_periodStart);
-        assertThat(tstPeriodStartTime).isEqualTo(0);
+        assertThat(decodedLocationContact.getPeriodStartTime()).isEqualTo(TimeUtils.instantFromTimestamp(t_periodStart));
     }
 
     @Test
@@ -310,6 +320,15 @@ class LocationSpecificPartTest {
         byte[] message = new CleaEciesEncoder().decrypt(cipherText, privateKey, true);
 
         assertThat(message).isEqualTo(plainTextBytes);
+    }
+    
+    @Test
+    public void testCompressedPeriodStartTime() {
+        LocationSpecificPart lsp = LocationSpecificPart.builder().build();
+        Instant periodStartTime = Instant.parse("2007-12-03T10:00:00.00Z");
+        
+        lsp.setPeriodStartTime(periodStartTime);
+        assertThat(lsp.getPeriodStartTime()).isEqualTo(periodStartTime);
     }
 
     /**
