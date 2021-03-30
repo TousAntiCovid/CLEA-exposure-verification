@@ -829,27 +829,27 @@ However, the risk being assessed locally, by default, the authority will not kno
 | `n` | Order of `G` |
 | `S` | Shared secret |
 | `K` | Derived key for symetric encryption |
+| `IV` | AES-GCM IV set to the 96-bit constant value  `0xF01F2F3F4F5F6F7F8F9FAFB` (big endian encoding) |
 | `C0` | Ephemeral public key |
 
 ### A.2- Pseudo-code:
 
 ```
-Enc(key, msg):
+Enc(pub_key, msg):
 	-Draw an ephemeral private key r in [1, n-1]
 	-Compute C0 = r * G
-	-Compute S = r * PK_SA
+	-Compute S = r * pub_key
 	-Compute K = KDF1(C0 | S)
-	-Compute (emsg, tag) = AES-256-GCM(K, msg)
+	-Compute emsg = AES-256-GCM(K, IV, msg) and tag = GMAC(K, IV, emsg)
 	-Return (emsg, tag, C0)
 ```
 
 ```
-Dec(key, emsg, tag, C0):
-	-Compute S = SK_SA * C0
+Dec(priv_key, emsg, tag, C0):
+	-Compute S = priv_key * C0
 	-Compute K = KDF1(C0 | S)
-	-Compute (msg, tag') = AES-256-GCM(K, emsg)
-	-Assert(tag == tag')
-	-Return msg
+	-Compute msg = AES-256-GCM(K, IV, emsg) and tag' = GMAC(K, IV, emsg)
+	-if(tag == tag') return msg else raise error
 ```
 
 Note that in computation of K with the KDF1 function C0 is represented in its compressed form as specified in ANSI X9.62 (i.e. 33 bytes) and S is represented by its X coordinate (i.e. 32 bytes)
