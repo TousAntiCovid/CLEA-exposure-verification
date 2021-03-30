@@ -84,7 +84,7 @@ class LocationSpecificPartTest {
     @Test
     public void testEncodinsAndDecodingOfALocationMessage() throws CleaCryptoException {
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
-        LocationContact locationContact = new LocationContact("0612150292", "01234567", periodStartTime);
+        LocationContact locationContact = new LocationContact("33800130000", 12, "012345", periodStartTime);
         Location location = Location.builder().contact(locationContact)
                 .manualContactTracingAuthorityPublicKey(manualContactTracingAuthorityKeyPair[1])
                 .permanentLocationSecretKey(permanentLocationSecretKey).build();
@@ -99,7 +99,7 @@ class LocationSpecificPartTest {
     @Test
     public void testEncodingAndDecodingOfALocationSpecificPart() throws CleaCryptoException {
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
-        LocationContact locationContact = new LocationContact("33800130000", "01234567", periodStartTime);
+        LocationContact locationContact = new LocationContact("33800130000", 12, "012345", periodStartTime);
         /* Encode a LSP with location */
         LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
                 .qrCodeRenewalIntervalExponentCompact(2).venueType(4).venueCategory1(0).venueCategory2(0)
@@ -237,8 +237,9 @@ class LocationSpecificPartTest {
         Random rn = new Random();
         int nbDigits = rn.nextInt(6) + 10;
         String phone = generateRandomDigits(nbDigits);
+        int region = rn.nextInt(255);
         String pinCode = generateRandomDigits(6);
-        LocationContact locationContact = new LocationContact(phone, pinCode, myPeriodStartTime);
+        LocationContact locationContact = new LocationContact(phone, region, pinCode, myPeriodStartTime);
         /* Encode a LSP with location */
         LocationSpecificPart lsp = LocationSpecificPart.builder()
                 .staff(staff == 1)
@@ -275,7 +276,7 @@ class LocationSpecificPartTest {
      */
     @ParameterizedTest
     @CsvFileSource(resources = "/testLocationDecoding.csv", numLinesToSkip = 1)
-    public void testDecodingOfLocationOnlyInBase64(String locationPhone, String locationPin, long t_periodStart,
+    public void testDecodingOfLocationOnlyInBase64(String locationPhone, int locationRegion, String locationPin, long t_periodStart,
             String serverAuthoritySecretKey, String serverAuthorityPublicKey,
             String manualContactTracingAuthoritySecretKey, String manualContactTracingAuthorityPublicKey,
             String lspbase64) throws CleaCryptoException {
@@ -290,6 +291,7 @@ class LocationSpecificPartTest {
         System.out.println("decodedLocationContact= "+decodedLocationContact);
 
         assertThat(decodedLocationContact.getLocationPhone()).isEqualTo(locationPhone);
+        assertThat(decodedLocationContact.getLocationRegion()).isEqualTo(locationRegion);
         assertThat(decodedLocationContact.getLocationPin()).isEqualTo(locationPin);
         assertThat(decodedLocationContact.getPeriodStartTime()).isEqualTo(TimeUtils.instantFromTimestamp(t_periodStart));
     }

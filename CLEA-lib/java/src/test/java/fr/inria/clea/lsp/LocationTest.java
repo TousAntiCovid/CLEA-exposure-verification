@@ -32,7 +32,7 @@ public class LocationTest {
         serverAuthorityKeyPair = cleaEciesEncoder.genKeysPair(true);
         manualContactTracingAuthorityKeyPair = cleaEciesEncoder.genKeysPair(true);
         periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
-        locationContact = new LocationContact("0612150292", "01234567", periodStartTime);
+        locationContact = new LocationContact("33800130000", 10, "012345", periodStartTime);
     }
 
     @Test

@@ -18,7 +18,8 @@ clea_conf_t clea_conf =
     .countryCode          = 250, // France numeric code as defined in ISO3166-1
     .periodDuration       = 3,   // 3 hours
 	.locationPhone        = {0x33, 0x80, 0x01, 0x30, 0x00, 0x0F, 0xFF, 0xFF}, // +33 800 130 000
-	.locationPin          = {0xDE, 0xAD, 0xBE, 0xEF} // "DEADBEEF"
+    .locationRegion       = 11,
+	.locationPin          = {0xDE, 0xAD, 0xBE} // "DEADBE"
 };
 
 uint8_t LSP_base64[LSP_BASE64_SIZE];

@@ -52,7 +52,7 @@ uint8_t parse_bcd(char *string, uint8_t *array, uint8_t size)
         i++;
     }
 
-    for(k = i / 2 + 1; k < size; k++)
+    for(k = i / 2 + i%2; k < size; k++)
     {
         array[k] = 0xFF;
     }
