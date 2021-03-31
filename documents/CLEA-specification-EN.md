@@ -62,7 +62,8 @@ The server can detect clusters by considering the number of COVID+ users in  a l
 Then this central server updates its list of location temporary pseudonyms and time (with an hour granularity by default) corresponding to clusters.
 
 <img src="img/CLEA_centralized_cluster_detection.jpg" alt="CLEA_centralized_cluster_detection.jpg" width="600"/>    
-__Figure 1: Centralized cluster detection. Here Alice, tested COVID+, agrees to upload her scanned QR codes to the CLEA backend server, which, after verifying the validity of the upload, identifies if some of the visited locations needs to be qualified as potential cluster.__    
+
+Figure 1: __Centralized cluster detection. Here Alice, tested COVID+, agrees to upload her scanned QR codes to the CLEA backend server, which, after verifying the validity of the upload, identifies if some of the visited locations needs to be qualified as potential cluster.__    
 
 
 In parallel, each Cléa application periodically downloads this list containing the latest clusters that have been identified, in order to check locally whether or not there is a match.
@@ -71,7 +72,8 @@ The exact type of warning message could be adjusted to reflect the risk level (e
 Therefore this solution follows a **_decentralized risk evaluation_**.
 
 <img src="img/CLEA_decentralized_risk_evaluation.jpg" alt="CLEA_decentralized_risk_evaluation.jpg" width="600"/>    
-__Figure 1: Decentralized risk evaluation. Here Bob compares his scanned QR codes with the new potential cluster location pseudonyms in a first step, and if a match is found, if the corresponding period overlaps significantly with his own presence as stored in his local database.__    
+
+Figure 1: __Decentralized risk evaluation. Here Bob compares his scanned QR codes with the new potential cluster location pseudonyms in a first step, and if a match is found, if the corresponding period overlaps significantly with his own presence as stored in his local database.__    
 
 [^footnote-1]: the 14 days number is provided as an example. The national health authority will define the appropriate epidemiological value that is considered the most appropriate, that may also depend on another considerations like the date of first symptoms when known. The details are out of scope of this document.
 
