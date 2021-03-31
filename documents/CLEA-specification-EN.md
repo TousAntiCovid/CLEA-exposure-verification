@@ -6,7 +6,7 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Preliminary Draft (Work in Progress), current version, March XXX, 2021_**
+**_Preliminary Draft (Work in Progress), current version, March 31st, 2021_**
 
 
 ----
@@ -60,10 +60,18 @@ In practice, no information is uploaded to the server unless a client is tested 
 In that case, if the user explicitly agrees (informed consent), the application uploads the list of scanned QR codes during the past 14 days[^footnote-1] along with timing information to the central server, in order to enable a **_centralized anonymous cluster detection_**.
 The server can detect clusters by considering the number of COVID+ users in  a location at the same time, without having access to the name nor address of this location.
 Then this central server updates its list of location temporary pseudonyms and time (with an hour granularity by default) corresponding to clusters.
+
+![alt text](img/CLEA_centralized_cluster_detection.jpg "CLEA_centralized_cluster_detection.jpg")
+Figure 1: __Centralized cluster detection. Here Alice, tested COVID+, agrees to upload her scanned QR codes to the CLEA backend server, which, after verifying the validity of the upload, identifies if some of the visited locations needs to be qualified as potential cluster.__    
+
+
 In parallel, each Cléa application periodically downloads this list containing the latest clusters that have been identified, in order to check locally whether or not there is a match.
 In case of a match, the user is informed with a "warning".
 The exact type of warning message could be adjusted to reflect the risk level (e.g., if a very high number of COVID+ users have been identified in a cluster), which is out of scope of the present specification.
 Therefore this solution follows a **_decentralized risk evaluation_**.
+
+![alt text](img/CLEA_decentralized_risk_evaluation.jpg "CLEA_decentralized_risk_evaluation.jpg")
+Figure 1: __Decentralized risk evaluation. Here Bob compares his scanned QR codes with the new potential cluster location pseudonyms in a first step, and if a match is found, if the corresponding period overlaps significantly with his own presence as stored in his local database.__    
 
 [^footnote-1]: the 14 days number is provided as an example. The national health authority will define the appropriate epidemiological value that is considered the most appropriate, that may also depend on another considerations like the date of first symptoms when known. The details are out of scope of this document.
 
@@ -743,12 +751,16 @@ It is recommended to allow this feature only on a device located in a safe place
 
 ### 3.11- Web-based static QR code generation and integration in other web-based services
 
+#### The case of private events
+
 The system is compatible with a Web-based service meant to generate a static QR code, for instance to let an individual generate a QR code in the context of a private event.
 To that purpose, etc.
 
 ```diff
 - TODO: short description.
 ```
+
+#### The case of electronic ticketing
 
 This approach is also compatible with online electronic ticketing systems (e.g., for buses, shared rides, trains, or shows).
 Along with a ticket, a ready to be scanned QR code can be added, to let the user register their presence.
