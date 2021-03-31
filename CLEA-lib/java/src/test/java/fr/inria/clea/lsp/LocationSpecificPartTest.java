@@ -41,7 +41,7 @@ import fr.inria.clea.lsp.utils.TimeUtils;
 class LocationSpecificPartTest {
 
     /* Example of a permanent Location Secret Key used for the tests */
-    private final String permanentLocationSecretKey = "23c9b8f36ac1c0cddaf869c3733b771c3dc409416a9695df40397cea53e7f39e21f76925fc0c74ca6ee7c7eafad92473fd85758bab8f45fe01aac504";
+    private final String permanentLocationSecretKey = "23c9b8f36ac1c0cddaf869c3733b771c3dc409416a9695df40397cea53e7f39e21f76925fc0c74ca6ee7c7eafad92473fd8575";
     private CleaEciesEncoder cleaEciesEncoder;
     private String[] serverAuthorityKeyPair;
     private String[] manualContactTracingAuthorityKeyPair;
