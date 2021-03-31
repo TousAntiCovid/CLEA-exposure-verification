@@ -61,7 +61,7 @@ In that case, if the user explicitly agrees (informed consent), the application 
 The server can detect clusters by considering the number of COVID+ users in  a location at the same time, without having access to the name nor address of this location.
 Then this central server updates its list of location temporary pseudonyms and time (with an hour granularity by default) corresponding to clusters.
 
-<img src="img/CLEA_centralized_cluster_detection.jpg" alt="CLEA_centralized_cluster_detection.jpg" width="600"/>    
+<img src="img/CLEA_centralized_cluster_detection.jpg" alt="CLEA_centralized_cluster_detection.jpg" width="700"/>    
 
 _Figure 1: Centralized cluster detection. Here Alice, tested COVID+, agrees to upload her scanned QR codes to the CLEA backend server, which, after verifying the validity of the upload, identifies if some of the visited locations needs to be qualified as potential cluster._    
 
