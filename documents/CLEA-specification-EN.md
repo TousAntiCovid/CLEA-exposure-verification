@@ -1,4 +1,4 @@
-# The Cluster Exposure Verification (Cléa) Protocol: Specifications of the Lightweight Version
+# The Cluster Exposure Verification (Cléa) Protocol: Specifications of Protocol Version 0
 
 Vincent Roca, Antoine Boutet, Claude Castelluccia
 
@@ -6,7 +6,7 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Preliminary Draft (Work in Progress), current version, March 31st, 2021_**
+**_Preliminary Draft (Work in Progress), current version, April 1st, 2021_**
 
 
 ----
@@ -120,7 +120,7 @@ It should be noted that technical implementation considerations (e.g., the exact
 
 Several technical requirements, in particular motivated by the compatibility with embedded devices, have shaped the design:
 
-- each QR code contains a country specific URL ("deep link"), composed of a contry specific prefix (for instance: `https://tac.gouv.fr/` in case of France), and a location specific part, defined in Section [Dynamic QR code generation within the device](#dynamic-qr-code-generation-within-the-device).
+- each QR code contains a country specific URL ("deep link"), composed of a contry specific prefix (for instance: `https://tac.gouv.fr?v=0#` in case of France), and a location specific part, defined in Section [Dynamic QR code generation within the device](#dynamic-qr-code-generation-within-the-device).
 Therefore, any binary information of the location specific part, is first translated to a printable character, using a Base64 encoding, which adds a 33% overhead compared to the binary size (see [RFC4648](#references)).
 Since the output of a Base64 encoding uses an alphabet of 65 characters, it is not compatible with the Alphanumeric Mode of a QR code (limited to 45 printable characters), and it requires the use of the 8-bit Byte Mode (see [QRcode18004](#references), Section~8.4.4).
 
@@ -240,10 +240,13 @@ Since the devices are not perfectly synchronized (device clock drifts), a small 
 
 The QR code of a location, at any moment, contains a URL ("deep link"), structured as:
 ```
-	"country-specific-prefix" / "Base64(location-specific-part)"
+	"country-specific-prefix" "Base64(location-specific-part)"
 ```
-For instance, the country specific prefix is: `https://tac.gouv.fr/` in case of France.
-This section defines the structure of the location specific part.
+For instance, the country specific prefix is: `https://tac.gouv.fr?v=0#` in case of France, where:
+`v=0`indicates it's protocol version 0;
+the `#` character prevents the text that follows (namely the Base64 encoding of the location specific part) to be sent to the `tac.gouv.fr` server if the application is not already installed on the user terminal.
+
+In the remaining of this section, we define the structure of the location specific part.
 
 The QR code of a location is renewed when switching from one period to another (change of `LTKey`/`LTId`), but also periodically during the period.
 This renewal during the period is automatic every `qrCodeRenewalInterval` seconds.
