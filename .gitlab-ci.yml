@@ -2,6 +2,7 @@ image: maven:3.6-jdk-11
 
 stages:
   - build
+  - test
   - deploy
 
 build:
@@ -16,8 +17,8 @@ build:
     paths:
       - CLEA-lib/java/target/*.jar
 
-test:
-  stage: build
+test-java:
+  stage: test
   tags:
     - ci
   script:
@@ -26,6 +27,18 @@ test:
   artifacts:
     paths:
       - CLEA-lib/java/target/*.jar
+
+test-interop:
+  stage: test
+  tags:
+    - ci
+  image: python:3-buster
+  before_script: 
+    - apt-get update
+    - apt-get install -y -qq openjdk-11-jre
+  script:
+    - cd CLEA-lib/test
+    - python test_clea.py
 
 deploy:
   stage: deploy
