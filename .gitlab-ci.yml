@@ -5,7 +5,7 @@ stages:
   - test
   - deploy
 
-build:
+build-java:
   stage: build
   tags:
     - ci
@@ -16,6 +16,24 @@ build:
   artifacts:
     paths:
       - CLEA-lib/java/target/*.jar
+
+build-c:
+  stage: build
+  tags:
+    - ci
+  image: debian:latest
+  before_script:
+    - apt-get update
+    - apt-get install -y -qq cmake make gcc git
+  script:
+    - cd CLEA-lib/c
+    - mkdir build && cd build
+    - cmake ..
+    - make
+  artifacts:
+    paths:
+      - CLEA-lib/c/build/test_*
+      - CLEA-lib/c/build/build_clea
 
 test-java:
   stage: test
