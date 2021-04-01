@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define SK_L_SIZE (60)
+#define SK_L_SIZE (51)
 
 /* Permanent location secret key, this key is not defined in the clea library itself,
    it should be defined outside as it depends on the hardware specific storage location */
