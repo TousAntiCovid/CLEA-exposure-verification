@@ -26,7 +26,7 @@ var runs = [
             venueCategory2: 0,
             countryCode: 492,
             periodDuration: 3,
-            locContactMsg: null,
+            locContactMsg: undefined,
         }, header: 'ADjJN37ySvNMcCc4pwfYoB'
     },
     {
@@ -44,7 +44,7 @@ var runs = [
             venueCategory2: 15,
             countryCode: 4095,
             periodDuration: 255,
-            locContactMsg: null,
+            locContactMsg: undefined,
         }, header: 'ADjJN37ySvNMcCc4pwfYoB'
     },
     {
@@ -62,7 +62,7 @@ var runs = [
             venueCategory2: 15,
             countryCode: 592,
             periodDuration: 255,
-            locContactMsg: null,
+            locContactMsg: undefined,
         }, header: 'ADjJN37ySvNMcCc4pwfYoB'
     },
     {
@@ -80,13 +80,31 @@ var runs = [
             venueCategory2: 1,
             countryCode: 202,
             periodDuration: 10,
-            locContactMsg: null,
+            locContactMsg: undefined,
+        }, header: 'ADjJN37ySvNMcCc4pwfYoB'
+    },
+    {
+        conf: {
+            SK_L_HEX: '34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8',
+            SK_L: hexToBytes('34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8'),
+            PK_SA_HEX: '04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5',
+            PK_SA: hexToBytes('04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5'),
+            PK_MCTA_HEX: '04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5',
+            PK_MCTA: hexToBytes('04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5'),
+            staff: 0,
+            CRIexp: 5,
+            venueType: 12,
+            venueCategory1: 0,
+            venueCategory2: 0,
+            countryCode: 492,
+            periodDuration: 3,
+            locContactMsg: undefined,
         }, header: 'ADjJN37ySvNMcCc4pwfYoB'
     }
 ];
 
 before(function(done){
-    console.log(JSON.stringify({filter_key: 'crypto-filter', message: 'sk_l,pk_mcta,pk_sa,result'}));
+    console.log(JSON.stringify({filter_key: 'crypto-filter', message: 'sk_l,pk_mcta,pk_sa,result,staff,CRIexp,venueType,venueCategory1,venueCategory2,countryCode,periodDuration'}));
     done();
 });
 
@@ -152,7 +170,9 @@ describe('cleaRenewLSP()', function () {
             //locContactMsg:''
         }
         let result = await clea.cleaRenewLSP(conf);
-        console.log(JSON.stringify({filter_key: 'crypto-filter', message: sk_l+","+pk_sa+","+pk_sa+","+result}));
+        console.log(JSON.stringify({filter_key: 'crypto-filter'
+            , message: sk_l+","+pk_sa+","+pk_sa+","+result+","+conf.staff+","+conf.CRIexp+","+conf.venueType
+                +","+conf.venueCategory1+","+conf.venueCategory2+","+conf.countryCode+","+conf.periodDuration}));
         expect(result).to.length(148)
         expect(result.startsWith('AAAAAAAAAAAAAAAAAAAAAA')).to.be.true;
     })
@@ -165,7 +185,9 @@ describe('cleaStartNewPeriod()', function () {
             it('should return a result with 148 length', async () => {
                 let result = await clea.cleaStartNewPeriod(run.conf);
                 console.log(result);
-                console.log(JSON.stringify({filter_key: 'crypto-filter', message: run.conf.SK_L_HEX+","+run.conf.PK_SA_HEX+","+run.conf.PK_MCTA_HEX+","+result}));
+                console.log(JSON.stringify({filter_key: 'crypto-filter',
+                    message: run.conf.SK_L_HEX+","+run.conf.PK_SA_HEX+","+run.conf.PK_MCTA_HEX+","+result+","+run.conf.staff+","+run.conf.CRIexp+","+run.conf.venueType
+                        +","+run.conf.venueCategory1+","+run.conf.venueCategory2+","+run.conf.countryCode+","+run.conf.periodDuration}));
                 expect(result).to.length(148);
             });
         });

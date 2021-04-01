@@ -7,7 +7,7 @@
     "prebuild": "rimraf dist",
     "build": "parcel build src/index.html -t node --bundle-node-modules",
     "test": "karma start karma.conf.js",
-    "testcrypto": "mocha test/cryptotest.js"
+    "testcrypto": "mocha test/cryptotest.js --timeout=10000 --delay"
   },
   "dependencies": {
     "jquery": "3.4.1",
