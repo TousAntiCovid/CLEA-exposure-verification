@@ -25,8 +25,8 @@ class CleaEncoderInteroperabilityTestCase(unittest.TestCase):
         if os.path.exists(self.DEC_OUT):
             os.remove(self.DEC_OUT)
     
-    @unittest.skip(reason="need to build C lib before running this test")
     def testCEncodingAndJavaDecoding(self):
+        print "Running test with C encoding and Java decoding"
         lsps_encode(self.ENC_IN, self.ENC_OUT, java=False)
         # encode_out.json -> [lsps_decode] -> decode_out.json
         lsps_decode(self.ENC_OUT, self.DEC_OUT)
@@ -34,6 +34,7 @@ class CleaEncoderInteroperabilityTestCase(unittest.TestCase):
         lsps_cmp(self.ENC_IN, self.ENC_OUT, self.DEC_OUT, CSV_LSP_TST, CSV_LOC_TST)
 
     def testJavaEncodingAndJavaDecoding(self):
+        print "Running test with Java encoding and Java decoding"
         lsps_encode(self.ENC_IN, self.ENC_OUT, java=True)
         # encode_out.json -> [lsps_decode] -> decode_out.json
         lsps_decode(self.ENC_OUT, self.DEC_OUT)
