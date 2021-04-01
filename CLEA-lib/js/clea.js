@@ -278,7 +278,7 @@ function printBuf(name, buf) {
 }
 
 /**
- * Convert a 34 bits int in a bytes array
+ * Convert a 64 bits int in a bytes array
  *
  * @param {integer} val to be converted
  * @return {Uint8Array} bytes array
@@ -295,7 +295,7 @@ function getInt64Bytes(val) {
 
 /**
  * Parse a string composed by digits ([0..9])
- * to fill a bytes array storing as aset of 
+ * to fill a bytes array storing as a set of 
  * 4-bit sub-fields that each contain a digit.
  * padding is done by 0xF
  *
