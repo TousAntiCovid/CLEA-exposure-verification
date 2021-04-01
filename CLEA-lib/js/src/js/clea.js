@@ -30,7 +30,7 @@ var verbose = false;
  * 
  * @return
  */
-async function cleaStartNewPeriod(config) {
+export async function cleaStartNewPeriod(config) {
   gConf.t_periodStart = getNtpUtc(true);
 
   // Compute LTKey
@@ -70,7 +70,7 @@ async function cleaStartNewPeriod(config) {
  * 
  * @return {string} encoded LSP in Base64 format
  */
-async function cleaRenewLSP(config) {
+export async function cleaRenewLSP(config) {
   const CLEAR_HEADER_SIZE = 17;
   const MSG_SIZE = 44;
   const LOC_MSG_SIZE = 16;
@@ -108,11 +108,11 @@ async function cleaRenewLSP(config) {
     const pin = parseBcd(config.locContactMsg.locationPin, 4);
     loc_msg.set(pin, 8);
 
-    encrypted_loc_msg = await encrypt(new Uint8Array(0), loc_msg, config.PK_MCTA);
+    let encrypted_loc_msg = await encrypt(new Uint8Array(0), loc_msg, config.PK_MCTA);
     msg.set(new Uint8Array(encrypted_loc_msg), 44);
   }
 
-  output = await encrypt(header, msg, config.PK_SA);
+  let output = await encrypt(header, msg, config.PK_SA);
 
   // Convert output to Base64
   return btoa((Array.from(new Uint8Array(output))).map(ch => String.fromCharCode(ch)).join(''));
@@ -128,7 +128,7 @@ async function cleaRenewLSP(config) {
  * 
  * @return {Uint8Array} data encrypted in binary format (bytes array)
  */
-async function encrypt(header, message, publicKey) {
+export async function encrypt(header, message, publicKey) {
   // Step 1: Import the publicKey Q
   var ECPubKey = await crypto.subtle.importKey(
     "raw",
@@ -155,7 +155,7 @@ async function encrypt(header, message, publicKey) {
     EcKeyPair.publicKey
   );
 
-  C0_Q = ecdhRawPubKeyCompressed(new Uint8Array(C0));
+  let C0_Q = ecdhRawPubKeyCompressed(new Uint8Array(C0));
 
   if (verbose) printBuf("C0", C0_Q);
 
@@ -213,7 +213,7 @@ async function encrypt(header, message, publicKey) {
  * @param {Uint8Array/Array Buffer} ec_raw_pubkey public key
  * @return {Uint8Array} public key compressed
  */
-function ecdhRawPubKeyCompressed(ec_raw_pubkey) {
+export function ecdhRawPubKeyCompressed(ec_raw_pubkey) {
   const u8full = new Uint8Array(ec_raw_pubkey)
   const len = u8full.byteLength
   const u8 = u8full.slice(0, 1 + len >>> 1) // drop `y`
@@ -227,7 +227,7 @@ function ecdhRawPubKeyCompressed(ec_raw_pubkey) {
  * @param {boolean} round hour rounded (multiple of 3600 sec) or not
  * @return {integer} NTP/UTC format time in seconds
  */
-function getNtpUtc(round) {
+export function getNtpUtc(round) {
   const ONE_HOUR_IN_MS = 3600000;
 
   var t = Date.now();
@@ -258,7 +258,7 @@ function getNtpUtc(round) {
  * @param {ArrayBuffers} buf2 The second buffer.
  * @return {Uint8Array} The new buffer created out of the two.
  */
-function concatBuffer(buf1, buf2) {
+export function concatBuffer(buf1, buf2) {
   var out = new Uint8Array(buf1.byteLength + buf2.byteLength);
   out.set(new Uint8Array(buf1), 0);
   out.set(new Uint8Array(buf2), buf1.byteLength);
@@ -281,7 +281,7 @@ function printBuf(name, buf) {
  * @param {integer} val to be converted
  * @return {Uint8Array} bytes array
  */
-function getInt64Bytes(val) {
+export function getInt64Bytes(val) {
   var bytes = [];
   var i = 8;
   do {
@@ -301,13 +301,13 @@ function getInt64Bytes(val) {
  * @param {integer} size max number of digits to parse
  * @return {Uint8Array} bytes array
  */
-function parseBcd(string, size) {
+export function parseBcd(string, size) {
   var i = 0,
     ip, k;
   var array = new Uint8Array(size);
 
   for (i = 0; i < string.length; i++) {
-    digit = string.charAt(i) - '0';
+    let digit = string.charAt(i) - '0';
     if (i % 2 == 0) {
       ip = i / 2;
       array[ip] = (digit << 4) | 0x0F;
