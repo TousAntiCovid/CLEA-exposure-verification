@@ -9,7 +9,7 @@ This Proof of Concept can be used as a basis for:
 * Validate the implementation of the encryption algorithms
 * Generate locationSpecific Part for specialised devices
 
-### Dépendancies
+### Dependencies
 
 * Python 3
   
@@ -26,32 +26,30 @@ The test cycle for each set is as follows:
 
 1. encode_in.json -> [lsp_encode] -> encode_out.json (private key + lsp in base64 format)
 2. encode_out.json -> [lsp_decode] -> decode_out.json
-3. test ok if the parameters in `encode_in.json` encoded  are identical to those decoded in `de   code_out.json` at the end of the chain
+3. test ok if the parameters in `encode_in.json` encoded  are identical to those decoded in `decode_out.json` at the end of the chain
 
-To launch the test cyle use `test_clea.py`:
+To launch the tests use `python3 test_clea.py`:
 
-```bash
-python test_clea.py --help
-usage: test_clea.py [-h] [--noencode] [--java]
-
-optional arguments:
-  -h, --help  show this help message and exit
-  --noencode  test only the decoding part
-  --java      encoding part with Java lib (C lib by default)
-```
-
-By default, the test cycle uses the C encoder (see below). The option `-java` allows to use the Java encoder.
+By default, the test cycle uses the C encoder (see below). The option `--java` allows to use the Java encoder.
 
 ```shell
->python3 test_clea.py 
-qrcode build 1
-qrcode build 2
-qrcode read 1
-qrcode read 2
-TEST PASS: 1
-TEST PASS: 2
-ALL TESTS PASS
+>python3 test_clea.py --csvtest
+sEncode LSP 1
+Encode LSP 2
+Encode LSP 3
+Encode LSP 4
+Encode LSP 5
+Decode LSP 1
+Decode LSP 2
+Decode LSP 3
+Decode LSP 4
+Decode LSP 5
+.
+----------------------------------------------------------------------
+Ran 2 tests in 7.949s>python3 test_clea.py 
 ```
+
+To generate CSV files to be used by java decoding tests, run `python3 test_clea.py --csvtest`
 
 ### Javascript
 
