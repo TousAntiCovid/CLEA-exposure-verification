@@ -146,11 +146,7 @@ public class LocationContactMessageEncoder {
             long periodStartTime = bitLocationContactMessage.getNextLong(32);
             
             LocationContact locationContact = new LocationContact(locationPhone.toString(), 
-<<<<<<< HEAD
                     locationRegion, locationPin.toString(), TimeUtils.instantFromTimestamp(periodStartTime));
-=======
-                            locationRegion, locationPin.toString(), TimeUtils.instantFromTimestamp(periodStartTime));
->>>>>>> mybranch
             this.validateMessage(locationContact);            
             return locationContact;
             
