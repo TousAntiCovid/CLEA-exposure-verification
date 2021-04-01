@@ -17,6 +17,7 @@ setTimeout(function() {
             cryptoList.forEach(function (cryptoItem) {
                 it('test ' + cryptoItem.result + 'key ' + cryptoItem.sk_l +'/' + cryptoItem.pk_sa, async () => {
                     await new Promise((resolve) => {
+                        let result;
 
                         const javaproc = spawn('java', ['-cp',
                             '../java/target/clea-crypto-0.0.1-SNAPSHOT-jar-with-dependencies.jar ',
@@ -27,6 +28,7 @@ setTimeout(function() {
 
                         javaproc.stdout.on('data', (data) => {
                             console.log(data.toString());
+                            result = data.toString().trim().split(' ');
                             //assert.isTrue(true);
                         });
 
@@ -38,6 +40,13 @@ setTimeout(function() {
                         javaproc.on('exit', (code) => {
                             console.log(`Child exited with code ${code}`);
                             assert.equal(0, code);
+                            assert.equal(result[0], cryptoItem.staff);
+                            assert.equal(result[1], cryptoItem.countryCode);
+                            assert.equal(result[2], cryptoItem.CRIexp);
+                            assert.equal(result[3], cryptoItem.venueType);
+                            assert.equal(result[4], cryptoItem.venueCategory1);
+                            assert.equal(result[5], cryptoItem.venueCategory2);
+                            assert.equal(result[6], cryptoItem.periodDuration);
                             resolve();
                         });
                     })
