@@ -181,7 +181,7 @@ class LocationSpecificPartTest {
         location.setPeriodStartTime(periodStartTime);
 
         /* QR-code = "country-specific-prefix" / "Base64(location-specific-part)" */
-        String qrCode = "https://tac.gouv.fr/" + location.getLocationSpecificPartEncryptedBase64();
+        String qrCode = "https://tac.gouv.fr?v=0#" + location.getLocationSpecificPartEncryptedBase64();
 
         /* encode Qrcode with default parameters, level L */
         BitMatrix bitMatrix = new QRCodeWriter().encode(qrCode, BarcodeFormat.QR_CODE, 200, 200);
