@@ -152,10 +152,9 @@ describe('cleaRenewLSP()', function () {
             //locContactMsg:''
         }
         let result = await clea.cleaRenewLSP(conf);
-        console.log(JSON.stringify({filter_key: 'crypto-filter', message: sk_l+","+pk_sa+","+result}));
+        console.log(JSON.stringify({filter_key: 'crypto-filter', message: sk_l+","+pk_sa+","+pk_sa+","+result}));
         expect(result).to.length(148)
         expect(result.startsWith('AAAAAAAAAAAAAAAAAAAAAA')).to.be.true;
-        expect(result).to.equal('Hello')
     })
 
 });
