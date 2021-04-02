@@ -47,10 +47,13 @@ testjs:
     - apt-get install -y curl && curl -sL https://deb.nodesource.com/setup_15.x | bash - && apt-get install -y nodejs && curl -L https://www.npmjs.com/install.sh | sh 
     #Install Latest Google chrome package on system for front test#
     - apt-get install -y chromium
+    #Install Latest firefox package on system for front test#
+    - apt-get install -y firefox
   tags:
     - ci
   script:
     - cd CLEA-lib/js
+    - which chromium-browser
     - npm install
     - npm test
     - npm run testcrypto
