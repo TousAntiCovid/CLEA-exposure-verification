@@ -43,12 +43,19 @@ deploy:
 testjs:
   stage: testjs
   before_script:
+    #Install  node and npm #
     - apt-get install -y curl && curl -sL https://deb.nodesource.com/setup_15.x | bash - && apt-get install -y nodejs && curl -L https://www.npmjs.com/install.sh | sh 
+    #Install Latest Google chrome package on system for front test#
+    - apt-get install -y chromium
+    #Install Latest firefox package on system for front test#
+    - apt-get install -y firefox-esr
   tags:
     - ci
   script:
-    - ls CLEA-lib/java/target
     - cd CLEA-lib/js
+    - java -cp ../java/target/*-jar-with-dependencies.jar fr.inria.clea.lsp.LspEncoderDecoder decode || true
+    - export CHROME_BIN=chromium
+    - export FIREFOX_BIN=firefox-esr
     - npm install
     - npm test
     - npm run testcrypto
