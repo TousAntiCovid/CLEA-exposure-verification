@@ -21,11 +21,12 @@ setTimeout(function() {
                         let result;
 
                         const javaproc = spawn('java', ['-cp',
-                            './../java/target/clea-crypto-0.0.1-SNAPSHOT-jar-with-dependencies.jar ',
+                            './clea-crypto.jar ',
                             'fr.inria.clea.lsp.LspEncoderDecoder', 'decode',
                             cryptoItem.result,
                             cryptoItem.sk_l,
-                            cryptoItem.pk_sa]);
+                            cryptoItem.pk_sa],
+                            {cwd: './'});
 
                         javaproc.stdout.on('data', (data) => {
                             console.log(data.toString());
