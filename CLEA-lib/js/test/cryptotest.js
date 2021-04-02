@@ -19,14 +19,14 @@ setTimeout(function() {
                     + ' ' + cryptoItem.venueCategory2 + ' ' + cryptoItem.countryCode + ' ' + cryptoItem.periodDuration , async () => {
                     await new Promise((resolve) => {
                         let result;
-
+                        console.log(process.cwd());
                         const javaproc = spawn('java', ['-cp',
                             './clea-crypto.jar ',
                             'fr.inria.clea.lsp.LspEncoderDecoder', 'decode',
                             cryptoItem.result,
                             cryptoItem.sk_l,
                             cryptoItem.pk_sa],
-                            {cwd: './'});
+                            {cwd: process.cwd()});
 
                         javaproc.stdout.on('data', (data) => {
                             console.log(data.toString());
