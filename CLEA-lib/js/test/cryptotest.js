@@ -4,7 +4,7 @@ const { spawn } = require('child_process');
 // setup : load cvs file
 let cryptoList;
 csv({noheader: true,
-            headers:['sk_l','pk_mcta','pk_sa','result','staff','CRIexp','venueType','venueCategory1','venueCategory2','countryCode','periodDuration']})
+            headers:['sk_l','pk_mcta','pk_sa','result','staff','CRIexp','venueType','venueCategory1','venueCategory2','countryCode','periodDuration','browser']})
     .fromFile('./crypto.csv')
     .then((jsonObj)=> {
         cryptoList = jsonObj;
@@ -15,13 +15,13 @@ setTimeout(function() {
     describe('test suite for crypto', function () {
 
             cryptoList.forEach(function (cryptoItem) {
-                it('test ' + cryptoItem.staff + ' ' + cryptoItem.CRIexp + ' ' + cryptoItem.venueType + ' ' + cryptoItem.venueCategory1
+                it('test on [' + cryptoItem.browser + '] with ' + cryptoItem.staff + ' ' + cryptoItem.CRIexp + ' ' + cryptoItem.venueType + ' ' + cryptoItem.venueCategory1
                     + ' ' + cryptoItem.venueCategory2 + ' ' + cryptoItem.countryCode + ' ' + cryptoItem.periodDuration , async () => {
                     await new Promise((resolve) => {
                         let result;
 
                         const javaproc = spawn('java', ['-cp',
-                            '../java/target/clea-crypto-0.0.1-SNAPSHOT-jar-with-dependencies.jar ',
+                            './../java/target/clea-crypto-0.0.1-SNAPSHOT-jar-with-dependencies.jar ',
                             'fr.inria.clea.lsp.LspEncoderDecoder', 'decode',
                             cryptoItem.result,
                             cryptoItem.sk_l,
