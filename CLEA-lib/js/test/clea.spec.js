@@ -93,10 +93,10 @@ var runs = [
     }
 ];
 
-before(function(done){
+/*before(function(done){
     console.log(JSON.stringify({filter_key: 'crypto-filter', message: 'sk_l,pk_mcta,pk_sa,result,staff,CRIexp,venueType,venueCategory1,venueCategory2,countryCode,periodDuration'}));
     done();
-});
+});*/
 
 describe('concatBuffer()', function () {
     it('should concat correctly', function () {

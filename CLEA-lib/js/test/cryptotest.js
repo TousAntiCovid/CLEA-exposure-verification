@@ -3,11 +3,11 @@ const csv=require('csvtojson')
 const { spawn } = require('child_process');
 // setup : load cvs file
 let cryptoList;
-csv()
+csv({noheader: true,
+            headers:['sk_l','pk_mcta','pk_sa','result','staff','CRIexp','venueType','venueCategory1','venueCategory2','countryCode','periodDuration']})
     .fromFile('./crypto.csv')
     .then((jsonObj)=> {
         cryptoList = jsonObj;
-        console.log(cryptoList);
     })
 
 setTimeout(function() {
@@ -15,7 +15,8 @@ setTimeout(function() {
     describe('test suite for crypto', function () {
 
             cryptoList.forEach(function (cryptoItem) {
-                it('test ' + cryptoItem.result + 'key ' + cryptoItem.sk_l +'/' + cryptoItem.pk_sa, async () => {
+                it('test ' + cryptoItem.staff + ' ' + cryptoItem.CRIexp + ' ' + cryptoItem.venueType + ' ' + cryptoItem.venueCategory1
+                    + ' ' + cryptoItem.venueCategory2 + ' ' + cryptoItem.countryCode + ' ' + cryptoItem.periodDuration , async () => {
                     await new Promise((resolve) => {
                         let result;
 
