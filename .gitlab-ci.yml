@@ -46,6 +46,7 @@ buildjs:
     - ci
   script:
     - cd CLEA-lib/js
+    - npm install
     - npm run build
     - ls dist
  
