@@ -93,10 +93,7 @@ var runs = [
     }
 ];
 
-before(function(done){
-    console.log(JSON.stringify({filter_key: 'crypto-filter', message: 'sk_l,pk_mcta,pk_sa,result,staff,CRIexp,venueType,venueCategory1,venueCategory2,countryCode,periodDuration'}));
-    done();
-});
+
 
 describe('concatBuffer()', function () {
     it('should concat correctly', function () {
@@ -147,7 +144,7 @@ describe('cleaRenewLSP()', function () {
         let result = await clea.cleaRenewLSP(runs[0]);
         console.log(JSON.stringify({filter_key: 'crypto-filter',
             message: runs[0].SK_L_HEX+","+runs[0].PK_SA_HEX+","+runs[0].PK_MCTA_HEX+","+result+","+runs[0].staff+","+runs[0].CRIexp+","+runs[0].venueType
-                +","+runs[0].venueCategory1+","+runs[0].venueCategory2+","+runs[0].countryCode+","+runs[0].periodDuration}));
+                +","+runs[0].venueCategory1+","+runs[0].venueCategory2+","+runs[0].countryCode+","+runs[0].periodDuration+",\""+navigator.userAgent+"\""}));
         expect(result).to.length(148)
         expect(result.startsWith('AAAAAAAAAAAAAAAAAAAAAA')).to.be.true;
     })
@@ -162,7 +159,7 @@ describe('cleaStartNewPeriod()', function () {
                 console.log(result);
                 console.log(JSON.stringify({filter_key: 'crypto-filter',
                     message: run.SK_L_HEX+","+run.PK_SA_HEX+","+run.PK_MCTA_HEX+","+result+","+run.staff+","+run.CRIexp+","+run.venueType
-                        +","+run.venueCategory1+","+run.venueCategory2+","+run.countryCode+","+run.periodDuration}));
+                        +","+run.venueCategory1+","+run.venueCategory2+","+run.countryCode+","+run.periodDuration+",\""+navigator.userAgent+"\""}));
                 expect(result).to.length(148);
             });
         });

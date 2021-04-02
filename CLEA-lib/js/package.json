@@ -6,6 +6,7 @@
     "dev": "parcel src/index.html",
     "prebuild": "rimraf dist",
     "build": "parcel build src/index.html -t node --bundle-node-modules",
+    "pretest": "rimraf crypto.csv",
     "test": "karma start karma.conf.js",
     "testcrypto": "mocha test/cryptotest.js --timeout=10000 --delay"
   },

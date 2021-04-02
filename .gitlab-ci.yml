@@ -53,7 +53,8 @@ testjs:
     - ci
   script:
     - cd CLEA-lib/js
-    - java -cp ../java/target/*-jar-with-dependencies.jar fr.inria.clea.lsp.LspEncoderDecoder decode || true
+    - pwd || true
+    - cp ../java/target/clea-crypto-0.0.1-SNAPSHOT-jar-with-dependencies.jar ./clea-crypto.jar
     - export CHROME_BIN=chromium
     - export FIREFOX_BIN=firefox-esr
     - npm install
