@@ -53,7 +53,7 @@ testjs:
     - ci
   script:
     - cd CLEA-lib/js
-    - export CHROME_BIN=/usr/bin/chromium-browser
+    - export CHROME_BIN=chromium
     - npm install
     - npm test
     - npm run testcrypto
