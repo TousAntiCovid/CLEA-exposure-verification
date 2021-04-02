@@ -10,6 +10,7 @@ csv({noheader: true,
         cryptoList = jsonObj;
     })
 
+
 setTimeout(function() {
 
     describe('test suite for crypto', function () {
@@ -18,25 +19,26 @@ setTimeout(function() {
                 it('test on [' + cryptoItem.browser + '] with ' + cryptoItem.staff + ' ' + cryptoItem.CRIexp + ' ' + cryptoItem.venueType + ' ' + cryptoItem.venueCategory1
                     + ' ' + cryptoItem.venueCategory2 + ' ' + cryptoItem.countryCode + ' ' + cryptoItem.periodDuration , async () => {
                     await new Promise((resolve) => {
-                        let result;
-                        console.log(process.cwd());
-                        const javaproc = spawn('java', ['-cp',
-                            './clea-crypto.jar ',
+                        let result = '';
+
+                        let javadir = process.cwd();
+                        console.log(javadir);
+                        const javaproc = spawn('java', ['-cp', javadir+'/clea-crypto.jar',
                             'fr.inria.clea.lsp.LspEncoderDecoder', 'decode',
                             cryptoItem.result,
                             cryptoItem.sk_l,
-                            cryptoItem.pk_sa],
-                            {cwd: process.cwd()});
+                            cryptoItem.pk_sa]);
 
                         javaproc.stdout.on('data', (data) => {
                             console.log(data.toString());
-                            result = data.toString().trim().split(' ');
-                            //assert.isTrue(true);
+                            let str = data.toString().replace(/(\r\n|\n|\r)/gm, "").trim();
+                            if (str && str.length > 0 ) {
+                                result = str.split(' ');
+                            }
                         });
 
                         javaproc.stderr.on('data', (data) => {
                             console.error(data.toString());
-                            //assert.isTrue(false);
                         });
 
                         javaproc.on('exit', (code) => {
