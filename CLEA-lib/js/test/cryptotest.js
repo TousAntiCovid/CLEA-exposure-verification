@@ -10,6 +10,29 @@ csv({noheader: true,
         cryptoList = jsonObj;
     })
 
+const subprocess = spawn('ls');
+
+subprocess.stdout.on('data', (data) => {
+    console.log(`Received chunk ${data}`);
+});
+
+const pwdprocess = spawn('pwd');
+
+pwdprocess.stdout.on('data', (data) => {
+    console.log(`Received chunk ${data}`);
+});
+
+
+const testprocess = spawn('java', ['-cp', './clea-crypto.jar',
+    'fr.inria.clea.lsp.LspEncoderDecoder', 'decode']);
+
+testprocess.stderr.on('data', (data) => {
+    console.log(`Received chunk ${data}`);
+});
+testprocess.stdout.on('data', (data) => {
+    console.log(`Received chunk ${data}`);
+});
+
 setTimeout(function() {
 
     describe('test suite for crypto', function () {
@@ -19,10 +42,10 @@ setTimeout(function() {
                     + ' ' + cryptoItem.venueCategory2 + ' ' + cryptoItem.countryCode + ' ' + cryptoItem.periodDuration , async () => {
                     await new Promise((resolve) => {
                         let result;
+
                         let javadir = process.cwd();
                         console.log(javadir);
-                        const javaproc = spawn('java', ['-cp',
-                                javadir+'/clea-crypto.jar ',
+                        const javaproc = spawn('java', ['-cp', javadir+'/clea-crypto.jar',
                             'fr.inria.clea.lsp.LspEncoderDecoder', 'decode',
                             cryptoItem.result,
                             cryptoItem.sk_l,
