@@ -48,12 +48,14 @@ testjs:
     #Install Latest Google chrome package on system for front test#
     - apt-get install -y chromium
     #Install Latest firefox package on system for front test#
-    #- apt-get install -y firefox-esr
+    - apt-get install -y firefox-esr
   tags:
     - ci
   script:
     - cd CLEA-lib/js
+    - java -cp ../java/target/*-jar-with-dependencies.jar fr.inria.clea.lsp.LspEncoderDecoder decode || true
     - export CHROME_BIN=chromium
+    - export FIREFOX_BIN=firefox-esr
     - npm install
     - npm test
     - npm run testcrypto
