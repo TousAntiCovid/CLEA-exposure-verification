@@ -10,28 +10,6 @@ csv({noheader: true,
         cryptoList = jsonObj;
     })
 
-const subprocess = spawn('ls');
-
-subprocess.stdout.on('data', (data) => {
-    console.log(`Received chunk ${data}`);
-});
-
-const pwdprocess = spawn('pwd');
-
-pwdprocess.stdout.on('data', (data) => {
-    console.log(`Received chunk ${data}`);
-});
-
-
-const testprocess = spawn('java', ['-cp', './clea-crypto.jar',
-    'fr.inria.clea.lsp.LspEncoderDecoder', 'decode']);
-
-testprocess.stderr.on('data', (data) => {
-    console.log(`Received chunk ${data}`);
-});
-testprocess.stdout.on('data', (data) => {
-    console.log(`Received chunk ${data}`);
-});
 
 setTimeout(function() {
 
