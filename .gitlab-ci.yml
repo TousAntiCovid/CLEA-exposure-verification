@@ -43,7 +43,10 @@ deploy:
 testjs:
   stage: testjs
   before_script:
+    #Install  node and npm #
     - apt-get install -y curl && curl -sL https://deb.nodesource.com/setup_15.x | bash - && apt-get install -y nodejs && curl -L https://www.npmjs.com/install.sh | sh 
+    #Install Latest Google chrome package on system for front test#
+    - curl https://intoli.com/install-google-chrome.sh | bash
   tags:
     - ci
   script:
