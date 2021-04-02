@@ -3,8 +3,9 @@ image: maven:3.6-jdk-11
 stages:
   - build
   - deploy
+  - testjs
   - buildjs
-
+  
 build:
   stage: build
   tags:
@@ -38,6 +39,19 @@ deploy:
   only:
     - master
     - tags
+
+testjs:
+  stage: testjs
+  before_script:
+    - apt-get install -y curl && curl -sL https://deb.nodesource.com/setup_15.x | bash - && apt-get install -y nodejs && curl -L https://www.npmjs.com/install.sh | sh 
+  tags:
+    - ci
+  script:
+    - ls CLEA-lib/java/target
+    - cd CLEA-lib/js
+    - npm install
+    - npm test
+    - npm run testcrypto
 
 buildjs:
   stage: buildjs
