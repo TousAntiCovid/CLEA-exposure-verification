@@ -3,6 +3,7 @@ image: maven:3.6-jdk-11
 stages:
   - build
   - deploy
+  - buildjs
 
 build:
   stage: build
@@ -37,3 +38,14 @@ deploy:
   only:
     - master
     - tags
+
+buildjs:
+  stage: buildjs
+  image: node:15.13.0
+  tags:
+    - ci
+  script:
+    - cd CLEA-lib/js
+    - npm run build
+    - ls dist
+ 
