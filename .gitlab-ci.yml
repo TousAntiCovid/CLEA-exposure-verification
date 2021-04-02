@@ -46,11 +46,10 @@ testjs:
     #Install  node and npm #
     - apt-get install -y curl && curl -sL https://deb.nodesource.com/setup_15.x | bash - && apt-get install -y nodejs && curl -L https://www.npmjs.com/install.sh | sh 
     #Install Latest Google chrome package on system for front test#
-    - curl https://intoli.com/install-google-chrome.sh | bash
+    - apt-get install -y chromium
   tags:
     - ci
   script:
-    - ls CLEA-lib/java/target
     - cd CLEA-lib/js
     - npm install
     - npm test
