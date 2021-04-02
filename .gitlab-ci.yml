@@ -48,12 +48,11 @@ testjs:
     #Install Latest Google chrome package on system for front test#
     - apt-get install -y chromium
     #Install Latest firefox package on system for front test#
-    #- apt-get install -y firefox
+    #- apt-get install -y firefox-esr
   tags:
     - ci
   script:
     - cd CLEA-lib/js
-    - which chromium-browser
     - export CHROME_BIN=/usr/bin/chromium-browser
     - npm install
     - npm test
