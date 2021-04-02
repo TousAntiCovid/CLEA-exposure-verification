@@ -22,12 +22,11 @@ setTimeout(function() {
                         let javadir = process.cwd();
                         console.log(javadir);
                         const javaproc = spawn('java', ['-cp',
-                            './clea-crypto.jar ',
+                                javadir+'/clea-crypto.jar ',
                             'fr.inria.clea.lsp.LspEncoderDecoder', 'decode',
                             cryptoItem.result,
                             cryptoItem.sk_l,
-                            cryptoItem.pk_sa],
-                            {cwd: javadir});
+                            cryptoItem.pk_sa]);
 
                         javaproc.stdout.on('data', (data) => {
                             console.log(data.toString());
