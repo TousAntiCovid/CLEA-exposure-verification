@@ -313,7 +313,7 @@ class LocationSpecificPartTest {
                 (byte) 0xA7, (byte) 0xCB, (byte) 0xFE, (byte) 0xE8, (byte) 0x09, (byte) 0x0B, (byte) 0x97, (byte) 0x08,
                 (byte) 0x00, (byte) 0x19, (byte) 0x96, (byte) 0xEA, (byte) 0xEB, (byte) 0x4B, (byte) 0xAF };
         /* String -> bytes array */
-        byte[] cipherText = Base64.getDecoder().decode(cipherTextBase64);
+        byte[] cipherText = Base64.getUrlDecoder().decode(cipherTextBase64);
         System.out.println("CIFFER LSP " + BytesUtils.bytesToString(cipherText));
 
         /* Java decrypt the message using the EC private key privKey */
