@@ -35,7 +35,7 @@ uint8_t LSP_base64[LSP_BASE64_SIZE];
 
 void display_qrcode(int width, int height)
 {
-	uint8_t content[20 + sizeof(LSP_base64)] = "http://tac.gouv.fr?v=0#";
+	uint8_t content[24 + sizeof(LSP_base64)] = "http://tac.gouv.fr?v=0#";
 	uint8_t qr[qrcodegen_BUFFER_LEN_MAX];
 	uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
 	bool ok;
