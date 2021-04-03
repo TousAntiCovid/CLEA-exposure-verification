@@ -302,7 +302,7 @@ class LocationSpecificPartTest {
         /* EC private key from C package */
         final String privateKey = "3108f08b1485adb6f72cfba1b55c7484c906a2a3a0a027c78dcd991ca64c97bd";
         /* message encrypted, from C package */
-        final String cipherTextBase64 = "AHHp6U8wrVQuWDomdZfDS0BHC45n72pzlmAhqE7AZp3hTWt2cuUOJ78nNeZSJCrpjpl3glMI49yjLEoIi73wqsSbja1sMH0XzuNoAssCV53wTItE3Nxg+J3FI78/W6uWD8IU+dn0YEroJwH2y1g=";
+        final String cipherTextBase64 = "AHHp6U8wrVQuWDomdZfDS0BHC45n72pzlmAhqE7AZp3hTWt2cuUOJ78nNeZSJCrpjpl3glMI49yjLEoIi73wqsSbja1sMH0XzuNoAssCV53wTItE3Nxg-J3FI78_W6uWD8IU-dn0YEroJwH2y1g=";
         /* plain text message byte array */
         byte[] plainTextBytes = { (byte) 0x00, (byte) 0x71, (byte) 0xE9, (byte) 0xE9, (byte) 0x4F, (byte) 0x30,
                 (byte) 0xAD, (byte) 0x54, (byte) 0x2E, (byte) 0x58, (byte) 0x3A, (byte) 0x26, (byte) 0x75, (byte) 0x97,
