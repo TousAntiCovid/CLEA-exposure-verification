@@ -46,7 +46,7 @@ The following terms are used in this document:
 | **Period**         |	time is split into periods (e.g., 24 hours), during which the location pseudonyms (more precisely a temporary cryptographic key and a derived temporary UUID) are stable. After that period, a new location pseudonym is generated. For practical reasons, a new period MUST start at a round predefined hour (e.g., 4:00am may be chosen as a default period start). A period can also have an unlimited duration, meaning that the location pseudonym will remain unchanged. |
 | **(User) terminal**|	the user smartphone used to scan the QR code. |
 | **Cléa application** | the application on the user smartphone used to scan the QR code. |
-| **QR code** | The QR code of a location, usually dynamic, that needs to be scanned when entering a location. It contains a URL ("deep link") structured as: `"country-specific-prefix" / "Base64(location-specific-part)"`. |
+| **QR code** | The QR code of a location, usually dynamic, that needs to be scanned when entering a location. It contains a URL ("deep link") structured as: `"country-specific-prefix" / "Base64url(location-specific-part)"`. |
 | **Location Specific Part**  | This is the location specific part of a the QR code, renewed periodically, that contains all the information related to the location, at a given time. |
 
 ### 2.2- Overview
@@ -121,8 +121,8 @@ It should be noted that technical implementation considerations (e.g., the exact
 Several technical requirements, in particular motivated by the compatibility with embedded devices, have shaped the design:
 
 - each QR code contains a country specific URL ("deep link"), composed of a contry specific prefix (for instance: `https://tac.gouv.fr?v=0#` in case of France), and a location specific part, defined in Section [Dynamic QR code generation within the device](#dynamic-qr-code-generation-within-the-device).
-Therefore, any binary information of the location specific part, is first translated to a printable character, using a Base64 encoding, which adds a 33% overhead compared to the binary size (see [RFC4648](#references)).
-Since the output of a Base64 encoding uses an alphabet of 65 characters, it is not compatible with the Alphanumeric Mode of a QR code (limited to 45 printable characters), and it requires the use of the 8-bit Byte Mode (see [QRcode18004](#references), Section~8.4.4).
+Therefore, any binary information of the location specific part, is first translated to a printable character, using a Base64url encoding, which adds a 33% overhead compared to the binary size (see [RFC4648](#references) section 5.). The Base64url is the Base 64 encoding with an URL and filename safe alphabet.
+Since the output of a Base64url encoding uses an alphabet of 65 characters, it is not compatible with the Alphanumeric Mode of a QR code (limited to 45 printable characters), and it requires the use of the 8-bit Byte Mode (see [QRcode18004](#references), Section~8.4.4).
 
 - the need to easily and reliably scan a QR code type 2 and the screen size/resolution constraints of the specialized device impact the maximum QR code size.
 In this specification, we limit the size of the QR code to be 65x65, using a Level 12 QR code Type 2 (see [QRcodeWeb](#references)).
@@ -147,7 +147,7 @@ The following acronyms and variable names are used:
 
 | Short name     | Full Name                 | Description                                        |
 |----------------|---------------------------|----------------------------------------------------|
-| `LSP`          | locationSpecificPart      | The QR code of a location, at any moment, contains a URL ("deep link"), structured as: `"country-specific-prefix" / "Base64(location-specific-part)"`. The location specific part, renewed periodically, contains information related to the location at a given time. |
+| `LSP`          | locationSpecificPart      | The QR code of a location, at any moment, contains a URL ("deep link"), structured as: `"country-specific-prefix" / "Base64url(location-specific-part)"`. The location specific part, renewed periodically, contains information related to the location at a given time. |
 | `SK_L`      | permanentLocationSecretKey     | Permanent location 408-bits secret key. This key is never communicated, but is shared by all the location devices. For instance, this key can be stored in a protected stable memory of a dedicated device (or set of devices) by the manufacturer. The manufacturer should also keep a record of this `SK_L` in a secure place if the location manager later asks for additional devices. An appropriate location manager authentication mechanism needs to be defined for that purpose that is out of the scope of this document. |
 | `{PK_SA, SK_SA}` | serverAuthorityPublicKey / SecretKey | Public/secret key ECDH pair of the Authority in charge of the backend server. The public key is known by all devices. |
 | `{PK_MCTA, SK_MCTA}` | manualCTAuthorityPublicKey / SecretKey | Public/secret key ECDH pair of the Authority in charge of the manual contact tracing. The public key is known by all devices. It is assumed that this authority is different from the authority in charge of the backend server. |
@@ -240,11 +240,11 @@ Since the devices are not perfectly synchronized (device clock drifts), a small 
 
 The QR code of a location, at any moment, contains a URL ("deep link"), structured as:
 ```
-	"country-specific-prefix" "Base64(location-specific-part)"
+	"country-specific-prefix" "Base64url(location-specific-part)"
 ```
 For instance, the country specific prefix is: `https://tac.gouv.fr?v=0#` in case of France, where:
 `v=0`indicates it's protocol version 0;
-the `#` character prevents the text that follows (namely the Base64 encoding of the location specific part) to be sent to the `tac.gouv.fr` server if the application is not already installed on the user terminal.
+the `#` character prevents the text that follows (namely the Base64url encoding of the location specific part) to be sent to the `tac.gouv.fr` server if the application is not already installed on the user terminal.
 
 In the remaining of this section, we define the structure of the location specific part.
 
@@ -416,7 +416,7 @@ When the `locContactMsgPresent == 1`, the `locContactMsg` message adds an extra 
 
 The total is therefore 175 bytes long with the `locContactMsg`, or 110 bytes long without.
 
-The size of this binary message, after Base64 encoding, increases to 235 characters that can be added to the example `https://tac.gouv.fr/` 19-character-long prefix, for a **total of 254 characters**.
+The size of this binary message, after Base64url encoding, increases to 235 characters that can be added to the example `https://tac.gouv.fr/` 19-character-long prefix, for a **total of 254 characters**.
 Or, without `locContactMsg`, respectively to 148 charaters, and a total of **167 characters** for the URL.
 
 
@@ -605,13 +605,13 @@ Here is an example of `cluster_file_521_20210215.json` file (2 clusters only are
     },
     clusterInfo: [
         {
-            TLId: "put-here-the-resulf-of-base64-encoding-of-TLId",
+            TLId: "put-here-the-resulf-of-base64url-encoding-of-TLId",
             clusterStart: 3822346880,
             clusterDuration: 2
             warningLevel: 1
         },
         {
-            TLId: "put-here-the-resulf-of-base64-encoding-of-TLId",
+            TLId: "put-here-the-resulf-of-base64url-encoding-of-TLId",
             clusterStart: 3822354080,
             clusterDuration: 3
             warningLevel: 3
