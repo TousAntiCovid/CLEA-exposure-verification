@@ -17,7 +17,7 @@ import {cleaStartNewPeriod} from './clea'
     /**
      * Generate a QR code
      *  - generate the LSP using the clea.js function: cleaStartNewPeriod
-     *  - generate the Qrcode adding the prefix for France http://tac.gouv.fr/ to LSP
+     *  - generate the Qrcode adding the prefix for France http://tac.gouv.fr?v=0# to LSP
      * 
      */
     async function generateQrcode() {
@@ -40,7 +40,8 @@ import {cleaStartNewPeriod} from './clea'
 
         if (phone) {
             conf.locContactMsg = {
-                locationPhone: parseInt(phone),
+                locationPhone: parseInt(phone), 
+                locationRegion: parseInt($("#locationRegion").val()),
                 locationPin: parseInt($("#locationPin").val())
             }
         }
@@ -49,7 +50,7 @@ import {cleaStartNewPeriod} from './clea'
 
         var b64 = await cleaStartNewPeriod(conf);
 
-        qrcode.makeCode("http://tac.gouv.fr/" + b64);
+        qrcode.makeCode("http://tac.gouv.fr?v=0#" + b64);
     }
 
     /** 

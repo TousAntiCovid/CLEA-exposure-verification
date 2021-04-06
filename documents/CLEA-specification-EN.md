@@ -1,4 +1,4 @@
-# The Cluster Exposure Verification (Cléa) Protocol: Specifications of the Lightweight Version
+# The Cluster Exposure Verification (Cléa) Protocol: Specifications of Protocol Version 0
 
 Vincent Roca, Antoine Boutet, Claude Castelluccia
 
@@ -6,13 +6,18 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Preliminary Draft (Work in Progress), current version, March XXX, 2021_**
+**_Preliminary Draft (Work in Progress), current version, April 6th, 2021_**
 
 
-————
+----
 
 [comment]: # ( [[_TOC_]] )
 [comment]: # ( ———— )
+
+
+[[_TOC_]]
+
+----
 
 
 ## 1- Introduction
@@ -41,7 +46,7 @@ The following terms are used in this document:
 | **Period**         |	time is split into periods (e.g., 24 hours), during which the location pseudonyms (more precisely a temporary cryptographic key and a derived temporary UUID) are stable. After that period, a new location pseudonym is generated. For practical reasons, a new period MUST start at a round predefined hour (e.g., 4:00am may be chosen as a default period start). A period can also have an unlimited duration, meaning that the location pseudonym will remain unchanged. |
 | **(User) terminal**|	the user smartphone used to scan the QR code. |
 | **Cléa application** | the application on the user smartphone used to scan the QR code. |
-| **QR code** | The QR code of a location, usually dynamic, that needs to be scanned when entering a location. It contains a URL ("deep link") structured as: `"country-specific-prefix" / "Base64(location-specific-part)"`. |
+| **QR code** | The QR code of a location, usually dynamic, that needs to be scanned when entering a location. It contains a URL ("deep link") structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. |
 | **Location Specific Part**  | This is the location specific part of a the QR code, renewed periodically, that contains all the information related to the location, at a given time. |
 
 ### 2.2- Overview
@@ -55,10 +60,20 @@ In practice, no information is uploaded to the server unless a client is tested 
 In that case, if the user explicitly agrees (informed consent), the application uploads the list of scanned QR codes during the past 14 days[^footnote-1] along with timing information to the central server, in order to enable a **_centralized anonymous cluster detection_**.
 The server can detect clusters by considering the number of COVID+ users in  a location at the same time, without having access to the name nor address of this location.
 Then this central server updates its list of location temporary pseudonyms and time (with an hour granularity by default) corresponding to clusters.
+
+<img src="img/CLEA_centralized_cluster_detection.jpg" alt="CLEA_centralized_cluster_detection.jpg" width="700"/>    
+
+_Figure 1: Centralized cluster detection. Here Alice, tested COVID+, agrees to upload her scanned QR codes to the CLEA backend server, which, after verifying the validity of the upload, identifies if some of the visited locations needs to be qualified as potential cluster._    
+
+
 In parallel, each Cléa application periodically downloads this list containing the latest clusters that have been identified, in order to check locally whether or not there is a match.
 In case of a match, the user is informed with a "warning".
 The exact type of warning message could be adjusted to reflect the risk level (e.g., if a very high number of COVID+ users have been identified in a cluster), which is out of scope of the present specification.
 Therefore this solution follows a **_decentralized risk evaluation_**.
+
+<img src="img/CLEA_decentralized_risk_evaluation.jpg" alt="CLEA_decentralized_risk_evaluation.jpg" width="600"/>    
+
+_Figure 2: Decentralized risk evaluation. Here Bob compares his scanned QR codes with the new potential cluster location pseudonyms in a first step, and if a match is found, if the corresponding period overlaps significantly with his own presence as stored in his local database._    
 
 [^footnote-1]: the 14 days number is provided as an example. The national health authority will define the appropriate epidemiological value that is considered the most appropriate, that may also depend on another considerations like the date of first symptoms when known. The details are out of scope of this document.
 
@@ -105,9 +120,9 @@ It should be noted that technical implementation considerations (e.g., the exact
 
 Several technical requirements, in particular motivated by the compatibility with embedded devices, have shaped the design:
 
-- each QR code contains a country specific URL ("deep link"), composed of a contry specific prefix (for instance: `https://tac.gouv.fr/` in case of France), and a location specific part, defined in Section [Dynamic QR code generation within the device](#dynamic-qr-code-generation-within-the-device).
-Therefore, any binary information of the location specific part, is first translated to a printable character, using a Base64 encoding, which adds a 33% overhead compared to the binary size (see [RFC4648](#references)).
-Since the output of a Base64 encoding uses an alphabet of 65 characters, it is not compatible with the Alphanumeric Mode of a QR code (limited to 45 printable characters), and it requires the use of the 8-bit Byte Mode (see [QRcode18004](#references), Section~8.4.4).
+- each QR code contains a country specific URL ("deep link"), composed of a contry specific prefix (for instance: `https://tac.gouv.fr?v=0#` in case of France), and a location specific part, defined in Section [Dynamic QR code generation within the device](#dynamic-qr-code-generation-within-the-device).
+Therefore, any binary information of the location specific part, is first translated to a printable character, using a Base64url encoding, which adds a 33% overhead compared to the binary size (see [RFC4648](#references) section 5.). The Base64url is the Base 64 encoding with an URL and filename safe alphabet.
+Since the output of a Base64url encoding uses an alphabet of 65 characters, it is not compatible with the Alphanumeric Mode of a QR code (limited to 45 printable characters), and it requires the use of the 8-bit Byte Mode (see [QRcode18004](#references), Section~8.4.4).
 
 - the need to easily and reliably scan a QR code type 2 and the screen size/resolution constraints of the specialized device impact the maximum QR code size.
 In this specification, we limit the size of the QR code to be 65x65, using a Level 12 QR code Type 2 (see [QRcodeWeb](#references)).
@@ -132,8 +147,8 @@ The following acronyms and variable names are used:
 
 | Short name     | Full Name                 | Description                                        |
 |----------------|---------------------------|----------------------------------------------------|
-| `LSP`          | locationSpecificPart      | The QR code of a location, at any moment, contains a URL ("deep link"), structured as: `"country-specific-prefix" / "Base64(location-specific-part)"`. The location specific part, renewed periodically, contains information related to the location at a given time. |
-| `SK_L`      | permanentLocationSecretKey     | Permanent location 480-bits secret key. This key is never communicated, but is shared by all the location devices. For instance, this key can be stored in a protected stable memory of a dedicated device (or set of devices) by the manufacturer. The manufacturer should also keep a record of this `SK_L` in a secure place if the location manager later asks for additional devices. An appropriate location manager authentication mechanism needs to be defined for that purpose that is out of the scope of this document. |
+| `LSP`          | locationSpecificPart      | The QR code of a location, at any moment, contains a URL ("deep link"), structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. The location specific part, renewed periodically, contains information related to the location at a given time. |
+| `SK_L`      | permanentLocationSecretKey     | Permanent location 408-bits secret key. This key is never communicated, but is shared by all the location devices. For instance, this key can be stored in a protected stable memory of a dedicated device (or set of devices) by the manufacturer. The manufacturer should also keep a record of this `SK_L` in a secure place if the location manager later asks for additional devices. An appropriate location manager authentication mechanism needs to be defined for that purpose that is out of the scope of this document. |
 | `{PK_SA, SK_SA}` | serverAuthorityPublicKey / SecretKey | Public/secret key ECDH pair of the Authority in charge of the backend server. The public key is known by all devices. |
 | `{PK_MCTA, SK_MCTA}` | manualCTAuthorityPublicKey / SecretKey | Public/secret key ECDH pair of the Authority in charge of the manual contact tracing. The public key is known by all devices. It is assumed that this authority is different from the authority in charge of the backend server. |
 | `LTKey`     | locationTemporarySecretKey     | Location temporary 256-bits secret key, specific to a given Location at a given period. This key is never communicated outside of the device(s). |
@@ -149,6 +164,7 @@ The following acronyms and variable names are used:
 | `clusterList` | idem                         | Within the backend server, this list contains all the `LTId` and timing information corresponding to a potential cluster. This list is public, it is downloaded by all the user terminals, and is updated each time a new cluster is identified. The cluster qualification happens when the hourly counter of a location exceeds a given threshold that depends on the location features. |
 | `dupScanThreshold` (in seconds) | idem       | Time tolerance in the duplicate scan mechanism: for a given `LTId`, a single QR code can be recorded in the localList every `dupScanThreshold` seconds. A similar check is performed on the server frontend. |
 | `locationPhone` | idem                       | Phone number of the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance register. |
+| `locationRegion` | idem                      | Coarse grain geographical information for the location, in order to facilitate the work of the Manual Contact Tracing team. In case of France, it can contain a department number. |
 | `locationPIN` | idem                         |  Secret 6 digit PIN, known only by the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance register. |
 
 
@@ -224,10 +240,13 @@ Since the devices are not perfectly synchronized (device clock drifts), a small 
 
 The QR code of a location, at any moment, contains a URL ("deep link"), structured as:
 ```
-	"country-specific-prefix" / "Base64(location-specific-part)"
+	"country-specific-prefix" "Base64url(location-specific-part)"
 ```
-For instance, the country specific prefix is: `https://tac.gouv.fr/` in case of France.
-This section defines the structure of the location specific part.
+For instance, the country specific prefix is: `https://tac.gouv.fr?v=0#` in case of France, where:
+`v=0`indicates it's protocol version 0;
+the `#` character prevents the text that follows (namely the Base64url encoding of the location specific part) to be sent to the `tac.gouv.fr` server if the application is not already installed on the user terminal.
+
+In the remaining of this section, we define the structure of the location specific part.
 
 The QR code of a location is renewed when switching from one period to another (change of `LTKey`/`LTId`), but also periodically during the period.
 This renewal during the period is automatic every `qrCodeRenewalInterval` seconds.
@@ -397,8 +416,8 @@ When the `locContactMsgPresent == 1`, the `locContactMsg` message adds an extra 
 
 The total is therefore 175 bytes long with the `locContactMsg`, or 110 bytes long without.
 
-The size of this binary message, after Base64 encoding, increases to 235 characters that can be added to the example `https://tac.gouv.fr/` 19-character-long prefix, for a **total of 254 characters**.
-Or, without `locContactMsg`, respectively to 148 charaters, and a total of **167 characters** for the URL.
+The size of this binary message, after Base64url encoding, increases to 235 characters that are added to the `https://tac.gouv.fr?v=0#` 24-character-long prefix (in case of France), for a **total of 259 characters** for the URL.
+Or, without `locContactMsg`, the URL size amounts to **a total of 172 characters**.
 
 
 ### 3.5- Scan of the QR code when a client enters a location
@@ -586,13 +605,13 @@ Here is an example of `cluster_file_521_20210215.json` file (2 clusters only are
     },
     clusterInfo: [
         {
-            TLId: "put-here-the-resulf-of-base64-encoding-of-TLId",
+            TLId: "put-here-the-resulf-of-base64url-encoding-of-TLId",
             clusterStart: 3822346880,
             clusterDuration: 2
             warningLevel: 1
         },
         {
-            TLId: "put-here-the-resulf-of-base64-encoding-of-TLId",
+            TLId: "put-here-the-resulf-of-base64url-encoding-of-TLId",
             clusterStart: 3822354080,
             clusterDuration: 3
             warningLevel: 3
@@ -635,9 +654,15 @@ However, since the `{LTId_cluster, h1_cluster}` information is public, a curious
 
 The use of the Cléa digital system is based on a voluntary decision of the user, the alternative consisting for this user in leaving her name in the hand-written attendance register.
 Consequently, a link between the two systems should be established. 
-However, there can be specific use-cases where the hand-written attendance register may not exist, for instance in case of digital ticketing.
-In that case, the `locContactMsg` may be ignored (i.e., `locContacMsgPresent` can be set to 0).
-Similarly, the Health Authority may decide not to link the two systems together, in which case the `locContacMsgPresent` flag can be set to 0.
+The following sections explain how this can be done, depending on whether a user tested COVID+ has used the Cléa system or the hand-written attendance register.
+
+It should also be noted that there are use-cases where the hand-written attendance register may not exist, for instance in case of digital ticketing.
+In that case, the `locContactMsg` should be ignored, by setting the `locContacMsgPresent` flag to 0.
+Similarly, the Health Authority may decide not to link the two systems together, in which case the `locContacMsgPresent` flag should be set to 0.
+
+It should also be noted that the link between the two systems is not perfect.
+If the cluster qualification threshold is strictly superior to `1`, it can happen that a given location should be qualified as cluster because the total number of COVID+ persons who were there at the same time is sufficient, but no alert is raised because some of them used the Cléa application, and the others the attendance register.
+
 
 #### A user tested COVID+ has used the Cléa system
 
@@ -647,7 +672,7 @@ Since the re-identification of the location is the responsibility of the authori
 The `locContactMsg` message is structured as follows (high-level view):
 
 ```
-locContactMsg = [ locationPhone | locationPIN | t_periodStart ]
+locContactMsg = [ locationPhone | padding | locationRegion | locationPIN | t_periodStart ]
 ```
 
 The following binary format must be used:
@@ -655,33 +680,39 @@ The following binary format must be used:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              locationPhone (8 bytes)                          |
+|              locationPhone (60 bits)                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              ...                                              |
+|              ...                                      | pad   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              locationPIN (4 bytes)                            |
+|locationRegion |          locationPIN (3 bytes)                |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |              t_periodStart (4 bytes)                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
 
-- `locationPhone` (8 bytes):
-this field contains a 16 digit phone number, where each digit is stored one by one in a 4-bit nibble.
-The phone number must be encoded using the [E.164](https://www.itu.int/rec/T-REC-E.164/) standard.
-For instance: `+33 1 02 03 04 05` will be stored as (binary): `0011 0011  0001 0000  0010 0000  0011 0000  0100 0000  0101 1111  1111 1111  1111 1111`.
-Unused nibbles must contain the `1111` value (i.e., value `0xF` does not encode a valid decimal digit).
+- `locationPhone` (60 bits):
+this field contains a phone number, where each digit is stored one by one in a 4-bit nibble.
+The phone number must be encoded using the [E.164](https://www.itu.int/rec/T-REC-E.164/) standard that requires phone numbers to have a maximum length of 15 digits.
+For instance, in case of France, `+33 1 02 03 04 05` will be stored as (binary) `0011 0011  0001 0000  0010 0000  0011 0000  0100 0000  0101 1111  1111 1111  1111`.
+Unused nibbles must contain the `1111` / `0xF` value.
 
-- `locationPIN` (4 bytes):
-this field contains a 8-digit secret PIN known only by the location contact, communicated when registering to the device manufacturer or on the web site when generating a static QR code.
+- `padding`(4 bits) (`pad` in figure):
+this field is unused in the current specification and must be set to zero.
+
+- `locationRegion` (1 byte):
+this field contains coarse grain geographical information for the location, in order to facilitate the work of the Manual Contact Tracing team (e.g., for countries that rely on a regional organisation, it enables the cluster record to be routed directly to the right regional Manual Contact Tracing team).
+In case of France, it can contain a department number.
+
+- `locationPIN` (3 bytes):
+this field contains a 6-digit secret PIN known only by the location contact, communicated when registering to the device manufacturer or on the web site when generating a static QR code.
 It is meant to prevent an attacker who knows the contact phone number of a target location (this phone number is usually public) to forge a new QR code and handle it to a user tested COVID+.
-This `locationPIN` enables the manual contact tracing team to check the QR code validity with the location contact: if the two pin codes do not match, the QR code is reputed invalid and ignored (note that the Cléa users have no risk, the forged `LTKey` and `LTId` being totally distinct from the ones actually used in this location).
+Thanks to the `locationPIN`, the manual contact tracing team can check the QR code validity with the location contact: if the two pin codes do not match, the QR code is reputed invalid and ignored (note that the Cléa users have no risk, the forged `LTKey` and `LTId` being totally distinct from the ones actually used in this location).
 
 - `t_periodStart` (4 bytes):
 Starting time of the period.
-
-Including the `t_periodStart` field in the `locContactMsg` has a major benefit: it prevents the `Enc(PK_MCTA, locContactMsg)` to remain constant over the time for a given location.
-Therefore, the authority in charge of the backend server cannot re-identify any of the locations across different periods, the encrypted message changing altogether as soon as the `t_periodStart` changes.
-Also, this authority cannot decrypt this message since it does not know the associated `PK_MCTA` secret key.
+With a dynamic QR code, including the `t_periodStart` field in the `locContactMsg` has a major benefit: it prevents the `Enc(PK_MCTA, locContactMsg)` to remain constant over the time for this location.
+Therefore, the authority in charge of the backend server cannot re-identify this locations across different periods, the encrypted message changing altogether as soon as the `t_periodStart` changes.
+If the location chooses to use a static QR code, this protection is of course meaningless, the location pseudonym remaining constant by definition.
 
 As soon as the authority in charge of the manual contact tracing receives the encrypted message, it decrypts it and checks its integrity.
 Then the authority informs the location contact person, checking the PIN code first, and asking this latter to communicate the content of the hand-written attendance register for the appropriate period.
@@ -690,9 +721,13 @@ The details of how this is done is out of scope of the present document.
 
 #### A user tested COVID+ has used the hand-written attendance register
 
-```diff
-- TODO: short description.
-```
+Here, the Manual Contact Tracing team determined that a certain location, at a certain time, should be qualified as cluster.
+However, since the person(s) tested COVID+ used the hand-written attendance register of the location, there is no scanned QR code that could be used to trigger the cluster qualification at the backend server.
+In order to make it possible, the Manual Contact Tracing team needs to ask the location manager to recover and upload the QR code of this period.
+For instance, the team can physically visit the location, discuss with the manager and help her upload her own scanned QR code of that day, using a dedicated authorization token.
+In case of a static QR code, obtaining the required QR code is not an issue.
+In case of a dynamic QR code, this scenario requires that the location manager scans her location QR code everyday, as any employee is supposed to do.
+Although there is a risk that she omitted to do so on that day (thereby preventing a notification through the Cléa applications), the probability this happened is reasonable.
 
 
 ### 3.10- Management of the location employees
@@ -721,12 +756,16 @@ It is recommended to allow this feature only on a device located in a safe place
 
 ### 3.11- Web-based static QR code generation and integration in other web-based services
 
+#### The case of private events
+
 The system is compatible with a Web-based service meant to generate a static QR code, for instance to let an individual generate a QR code in the context of a private event.
 To that purpose, etc.
 
 ```diff
 - TODO: short description.
 ```
+
+#### The case of electronic ticketing
 
 This approach is also compatible with online electronic ticketing systems (e.g., for buses, shared rides, trains, or shows).
 Along with a ticket, a ready to be scanned QR code can be added, to let the user register their presence.
@@ -807,27 +846,27 @@ However, the risk being assessed locally, by default, the authority will not kno
 | `n` | Order of `G` |
 | `S` | Shared secret |
 | `K` | Derived key for symetric encryption |
+| `IV` | AES-GCM IV set to the 96-bit constant value  `0xF01F2F3F4F5F6F7F8F9FAFB` (big endian encoding) |
 | `C0` | Ephemeral public key |
 
 ### A.2- Pseudo-code:
 
 ```
-Enc(key, msg):
+Enc(pub_key, msg):
 	-Draw an ephemeral private key r in [1, n-1]
 	-Compute C0 = r * G
-	-Compute S = r * PK_SA
+	-Compute S = r * pub_key
 	-Compute K = KDF1(C0 | S)
-	-Compute (emsg, tag) = AES-256-GCM(K, msg)
+	-Compute emsg = AES-256-GCM(K, IV, msg) and tag = GMAC(K, IV, emsg)
 	-Return (emsg, tag, C0)
 ```
 
 ```
-Dec(key, emsg, tag, C0):
-	-Compute S = SK_SA * C0
+Dec(priv_key, emsg, tag, C0):
+	-Compute S = priv_key * C0
 	-Compute K = KDF1(C0 | S)
-	-Compute (msg, tag') = AES-256-GCM(K, emsg)
-	-Assert(tag == tag')
-	-Return msg
+	-Compute msg = AES-256-GCM(K, IV, emsg) and tag' = GMAC(K, IV, emsg)
+	-if(tag == tag') return msg else raise error
 ```
 
 Note that in computation of K with the KDF1 function C0 is represented in its compressed form as specified in ANSI X9.62 (i.e. 33 bytes) and S is represented by its X coordinate (i.e. 32 bytes)

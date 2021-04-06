@@ -1,9 +1,47 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Copyright Inria 2021
 #
 import json
 import subprocess
 import os
 import argparse
+import unittest
+import sys
+
+CSV_LSP_TST = 'testLSPDecoding.csv'
+CSV_LOC_TST = 'testLocationDecoding.csv'
+CSV_TEST_FILES_GENERATION = False
+
+class CleaEncoderInteroperabilityTestCase(unittest.TestCase):
+    def setUp(self):
+        # clean output files
+        self.ENC_IN = 'encode_in.json'
+        self.ENC_OUT = 'encode_out.json'
+        self.DEC_OUT = 'decode_out.json'
+        if os.path.exists(self.ENC_OUT):
+            os.remove(self.ENC_OUT)
+        if os.path.exists(self.DEC_OUT):
+            os.remove(self.DEC_OUT)
+    
+    def testCEncodingAndJavaDecoding(self):
+        print("Running test with C encoding and Java decoding")
+        lsps_encode(self.ENC_IN, self.ENC_OUT, java=False)
+        # encode_out.json -> [lsps_decode] -> decode_out.json
+        lsps_decode(self.ENC_OUT, self.DEC_OUT)
+        # compare parameters input or generated (time, ltid) and output paramaters
+        lsps_cmp(self.ENC_IN, self.ENC_OUT, self.DEC_OUT, CSV_LSP_TST, CSV_LOC_TST)
+
+    def testJavaEncodingAndJavaDecoding(self):
+        print("Running test with Java encoding and Java decoding")
+        lsps_encode(self.ENC_IN, self.ENC_OUT, java=True)
+        # encode_out.json -> [lsps_decode] -> decode_out.json
+        lsps_decode(self.ENC_OUT, self.DEC_OUT)
+        # compare parameters input or generated (time, ltid) and output paramaters
+        lsps_cmp(self.ENC_IN, self.ENC_OUT, self.DEC_OUT, CSV_LSP_TST, CSV_LOC_TST)
+
+
 """ Test interoperability between C/Java location Specific Part (LSP) encoding
 and Java LSP decoding
 """
@@ -11,7 +49,7 @@ and Java LSP decoding
 # Java executable can encode or decode
 # a Clé location Specific Part (LSP)
 CMD_JAVA = ['java', '-cp',
-            '../java/target/clea-lsp-0.0.1-SNAPSHOT-jar-with-dependencies.jar',
+            '../java/target/clea-crypto-0.0.2-SNAPSHOT-jar-with-dependencies.jar',
             'fr.inria.clea.lsp.LspEncoderDecoder']
 # C executable can encode t a Cléa LSP
 CMD_C = ['../c/build/test_clea']
@@ -29,11 +67,14 @@ def run_cmd(cmd_with_args):
     -------
     result as a sequence of word separated by space
     """
-    subpro = subprocess.Popen(cmd_with_args, stdout=subprocess.PIPE)
-    subpro.wait()
-    out = subpro.stdout.read()
+    with subprocess.Popen(cmd_with_args, stdout=subprocess.PIPE) as process:
+        process.wait()
+        out = process.stdout.read()
+        process.kill()
+    
     outs = out.decode().replace("\n", "")
-    results = outs.split(' ')
+    outs = outs.split('=VALUES=')
+    results = outs[1].split(' ')
     return results
 
 
@@ -66,9 +107,11 @@ def lsp_encode(cfg, java=False):
     cmd.append(cfg['SK_L'])
 
     phone = cfg.get('locationPhone')
+    region = cfg.get('locationRegion')
     pin = cfg.get('locationPIN')
-    if (phone is not None and pin is not None):
+    if (phone is not None and region is not None and pin is not None):
         cmd.append(str(phone))
+        cmd.append(str(region))
         cmd.append(str(pin))
 
     vals = run_cmd(cmd)
@@ -102,7 +145,7 @@ def lsp_decode(cfg):
     cmd.append(cfg['SK_SA'])
     cmd.append(cfg['SK_MCTA'])
     vals = run_cmd(cmd)
-    if len(vals) == 10 or len(vals) == 12:
+    if len(vals) == 10 or len(vals) == 13:
         lsp_dict = {"staff": int(vals[0]),
                     "countryCode": int(vals[1]),
                     "CRIexp": int(vals[2]),
@@ -115,9 +158,10 @@ def lsp_decode(cfg):
                     "t_qrStart": int(vals[9]),
                     "SK_SA": cfg['SK_SA'],
                     "SK_MCTA": cfg['SK_MCTA']}
-        if len(vals) == 12:
+        if len(vals) == 13:
             lsp_dict["locationPhone"] = vals[10]
-            lsp_dict["locationPIN"] = vals[11]
+            lsp_dict["locationRegion"] = int(vals[11])
+            lsp_dict["locationPIN"] = vals[12]
     else:
         lsp_dict = {"Error": "lsp_decode failed"}
     return lsp_dict
@@ -183,53 +227,32 @@ def lsp_cmp(enc_in, enc_out, dec_out):
     enc_in: input dict LSP encoder
     enc_out: output dict LSP encoder
     dec_out: output dict LSP decoder
-
-    Return
-    -------
-    True / False
     """
-    testok = 0
-    nbtests = 10
+    assert enc_in.get("Error") is None
+    assert dec_out.get("Error") is None
 
-    if enc_in.get("Error") is not None or dec_out.get("Error") is not None:
-        return False
-
-    if enc_in['staff'] == dec_out['staff']:
-        testok += 1
-    if enc_in['CRIexp'] == dec_out['CRIexp']:
-        testok += 1
-    if enc_in['venueType'] == dec_out['venueType']:
-        testok += 1
-    if enc_in['venueCategory1'] == dec_out['venueCategory1']:
-        testok += 1
-    if enc_in['venueCategory2'] == dec_out['venueCategory2']:
-        testok += 1
-    if enc_in['countryCode'] == dec_out['countryCode']:
-        testok += 1
-    if enc_in['periodDuration'] == dec_out['periodDuration']:
-        testok += 1
-    if enc_out['LTId'] == dec_out['LTId']:
-        testok += 1
-    if enc_out['ct_periodStart'] == dec_out['ct_periodStart']:
-        testok += 1
-    if enc_out['t_qrStart'] == dec_out['t_qrStart']:
-        testok += 1
+    assert enc_in['staff'] == dec_out['staff']
+    assert enc_in['CRIexp'] == dec_out['CRIexp']
+    assert enc_in['venueType'] == dec_out['venueType']
+    assert enc_in['venueCategory1'] == dec_out['venueCategory1']
+    assert enc_in['venueCategory2'] == dec_out['venueCategory2']
+    assert enc_in['countryCode'] == dec_out['countryCode']
+    assert enc_in['periodDuration'] == dec_out['periodDuration']
+    assert enc_out['LTId'] == dec_out['LTId']
+    assert enc_out['ct_periodStart'] == dec_out['ct_periodStart']
+    assert enc_out['t_qrStart'] == dec_out['t_qrStart']
     nbr = int(enc_in.get('locationPhone') is not None) + \
-        int(enc_in.get('locationPhone') is not None) + \
+        int(enc_in.get('locationPIN') is not None) + \
+        int(enc_in.get('locationRegion') is not None) + \
         int(dec_out.get('locationPhone') is not None) + \
+        int(dec_out.get('locationRegion') is not None) + \
         int(dec_out.get('locationPIN') is not None)
-    if nbr == 4:
-        nbtests += 2
-        if enc_in['locationPhone'] == dec_out['locationPhone']:
-            testok += 1
-        if enc_in['locationPIN'] == dec_out['locationPIN']:
-            testok += 1
-    elif nbr != 0:
-        print('LocationMsg failed')
-        return False
-       
-    return testok == nbtests
-
+    if nbr == 6:
+        assert enc_in['locationPhone'] == dec_out['locationPhone']
+        assert enc_in['locationRegion'] == dec_out['locationRegion']
+        assert enc_in['locationPIN'] == dec_out['locationPIN']
+    else:
+        assert nbr == 0, 'LocationMsg failed'
 
 def lsps_cmp(enc_in_file, enc_out_file, dec_out_file, csv_lsp_file, csv_loc_file):
     """
@@ -239,11 +262,10 @@ def lsps_cmp(enc_in_file, enc_out_file, dec_out_file, csv_lsp_file, csv_loc_file
     enc_out_file: output file in json of the lsp encoder with generated lsp
                 parameters (time, TLId)
     dec_out_file: output file in json of the lsp decoder
-    csv_lsp_file: save LSP encoding/decoding results to be updated when necessary for junit5 test in ../java/src/test/resources
-    csv_loc_file: save location encoding/decoding results to be updated when necessary for junit5 test in ../java/src/test/resources
-    Return
-    -------
-    True / False
+    csv_lsp_file: save LSP encoding/decoding results to be updated when necessary
+                    for junit5 test in ../java/src/test/resources
+    csv_loc_file: save location encoding/decoding results to be updated when necessary
+                    for junit5 test in ../java/src/test/resources
     """
     with open(enc_in_file) as fid1, \
             open(enc_out_file) as fid2, \
@@ -251,81 +273,50 @@ def lsps_cmp(enc_in_file, enc_out_file, dec_out_file, csv_lsp_file, csv_loc_file
         enc_in_s = json.load(fid1)
         enc_out_s = json.load(fid2)
         dec_out_s = json.load(fid3)
-        if not len(enc_in_s) == len(enc_out_s) == len(dec_out_s):
-            print('TESTS FAILED: problem with number of tests')
-            return False
-        iok = 0
+        assert len(enc_in_s) == len(enc_out_s) == len(dec_out_s), "problem with number of tests"
         for idx, _ in enumerate(enc_in_s):
-            enc_in = enc_in_s[idx]
-            enc_out = enc_out_s[idx]
-            dec_out = dec_out_s[idx]
-            if lsp_cmp(enc_in, enc_out, dec_out):
-                print('TEST PASS:', idx+1)
-                iok = iok + 1
-                SEP = ', '
-                if csv_lsp_file is not None:
-                    row = str(enc_in['staff']) + SEP + str(enc_in['countryCode']) + SEP + str(enc_out['LTId']) + SEP + str(enc_in['CRIexp']) + SEP
-                    row += str(enc_in['venueType']) +  SEP + str(enc_in['venueCategory1']) + SEP + str(enc_in['venueCategory2']) + SEP + str(enc_in['periodDuration']) + SEP
-                    row += str(enc_out['ct_periodStart']) +  SEP +  str(enc_out['t_qrStart']) + SEP + str(enc_in['SK_SA']) + SEP + str(enc_in['PK_SA']) + SEP + str(enc_out['lsp_base64'])
-                    csv_lsp_file.write(row+ '\n')
-                if csv_loc_file is not None and enc_in.get('locationPhone') is not None :
-                    row = str(enc_in['locationPhone']) + SEP + str(enc_in['locationPIN']) + SEP + str(enc_out['ct_periodStart']*3600) + SEP
-                    row += str(enc_in['SK_SA']) + SEP + str(enc_in['PK_SA']) + SEP
-                    row += str(enc_in['SK_MCTA']) + SEP + str(enc_in['PK_MCTA']) + SEP + str(enc_out['lsp_base64'])
-                    csv_loc_file.write(row+ '\n')
-            else:
-                print('TEST FAILED:', idx+1)
+            lsp_cmp(enc_in_s[idx], enc_out_s[idx], dec_out_s[idx])
+            if CSV_TEST_FILES_GENERATION:
+                save_lsp_encoding_decoding_results(enc_in_s[idx], enc_out_s[idx], csv_lsp_file, csv_loc_file)
+    
+def save_lsp_encoding_decoding_results(enc_in, enc_out, csv_lsp_file, csv_loc_file):
+    sep = ', '
+    if csv_lsp_file is not None:
+        row = str(enc_in['staff']) + sep + str(enc_in['countryCode']) + sep
+        row += str(enc_out['LTId']) + sep + str(enc_in['CRIexp']) + sep
+        row += str(enc_in['venueType']) + sep + str(enc_in['venueCategory1']) + sep
+        row += str(enc_in['venueCategory2']) + sep + str(enc_in['periodDuration']) + sep
+        row += str(enc_out['ct_periodStart']) + sep + str(enc_out['t_qrStart']) + sep
+        row += str(enc_in['SK_SA']) + sep + str(enc_in['PK_SA']) + sep
+        row += str(enc_out['lsp_base64'])
+        with open(csv_lsp_file, 'a') as outFile:
+            outFile.write(row + '\n')
+    if csv_loc_file is not None and enc_in.get('locationPhone') is not None:
+        row = str(enc_in['locationPhone']) + sep + str(enc_in['locationRegion']) + sep
+        row += str(enc_in['locationPIN']) + sep + str(enc_out['ct_periodStart']*3600)
+        row += sep + str(enc_in['SK_SA']) + sep + str(enc_in['PK_SA']) + sep
+        row += str(enc_in['SK_MCTA']) + sep + str(enc_in['PK_MCTA']) + sep
+        row += str(enc_out['lsp_base64'])
+        with open(csv_loc_file, 'a') as outFile:
+            outFile.write(row + '\n')
 
-    return iok == len(enc_in_s)
-
-
-# Parse command line arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("--noencode",
-                    help="test only the decoding part",
-                    action="store_true")
-parser.add_argument("--java",
-                    help="encoding part with Java lib (C lib by default)",
-                    action="store_true")
-parser.add_argument("--csvtest",
-                    help="saving file testDecoding.csv",
-                    action="store_true")
-args = parser.parse_args()
-
-
-# clean output files
-CSV_LSP_TST = 'testLSPDecoding.csv'
-CSV_LOC_TST = 'testLocationDecoding.csv'
-ENC_IN = 'encode_in.json'
-ENC_OUT = 'encode_out.json'
-DEC_OUT = 'decode_out.json'
-if os.path.exists(ENC_OUT) and not args.noencode:
-    os.remove(ENC_OUT)
-if os.path.exists(DEC_OUT):
-    os.remove(DEC_OUT)
-if os.path.exists(DEC_OUT):
-    os.remove(DEC_OUT)
-# testDecoding.csv, to be updated when necessary for junit5 test in ../java/src/test/resources
-if args.csvtest:
-    csv_lsp_file = open(CSV_LSP_TST,"w") 
-    csv_loc_file = open(CSV_LOC_TST,"w") 
-    header = 'staff, countryCode, LTId, CRIexp, venueType, venueCat1, venueCat2, periodDuration, ct_periodStart, t_qrStart, SK_SA, PK_SA, lsp_base64\n'
-    csv_lsp_file.write(header) 
-    header = 'locationPhone, locationPin, t_periodStart, SK_SA, PK_SA, SK_MCTA, PK_MCTA, lsp_base64\n'
-    csv_loc_file.write(header)
-else:
-    csv_lsp_file = None 
-    csv_loc_file = None
-# encode_in.json -> [lsps_encode] -> encode_out.json
-if not args.noencode:
-    lsps_encode(ENC_IN, ENC_OUT, java=args.java)
-# encode_out.json -> [lsps_decode] -> decode_out.json
-lsps_decode(ENC_OUT, DEC_OUT)
-# compare parameters input or generated (time, ltid) and output paramaters
-if lsps_cmp(ENC_IN, ENC_OUT, DEC_OUT, csv_lsp_file, csv_loc_file):
-    print('ALL TESTS PASS')
-else:
-    print('TESTS FAILED')
-if args.csvtest: 
-    csv_lsp_file.close()
-    csv_loc_file.close()
+if __name__ == "__main__":
+    # Parse command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--csvtest",
+                        help="saving file testDecoding.csv",
+                        action="store_true")
+    args = parser.parse_args()
+    
+    if args.csvtest:
+        CSV_TEST_FILES_GENERATION =  True
+        with open(CSV_LSP_TST, "w") as outFile:
+            HEADER = 'staff, countryCode, LTId, CRIexp, venueType, venueCat1, venueCat2, periodDuration, ct_periodStart, t_qrStart, SK_SA, PK_SA, lsp_base64\n'
+            outFile.write(HEADER)
+        with open(CSV_LOC_TST, "w") as outFile:
+            HEADER = 'locationPhone, locationRegion, locationPin, t_periodStart, SK_SA, PK_SA, SK_MCTA, PK_MCTA, lsp_base64\n'
+            outFile.write(HEADER)
+    
+    sys.argv = [ sys.argv[0] ]
+    
+    unittest.main()

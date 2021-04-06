@@ -23,9 +23,10 @@ async function generateLsps(conf_tests) {
         conf.SK_L = hexToBytes(conf.SK_L);
         conf.PK_SA = hexToBytes(conf.PK_SA);
         conf.PK_MCTA = hexToBytes(conf.PK_MCTA);
-        if ((("locationPhone" in conf) == true) && (("locationPIN" in conf) == true)) {
+        if ((("locationPhone" in conf) == true) && (("locationRegion" in conf) == true) && (("locationPIN" in conf) == true)) {
             conf['locContactMsg'] = {
                 locationPhone: conf.locationPhone,
+                locationRegion: conf.locationRegion,
                 locationPin: conf.locationPIN
             }
         }

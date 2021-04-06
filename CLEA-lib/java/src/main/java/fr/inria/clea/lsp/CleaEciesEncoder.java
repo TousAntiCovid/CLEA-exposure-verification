@@ -20,6 +20,7 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -44,6 +45,10 @@ import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.util.encoders.Hex;
 
+import fr.inria.clea.lsp.exception.CleaEncryptionException;
+import fr.inria.clea.lsp.utils.TimeUtils;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Encryption/Decription respecting ECIES-KEM (Elliptic Curve Integrated
  * Encryption Scheme with Key encapsulation mechanisms )
@@ -56,6 +61,7 @@ import org.bouncycastle.util.encoders.Hex;
  *      for Public-Key Encryption”, 2006</a>
  * 
  */
+@Slf4j
 public class CleaEciesEncoder {
 
     /* Type of the elliptic curve */
@@ -250,65 +256,6 @@ public class CleaEciesEncoder {
     }
 
     /**
-     * concat two bytes array in one
-     * 
-     * @param part1 first bytes array
-     * @param part2 second bytes array
-     * @return bytes array concatenation
-     */
-    protected byte[] concat(byte[] part1, byte[] part2) throws IOException {
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        outputStream.write(part1);
-        outputStream.write(part2);
-        byte concatParts[] = outputStream.toByteArray();
-
-        return concatParts;
-    }
-
-    /**
-     * convert 32 bytes array in UUID format
-     * 
-     * @param bytes 32 bytes array
-     * @return UUID
-     */
-    protected UUID bytesToUuid(byte[] bytes) {
-        ByteBuffer bb = ByteBuffer.wrap(bytes);
-        long firstLong = bb.getLong();
-        long secondLong = bb.getLong();
-
-        return new UUID(firstLong, secondLong);
-    }
-
-    /**
-     * convert a UUID format in 32 bytes array
-     * 
-     * @param uuid UUID
-     * @return 32 bytes array
-     */
-    protected byte[] uuidToBytes(UUID uuid) {
-        ByteBuffer buffer = ByteBuffer.wrap(new byte[16]);
-        buffer.putLong(uuid.getMostSignificantBits());
-        buffer.putLong(uuid.getLeastSignificantBits());
-
-        return buffer.array();
-    }
-
-    /**
-     * convert an int in 32 bytes array
-     * 
-     * @param data int to be converted
-     * @return 32 bytes array
-     */
-    private static byte[] intToBytes(int data) {
-        return new byte[] { 
-                (byte) ((data >> 24) & 0xff), 
-                (byte) ((data >> 16) & 0xff), 
-                (byte) ((data >> 8) & 0xff),
-                (byte) ((data >> 0) & 0xff) };
-    }
-
-    /**
      * Compute the LTKey (Temporary Location Key) respecting Cléa protocol
      * LTKey(t_periodStart) = SHA256(SK_L | t_periodStart)
      * 
@@ -318,9 +265,10 @@ public class CleaEciesEncoder {
      * @return LTKey (Temporary Location Key)
      * @throws CleaEncryptionException 
      */
-    public byte[] computeLocationTemporarySecretKey(String permanentLocationSecretKey, int periodStartTime) throws CleaEncryptionException {
+    public byte[] computeLocationTemporarySecretKey(String permanentLocationSecretKey, Instant periodStartTime) throws CleaEncryptionException {
+        log.info("permanentLocationSecretKey: {}, periodStartTime= {}", permanentLocationSecretKey, periodStartTime);
         try {
-            byte[] concatKey = this.concat(intToBytes(periodStartTime), Hex.decode(permanentLocationSecretKey));
+            byte[] concatKey = this.concat(instantToBytes(periodStartTime), Hex.decode(permanentLocationSecretKey));
             MessageDigest msg = MessageDigest.getInstance("SHA-256");
             byte[] locationTemporarySecretKey = msg.digest(concatKey);
 
@@ -357,6 +305,70 @@ public class CleaEciesEncoder {
         } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalStateException | UnsupportedEncodingException e) {
             throw new CleaEncryptionException(e);
         }
+    }
+
+    private byte[] instantToBytes(Instant periodStartTime) {
+        long timestamp = TimeUtils.ntpTimestampFromInstant(periodStartTime);
+        return intToBytes((int) timestamp);
+    }
+
+    /**
+     * convert an int in 32 bytes array
+     * 
+     * @param data int to be converted
+     * @return 32 bytes array
+     */
+    private static byte[] intToBytes(int data) {
+        return new byte[] { 
+                (byte) ((data >> 24) & 0xff), 
+                (byte) ((data >> 16) & 0xff), 
+                (byte) ((data >> 8) & 0xff),
+                (byte) ((data >> 0) & 0xff) };
+    }
+
+    /**
+     * concat two bytes array in one
+     * 
+     * @param part1 first bytes array
+     * @param part2 second bytes array
+     * @return bytes array concatenation
+     */
+    protected byte[] concat(byte[] part1, byte[] part2) throws IOException {
+    
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        outputStream.write(part1);
+        outputStream.write(part2);
+        byte concatParts[] = outputStream.toByteArray();
+    
+        return concatParts;
+    }
+
+    /**
+     * convert 32 bytes array in UUID format
+     * 
+     * @param bytes 32 bytes array
+     * @return UUID
+     */
+    protected UUID bytesToUuid(byte[] bytes) {
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        long firstLong = bb.getLong();
+        long secondLong = bb.getLong();
+    
+        return new UUID(firstLong, secondLong);
+    }
+
+    /**
+     * convert a UUID format in 32 bytes array
+     * 
+     * @param uuid UUID
+     * @return 32 bytes array
+     */
+    protected byte[] uuidToBytes(UUID uuid) {
+        ByteBuffer buffer = ByteBuffer.wrap(new byte[16]);
+        buffer.putLong(uuid.getMostSignificantBits());
+        buffer.putLong(uuid.getLeastSignificantBits());
+    
+        return buffer.array();
     }
 
 }

@@ -105,17 +105,19 @@ export async function cleaRenewLSP(config) {
   if (config.locContactMsg) {
     const phone = parseBcd(config.locContactMsg.locationPhone, 8);
     loc_msg.set(phone, 0);
-    const pin = parseBcd(config.locContactMsg.locationPin, 4);
-    loc_msg.set(pin, 8);
-
-    let encrypted_loc_msg = await encrypt(new Uint8Array(0), loc_msg, config.PK_MCTA);
+    // Max digit is 15, the last 4 bits are set to 0 (pad)
+    loc_msg[7] = loc_msg[7] & 0xF0;
+    loc_msg[8] = config.locContactMsg.locationRegion & 0xFF;
+    const pin = parseBcd(config.locContactMsg.locationPin, 3);
+    loc_msg.set(pin, 9);
+    encrypted_loc_msg = await encrypt(new Uint8Array(0), loc_msg, config.PK_MCTA);
     msg.set(new Uint8Array(encrypted_loc_msg), 44);
   }
 
   let output = await encrypt(header, msg, config.PK_SA);
 
   // Convert output to Base64
-  return btoa((Array.from(new Uint8Array(output))).map(ch => String.fromCharCode(ch)).join(''));
+  return btoa((Array.from(new Uint8Array(output))).map(ch => String.fromCharCode(ch)).join('')).replace(/\+/g, '-').replace(/\//g, '_');
 }
 
 
@@ -276,7 +278,7 @@ function printBuf(name, buf) {
 }
 
 /**
- * Convert a 34 bits int in a bytes array
+ * Convert a 64 bits int in a bytes array
  *
  * @param {integer} val to be converted
  * @return {Uint8Array} bytes array
@@ -293,7 +295,7 @@ export function getInt64Bytes(val) {
 
 /**
  * Parse a string composed by digits ([0..9])
- * to fill a bytes array storing as aset of 
+ * to fill a bytes array storing as a set of 
  * 4-bit sub-fields that each contain a digit.
  * padding is done by 0xF
  *
