@@ -25,8 +25,8 @@ setTimeout(function() {
                         const javaproc = spawn('java', ['-cp', javadir+'/clea-crypto.jar',
                             'fr.inria.clea.lsp.LspEncoderDecoder', 'decode',
                             cryptoItem.result,
-                            cryptoItem.sk_l,
-                            cryptoItem.pk_sa]);
+                            cryptoItem.sk_sa,
+                            cryptoItem.sk_mcta]);
 
                         javaproc.stdout.on('data', (data) => {
                             console.log(data.toString());
