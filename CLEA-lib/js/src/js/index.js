@@ -7,6 +7,7 @@ import 'regenerator-runtime/runtime'
 import {cleaStartNewPeriod} from './clea'
 
 (() => {
+
     let verbose = true
     var qrcode = new QRCode("qrcode", {
         width: 500,
@@ -65,8 +66,14 @@ import {cleaStartNewPeriod} from './clea'
         return bytes;
     }
 
-    // Generate a Qr code when the page is loaded
-    generateQrcode();
-    // renew the Qrcode every 10 secondes
-    setInterval(generateQrcode, 10000);
+    // check the browser compatibility
+    if (/msie\s|trident\/|edge\//i.test(window.navigator.userAgent)) {
+        $("#unsupportedBrowser").removeClass("hidden");
+        $("#clea").addClass("hidden");
+    } else {
+        // Generate a Qr code when the page is loaded
+        generateQrcode();
+        // renew the Qrcode every 10 secondes
+        setInterval(generateQrcode, 10000);
+    }
 })();
