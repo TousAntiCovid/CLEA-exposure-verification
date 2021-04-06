@@ -16,7 +16,7 @@ import {cleaStartNewPeriod} from './clea'
     /**
      * Generate a QR code
      *  - generate the LSP using the clea.js function: cleaStartNewPeriod
-     *  - generate the Qrcode adding the prefix for France http://tac.gouv.fr/ to LSP
+     *  - generate the Qrcode adding the prefix for France http://tac.gouv.fr?v=0# to LSP
      * 
      */
     async function generateQrcode() {

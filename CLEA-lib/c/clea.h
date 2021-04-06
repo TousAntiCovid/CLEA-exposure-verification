@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define SK_L_SIZE (60)
+#define SK_L_SIZE (51)
 
 /* Permanent location secret key, this key is not defined in the clea library itself,
    it should be defined outside as it depends on the hardware specific storage location */
@@ -34,8 +34,9 @@ typedef struct
     uint8_t periodDuration;       // 8 bits: period duration in hours
 
     // Location contact
-    uint8_t locationPhone[8]; // 4 bits per digit, pad with 0xF
-    uint8_t locationPin[4];   // 4 bits per digit
+    uint8_t locationPhone[8]; // 60 bits, 4 bits per digit, pad with 0xF (=> 15 digits max)
+    uint8_t locationRegion;   // 8 bits: coarse grain geographical information for the location
+    uint8_t locationPin[3];   // 4 bits per digit (=> 6 digits)
 } clea_conf_t;
 
 extern clea_conf_t clea_conf;

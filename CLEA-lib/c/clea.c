@@ -84,11 +84,15 @@ int32_t clea_renew_qrcode(uint32_t *ptr_ct_periodStart, uint32_t *ptr_t_qrStart)
     if (c->locContactMsgPresent)
     {
         loc_msg_start = cpt;
-
-        for (i = 0; i < sizeof(c->locationPhone); i++)
+        // Encode 56 first bits (7 bytes + 4 bits)
+        for (i = 0; i < sizeof(c->locationPhone) - 1; i++)
         {
             LSP[cpt++] = c->locationPhone[i];
         }
+        // Encode the last 4 bits + 4 bits of padding
+        LSP[cpt++] = c->locationPhone[sizeof(c->locationPhone)-1] & 0xF0;
+
+        LSP[cpt++] = c->locationRegion & 0xFF;
 
         for (i = 0; i < sizeof(c->locationPin); i++)
         {
@@ -160,7 +164,7 @@ static void compute_TLKey(void)
  */
 static void to_base64(uint8_t *in, uint8_t *out, uint8_t n)
 {
-    static const uint8_t base64_table[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    static const uint8_t base64_table[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     uint8_t *pos;
     const uint8_t *end, *start;
 
