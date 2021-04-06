@@ -1,8 +1,5 @@
 import * as clea from '../src/js/clea.js'
 
-
-//var concatBuffer = app.__get__('concatBuffer');
-
 function hexToBytes(hex) {
     var bytes = new Uint8Array(Math.ceil(hex.length / 2));
     for (var i = 0, c = 0; c < hex.length; i++, c += 2)
@@ -156,7 +153,6 @@ describe('cleaStartNewPeriod()', function () {
         runs.forEach(function (run) {
             it('should return a result with 148 length', async () => {
                 let result = await clea.cleaStartNewPeriod(run);
-                console.log(result);
                 console.log(JSON.stringify({filter_key: 'crypto-filter',
                     message: run.SK_L_HEX+","+run.PK_SA_HEX+","+run.PK_MCTA_HEX+","+result+","+run.staff+","+run.CRIexp+","+run.venueType
                         +","+run.venueCategory1+","+run.venueCategory2+","+run.countryCode+","+run.periodDuration+",\""+navigator.userAgent+"\""}));

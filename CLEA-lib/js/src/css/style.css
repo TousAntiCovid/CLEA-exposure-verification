@@ -25,6 +25,10 @@ input[type="text"] {
     width: 600px;
 }
 
+input:invalid {
+    border: 2px solid red;
+}
+
 .hidden {
     display: none;
 }
@@ -33,3 +37,4 @@ input[type="text"] {
     width:500px;
     height:500px;
 }
+

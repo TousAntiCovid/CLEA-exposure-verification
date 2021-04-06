@@ -8,22 +8,29 @@
 </head>
 
 <body>
-<div id="unsupportedBrowser" class="hidden">Votre navigateur n'est pas compatible avec le site.</div>
+<div id="unsupportedBrowser" class="hidden">Your browser is not supported.</div>
 <div id="clea">
   <h1>Cléa example</h1>
   <div id="qrcode"></div>
   <div class="config">
     <div>
       <label for="sk_l">Location secret key (SK_L):</label>
-      <input type="text" id="sk_l" name="sk_l" value="23c9b8f36ac1c0cddaf869c3733b771c3dc409416a9695df40397cea53e7f39e21f76925fc0c74ca6ee7c7eafad92473fd85758bab8f45fe01aac504"/>
+      <input type="text" id="sk_l" name="sk_l" required
+             title="Location secret key is mandatory"
+             value="23c9b8f36ac1c0cddaf869c3733b771c3dc409416a9695df40397cea53e7f39e21f76925fc0c74ca6ee7c7eafad92473fd85758bab8f45fe01aac504"/>
+      <span class="error" aria-live="polite"></span>
     </div>
     <div>
       <label for="pk_sa">Backend server public key (PK_SA):</label>
-      <input type="text" id="pk_sa" name="pk_sa" value="04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5"/>
+      <input type="text" id="pk_sa" name="pk_sa" required
+             title="Backend server public key is mandatory"
+             value="04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5"/>
     </div>
     <div>
       <label for="pk_mcta">Manual contact tracing authority public key (PK_MCTA):</label>
-      <input type="text" id="pk_mcta" name="pk_mcta" value="04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5"/>
+      <input type="text" id="pk_mcta" name="pk_mcta" required
+             title="Manual contact tracing authority public key is mandatory"
+             value="04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5"/>
     </div>
     <div>
       <label for="staff">Staff:</label>
@@ -31,7 +38,8 @@
     </div>
     <div>
       <label for="CRI">Renewal interval (in min):</label>
-      <input type="text" id="CRI" name="CRI" value="1024"/>
+      <input type="number" id="CRI" name="CRI" required min="0"
+             title="QR-code renewal interval exponent compact should have a value between 0 and 32 (included)" value="1024"/>
     </div>
     <div>
       <label for="venueType">Venue type:</label>
@@ -77,7 +85,8 @@
     </div>
     <div>
       <label for="periodDuration">Period duration (in h):</label>
-      <input type="text" id="periodDuration" name="periodDuration" value="3"/>
+      <input type="number" id="periodDuration" name="periodDuration" required min=0 max=255
+             title="Period duration should have a value between 0 and 255 (included)" value="3"/>
     </div>
     <div>
       <label for="locationPhone">Location phone (optional):</label>
@@ -85,7 +94,7 @@
     </div>
     <div>
       <label for="locationPin">Location PIN (mandatory if location phone is present):</label>
-      <input type="text" id="locationPin" name="locationPin"/>
+      <input type="text" id="locationPin" name="locationPin" minlength="6" maxlength="6" title="Secret digit PIN must contain exactly 6 characters"/>
     </div>
   </div>
 </div>
