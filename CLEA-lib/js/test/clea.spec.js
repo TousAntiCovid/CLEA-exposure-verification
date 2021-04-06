@@ -1,13 +1,13 @@
 import * as clea from '../src/js/clea.js'
 
 function hexToBytes(hex) {
-    var bytes = new Uint8Array(Math.ceil(hex.length / 2));
-    for (var i = 0, c = 0; c < hex.length; i++, c += 2)
+    let bytes = new Uint8Array(Math.ceil(hex.length / 2));
+    for (let i = 0, c = 0; c < hex.length; i++, c += 2)
         bytes[i] = parseInt(hex.substr(c, 2), 16);
     return bytes;
 }
 
-var runs = [
+let runs = [
     {
         SK_L_HEX: '34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8',
         SK_L: hexToBytes('34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8'),
@@ -108,7 +108,7 @@ describe('concatBuffer()', function () {
         let result = clea.concatBuffer(a.buffer, b.buffer);
         expect(result.byteLength).to.be.equal(c.buffer.byteLength);
         let resultInt8Array = new Int8Array(result);
-        for (var i = 0; i != result.byteLength; i++) {
+        for (let i = 0; i != result.byteLength; i++) {
             expect(resultInt8Array[i]).to.be.equal(c[i]);
         }
     });
@@ -168,7 +168,7 @@ describe('getInt64Bytes()', function () {
         expected[7] = 56;
         let result = clea.getInt64Bytes(56);
         expect(result.length).to.be.eq(expected.length);
-        for (var i = 0; i != result.length; i++) {
+        for (let i = 0; i != result.length; i++) {
             expect(result[i]).to.be.equal(expected[i]);
         }
     });
@@ -179,7 +179,7 @@ describe('getInt64Bytes()', function () {
         expected[7] = 75;
         let result = clea.getInt64Bytes(331);
         expect(result.length).to.be.eq(expected.length);
-        for (var i = 0; i != result.length; i++) {
+        for (let i = 0; i != result.length; i++) {
             expect(result[i]).to.be.equal(expected[i]);
         }
     });
@@ -199,7 +199,7 @@ describe('parseBcd()', function () {
         expected[7] = 255;
         let result = clea.parseBcd('0667089908', 8);
         expect(result.length).to.be.eq(expected.length);
-        for (var i = 0; i != result.length; i++) {
+        for (let i = 0; i != result.length; i++) {
             expect(result[i]).to.be.equal(expected[i]);
         }
     });
@@ -219,7 +219,7 @@ describe('ecdhRawPubKeyCompressed()', function () {
         expected[2] = 11;
         expect(result.byteLength).to.be.equal(expected.buffer.byteLength);
         let resultInt8Array = new Int8Array(result);
-        for (var i = 0; i != result.byteLength; i++) {
+        for (let i = 0; i != result.byteLength; i++) {
             expect(resultInt8Array[i]).to.be.equal(expected[i]);
         }
     });
@@ -240,7 +240,7 @@ describe('encrypt()', function () {
         let result = await clea.encrypt(header, message, hexToBytes('04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5'));
         expect(result.byteLength).to.be.equal(62);
         let resultInt8Array = new Int8Array(result);
-        for (var i = 0; i != header.length; i++) {
+        for (let i = 0; i != header.length; i++) {
             expect(resultInt8Array[i]).to.be.equal(header[i]);
         }
     });
