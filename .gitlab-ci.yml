@@ -4,6 +4,7 @@ stages:
   - build
   - test
   - deploy
+  - buildjs
 
 build-java:
   stage: build
@@ -68,3 +69,15 @@ deploy:
   only:
     - master
     - tags
+
+buildjs:
+  stage: buildjs
+  image: node:15.13.0
+  tags:
+    - ci
+  script:
+    - cd CLEA-lib/js
+    - npm install
+    - npm run build
+    - ls dist
+ 

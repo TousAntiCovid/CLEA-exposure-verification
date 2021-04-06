@@ -9,3 +9,9 @@
 target/
 .vscode
 c/build
+/CLEA-lib/js/package-lock.json
+/CLEA-lib/js/js.iml
+/CLEA-lib/js/crypto.csv
+/CLEA-lib/js/dist
+/CLEA-lib/js/.cache
+/CLEA-lib/js/node_modules

@@ -1,8 +1,13 @@
 /* 
  * Copyright (C) Inria, 2021
  */
+import QRCode from 'qrcodejs2';
+import $ from 'jquery';
+import 'regenerator-runtime/runtime'
+import {cleaStartNewPeriod} from './clea'
+
 (() => {
-    verbose = true
+    let verbose = true
     var qrcode = new QRCode("qrcode", {
         width: 500,
         height: 500,
@@ -56,7 +61,7 @@
      */
     function hexToBytes(hex) {
         var bytes = new Uint8Array(Math.ceil(hex.length / 2));
-        for (i = 0, c = 0; c < hex.length; i++, c += 2)
+        for (var i = 0, c = 0; c < hex.length; i++, c += 2)
             bytes[i] = parseInt(hex.substr(c, 2), 16);
         return bytes;
     }
