@@ -6,7 +6,7 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Preliminary Draft (Work in Progress), current version, April 1st, 2021_**
+**_Preliminary Draft (Work in Progress), current version, April 6th, 2021_**
 
 
 ----
@@ -46,7 +46,7 @@ The following terms are used in this document:
 | **Period**         |	time is split into periods (e.g., 24 hours), during which the location pseudonyms (more precisely a temporary cryptographic key and a derived temporary UUID) are stable. After that period, a new location pseudonym is generated. For practical reasons, a new period MUST start at a round predefined hour (e.g., 4:00am may be chosen as a default period start). A period can also have an unlimited duration, meaning that the location pseudonym will remain unchanged. |
 | **(User) terminal**|	the user smartphone used to scan the QR code. |
 | **Cléa application** | the application on the user smartphone used to scan the QR code. |
-| **QR code** | The QR code of a location, usually dynamic, that needs to be scanned when entering a location. It contains a URL ("deep link") structured as: `"country-specific-prefix" / "Base64url(location-specific-part)"`. |
+| **QR code** | The QR code of a location, usually dynamic, that needs to be scanned when entering a location. It contains a URL ("deep link") structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. |
 | **Location Specific Part**  | This is the location specific part of a the QR code, renewed periodically, that contains all the information related to the location, at a given time. |
 
 ### 2.2- Overview
@@ -147,7 +147,7 @@ The following acronyms and variable names are used:
 
 | Short name     | Full Name                 | Description                                        |
 |----------------|---------------------------|----------------------------------------------------|
-| `LSP`          | locationSpecificPart      | The QR code of a location, at any moment, contains a URL ("deep link"), structured as: `"country-specific-prefix" / "Base64url(location-specific-part)"`. The location specific part, renewed periodically, contains information related to the location at a given time. |
+| `LSP`          | locationSpecificPart      | The QR code of a location, at any moment, contains a URL ("deep link"), structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. The location specific part, renewed periodically, contains information related to the location at a given time. |
 | `SK_L`      | permanentLocationSecretKey     | Permanent location 408-bits secret key. This key is never communicated, but is shared by all the location devices. For instance, this key can be stored in a protected stable memory of a dedicated device (or set of devices) by the manufacturer. The manufacturer should also keep a record of this `SK_L` in a secure place if the location manager later asks for additional devices. An appropriate location manager authentication mechanism needs to be defined for that purpose that is out of the scope of this document. |
 | `{PK_SA, SK_SA}` | serverAuthorityPublicKey / SecretKey | Public/secret key ECDH pair of the Authority in charge of the backend server. The public key is known by all devices. |
 | `{PK_MCTA, SK_MCTA}` | manualCTAuthorityPublicKey / SecretKey | Public/secret key ECDH pair of the Authority in charge of the manual contact tracing. The public key is known by all devices. It is assumed that this authority is different from the authority in charge of the backend server. |
@@ -416,8 +416,8 @@ When the `locContactMsgPresent == 1`, the `locContactMsg` message adds an extra 
 
 The total is therefore 175 bytes long with the `locContactMsg`, or 110 bytes long without.
 
-The size of this binary message, after Base64url encoding, increases to 235 characters that can be added to the example `https://tac.gouv.fr/` 19-character-long prefix, for a **total of 254 characters**.
-Or, without `locContactMsg`, respectively to 148 charaters, and a total of **167 characters** for the URL.
+The size of this binary message, after Base64url encoding, increases to 235 characters that are added to the `https://tac.gouv.fr?v=0#` 24-character-long prefix (in case of France), for a **total of 259 characters** for the URL.
+Or, without `locContactMsg`, the URL size amounts to **a total of 172 characters**.
 
 
 ### 3.5- Scan of the QR code when a client enters a location
