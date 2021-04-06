@@ -45,5 +45,5 @@ validation list in progress:
 
 ### Test
 * npm test : deploy unit test on clea.js and build a csv file with all produced encrypt results
-* npm run testcrypto : final test to check the jascript encryption against the java decryption
+* npm run testcrypto : final test to check the javascript encryption against the java decryption
 
