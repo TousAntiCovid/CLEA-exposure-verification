@@ -1,4 +1,7 @@
 import * as clea from '../src/js/clea.js'
+import {DATA_SET} from './dataset.js';
+
+let runs = DATA_SET;
 
 function hexToBytes(hex) {
     let bytes = new Uint8Array(Math.ceil(hex.length / 2));
@@ -6,89 +9,6 @@ function hexToBytes(hex) {
         bytes[i] = parseInt(hex.substr(c, 2), 16);
     return bytes;
 }
-
-let runs = [
-    {
-        SK_L_HEX: '34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8',
-        SK_L: hexToBytes('34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8'),
-        PK_SA_HEX: '04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5',
-        PK_SA: hexToBytes('04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5'),
-        PK_MCTA_HEX: '04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5',
-        PK_MCTA: hexToBytes('04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5'),
-        staff: 0,
-        CRIexp: 5,
-        venueType: 12,
-        venueCategory1: 0,
-        venueCategory2: 0,
-        countryCode: 492,
-        periodDuration: 3,
-        locContactMsg: undefined,
-    },
-    {
-        SK_L_HEX: '34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8',
-        SK_L: hexToBytes('34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8'),
-        PK_SA_HEX: '04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5',
-        PK_SA: hexToBytes('04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5'),
-        PK_MCTA_HEX: '04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5',
-        PK_MCTA: hexToBytes('04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5'),
-        staff: 1,
-        CRIexp: 31,
-        venueType: 31,
-        venueCategory1: 15,
-        venueCategory2: 15,
-        countryCode: 4095,
-        periodDuration: 255,
-        locContactMsg: undefined,
-    },
-    {
-        SK_L_HEX: '3108f08b1485adb6f72cfba1b55c7484c906a2a3a0a027c78dcd991ca64c97bd',
-        SK_L: hexToBytes('3108f08b1485adb6f72cfba1b55c7484c906a2a3a0a027c78dcd991ca64c97bd'),
-        PK_SA_HEX: '045f802c016b2d14ef4d7ef01617c67c7506c0cd08aed3e4bcaf34ef5ffaddebb70a073d82c37bc874ce6705cec8b1c4a03b2ccd8f28b0c5034fb8774f2e97b1a4',
-        PK_SA: hexToBytes('045f802c016b2d14ef4d7ef01617c67c7506c0cd08aed3e4bcaf34ef5ffaddebb70a073d82c37bc874ce6705cec8b1c4a03b2ccd8f28b0c5034fb8774f2e97b1a4'),
-        PK_MCTA_HEX: '045f802c016b2d14ef4d7ef01617c67c7506c0cd08aed3e4bcaf34ef5ffaddebb70a073d82c37bc874ce6705cec8b1c4a03b2ccd8f28b0c5034fb8774f2e97b1a4',
-        PK_MCTA: hexToBytes('045f802c016b2d14ef4d7ef01617c67c7506c0cd08aed3e4bcaf34ef5ffaddebb70a073d82c37bc874ce6705cec8b1c4a03b2ccd8f28b0c5034fb8774f2e97b1a4'),
-        staff: 1,
-        CRIexp: 31,
-        venueType: 31,
-        venueCategory1: 15,
-        venueCategory2: 15,
-        countryCode: 592,
-        periodDuration: 255,
-        locContactMsg: undefined,
-    },
-    {
-        SK_L_HEX: '34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8',
-        SK_L: hexToBytes('34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8'),
-        PK_SA_HEX: '04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5',
-        PK_SA: hexToBytes('04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5'),
-        PK_MCTA_HEX: '045f802c016b2d14ef4d7ef01617c67c7506c0cd08aed3e4bcaf34ef5ffaddebb70a073d82c37bc874ce6705cec8b1c4a03b2ccd8f28b0c5034fb8774f2e97b1a4',
-        PK_MCTA: hexToBytes('045f802c016b2d14ef4d7ef01617c67c7506c0cd08aed3e4bcaf34ef5ffaddebb70a073d82c37bc874ce6705cec8b1c4a03b2ccd8f28b0c5034fb8774f2e97b1a4'),
-        staff: 0,
-        CRIexp: 31,
-        venueType: 31,
-        venueCategory1: 3,
-        venueCategory2: 3,
-        countryCode: 492,
-        periodDuration: 5,
-        locContactMsg: null,
-    },
-    {
-        SK_L_HEX: '34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8',
-        SK_L: hexToBytes('34af7f978c5a17772867d929e0b800dd2db74608322d73f2f0cfd19cdcaeccc8'),
-        PK_SA_HEX: '04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5',
-        PK_SA: hexToBytes('04c14d9db89a3dd8da8a366cf26cd67f1de468fb5dc15f240b0d2b96dbdb5f39af962cb0bdc0bafcc9e523bf5cd4eba420c51758f987457954d32f1003bbaaf1c5'),
-        PK_MCTA_HEX: '045f802c016b2d14ef4d7ef01617c67c7506c0cd08aed3e4bcaf34ef5ffaddebb70a073d82c37bc874ce6705cec8b1c4a03b2ccd8f28b0c5034fb8774f2e97b1a4',
-        PK_MCTA: hexToBytes('045f802c016b2d14ef4d7ef01617c67c7506c0cd08aed3e4bcaf34ef5ffaddebb70a073d82c37bc874ce6705cec8b1c4a03b2ccd8f28b0c5034fb8774f2e97b1a4'),
-        staff: 1,
-        CRIexp: 5,
-        venueType: 31,
-        venueCategory1: 3,
-        venueCategory2: 1,
-        countryCode: 202,
-        periodDuration: 10,
-        locContactMsg: null,
-    }
-];
 
 
 
@@ -138,10 +58,14 @@ describe('getNtpUtc()', function () {
 describe('cleaRenewLSP()', function () {
 
     it('should return something with the right lenght and the right header', async () => {
-        let result = await clea.cleaRenewLSP(runs[0]);
+        let conf = runs[0];
+        conf.SK_L = hexToBytes(conf.SK_L_HEX);
+        conf.PK_SA = hexToBytes(conf.PK_SA_HEX);
+        conf.PK_MCTA = hexToBytes(conf.PK_MCTA_HEX);
+        let result = await clea.cleaRenewLSP(conf);
         console.log(JSON.stringify({filter_key: 'crypto-filter',
-            message: runs[0].SK_L_HEX+","+runs[0].PK_SA_HEX+","+runs[0].PK_MCTA_HEX+","+result+","+runs[0].staff+","+runs[0].CRIexp+","+runs[0].venueType
-                +","+runs[0].venueCategory1+","+runs[0].venueCategory2+","+runs[0].countryCode+","+runs[0].periodDuration+",\""+navigator.userAgent+"\""}));
+            message: conf.SK_L_HEX+","+conf.PK_SA_HEX+","+conf.PK_MCTA_HEX+","+result+","+conf.staff+","+conf.CRIexp+","+conf.venueType
+                +","+conf.venueCategory1+","+conf.venueCategory2+","+conf.countryCode+","+conf.periodDuration+",\""+navigator.userAgent+"\""}));
         expect(result).to.length(148)
         expect(result.startsWith('AAAAAAAAAAAAAAAAAAAAAA')).to.be.true;
     })
@@ -152,6 +76,9 @@ describe('cleaStartNewPeriod()', function () {
     describe('test suite for cleaStartNewPeriod()', function () {
         runs.forEach(function (run) {
             it('should return a result with 148 length', async () => {
+                run.SK_L = hexToBytes(run.SK_L_HEX);
+                run.PK_SA = hexToBytes(run.PK_SA_HEX);
+                run.PK_MCTA = hexToBytes(run.PK_MCTA_HEX);
                 let result = await clea.cleaStartNewPeriod(run);
                 console.log(JSON.stringify({filter_key: 'crypto-filter',
                     message: run.SK_L_HEX+","+run.PK_SA_HEX+","+run.PK_MCTA_HEX+","+result+","+run.staff+","+run.CRIexp+","+run.venueType
