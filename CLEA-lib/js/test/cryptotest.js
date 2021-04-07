@@ -4,7 +4,7 @@ const { spawn } = require('child_process');
 // setup : load cvs file
 let cryptoList;
 csv({noheader: true,
-            headers:['sk_l','pk_mcta','pk_sa','result','staff','CRIexp','venueType','venueCategory1','venueCategory2','countryCode','periodDuration','browser']})
+            headers:['sk_l','sk_mcta','sk_sa','result','staff','CRIexp','venueType','venueCategory1','venueCategory2','countryCode','periodDuration','browser']})
     .fromFile('./crypto.csv')
     .then((jsonObj)=> {
         cryptoList = jsonObj;
@@ -32,7 +32,8 @@ setTimeout(function() {
                             console.log(data.toString());
                             let str = data.toString().replace(/(\r\n|\n|\r)/gm, "").trim();
                             if (str && str.length > 0 ) {
-                                result = str.split(' ');
+                                // remove =VALUES=
+                                result = str.substring(8).split(' ');
                             }
                         });
 
