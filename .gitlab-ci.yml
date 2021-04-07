@@ -4,8 +4,6 @@ stages:
   - build
   - test
   - deploy
-  - buildjs
-
 build-java:
   stage: build
   tags:
@@ -70,8 +68,30 @@ deploy:
     - master
     - tags
 
-buildjs:
-  stage: buildjs
+test-js:
+  stage: test
+  before_script:
+    #Install  node and npm #
+    - apt-get install -y curl && curl -sL https://deb.nodesource.com/setup_15.x | bash - && apt-get install -y nodejs && curl -L https://www.npmjs.com/install.sh | sh 
+    #Install Latest Google chrome package on system for front test#
+    - apt-get install -y chromium
+    #Install Latest firefox package on system for front test#
+    - apt-get install -y firefox-esr
+  tags:
+    - ci
+  script:
+    - cd CLEA-lib/js
+    - pwd || true
+    - cp ../java/target/clea-crypto-*-jar-with-dependencies.jar ./clea-crypto.jar
+    - java -cp ./clea-crypto.jar fr.inria.clea.lsp.LspEncoderDecoder decode || true
+    - export CHROME_BIN=chromium
+    - export FIREFOX_BIN=firefox-esr
+    - npm install
+    - npm test
+    - npm run testcrypto
+
+build-js:
+  stage: build
   image: node:15.13.0
   tags:
     - ci

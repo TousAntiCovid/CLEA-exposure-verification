@@ -21,9 +21,12 @@ An example of use of `clea.js` is done by :
 
 * `index.html`: html page to be loaded on a web-browser
 * `index.js`: javascript getting config values and calling periodically the qrcode generator
-* `qrcode.min.js`: javascript to manage the display of the qrcode and the widget to input parameters
 
 When the html page is loaded, the current qrcode is displayed and you can input new config values. Every 10 secondes, a new qrcode is generated.
+
+### Dependencies
+* `qrcodejs2` version 0.0.2 : javascript to manage the display of the qrcode and the widget to input parameters
+* `jquery` version 3.4.1
 
 ### Web browser supported
 
@@ -31,3 +34,26 @@ validation list in progress:
 
 * Firefox 86
 * Chrome 89
+## Continuous Integration
+
+
+### installation
+
+* apt-get install -y firefox-esr chromium
+* export CHROME_BIN=chromium
+* export FIREFOX_BIN=firefox-esr
+* cd ../java; mvn install
+* cd ../js; cp ../java/target/clea-crypto-*-jar-with-dependencies.jar ./clea-crypto.jar
+* npm install
+### build
+
+* npm run build
+
+### development deployment
+
+* npm run dev
+
+### Test
+
+* npm test : deploy unit test on clea.js and build a csv file with all produced encrypted results
+* npm run testcrypto : final test to check the javascript encryption against the java decryption

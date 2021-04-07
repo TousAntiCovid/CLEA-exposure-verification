@@ -3,38 +3,42 @@ const csv=require('csvtojson')
 const { spawn } = require('child_process');
 // setup : load cvs file
 let cryptoList;
-csv()
+csv({noheader: true,
+            headers:['sk_l','sk_mcta','sk_sa','result','staff','CRIexp','venueType','venueCategory1','venueCategory2','countryCode','periodDuration','browser']})
     .fromFile('./crypto.csv')
     .then((jsonObj)=> {
         cryptoList = jsonObj;
-        console.log(cryptoList);
     })
+
 
 setTimeout(function() {
 
     describe('test suite for crypto', function () {
 
             cryptoList.forEach(function (cryptoItem) {
-                it('test ' + cryptoItem.result + 'key ' + cryptoItem.sk_l +'/' + cryptoItem.pk_sa, async () => {
+                it('test on [' + cryptoItem.browser + '] with ' + cryptoItem.staff + ' ' + cryptoItem.CRIexp + ' ' + cryptoItem.venueType + ' ' + cryptoItem.venueCategory1
+                    + ' ' + cryptoItem.venueCategory2 + ' ' + cryptoItem.countryCode + ' ' + cryptoItem.periodDuration , async () => {
                     await new Promise((resolve) => {
-                        let result;
+                        let result = '';
 
-                        const javaproc = spawn('java', ['-cp',
-                            '../java/target/clea-crypto-0.0.1-SNAPSHOT-jar-with-dependencies.jar ',
+                        let javadir = process.cwd();
+                        const javaproc = spawn('java', ['-cp', javadir+'/clea-crypto.jar',
                             'fr.inria.clea.lsp.LspEncoderDecoder', 'decode',
                             cryptoItem.result,
-                            cryptoItem.sk_l,
-                            cryptoItem.pk_sa]);
+                            cryptoItem.sk_sa,
+                            cryptoItem.sk_mcta]);
 
                         javaproc.stdout.on('data', (data) => {
                             console.log(data.toString());
-                            result = data.toString().trim().split(' ');
-                            //assert.isTrue(true);
+                            let str = data.toString().replace(/(\r\n|\n|\r)/gm, "").trim();
+                            if (str && str.length > 0 ) {
+                                // remove =VALUES=
+                                result = str.substring(8).split(' ');
+                            }
                         });
 
                         javaproc.stderr.on('data', (data) => {
                             console.error(data.toString());
-                            //assert.isTrue(false);
                         });
 
                         javaproc.on('exit', (code) => {

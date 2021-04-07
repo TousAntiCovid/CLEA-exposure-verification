@@ -26,7 +26,8 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       { pattern : 'src/js/clea.js', type: 'module', included: true} ,
-      { pattern : 'test/clea.spec.js', type: 'module', included: true}
+      { pattern : 'test/clea.spec.js', type: 'module', included: true},
+      { pattern: 'test/dataset.js', included: false},
     ],
 
 
@@ -65,8 +66,17 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Firefox'],
-
+    browsers: ['FirefoxHeadless','ChromeHeadlessNoSandbox'],
+    customLaunchers: {
+      FirefoxHeadless: {
+        base: 'Firefox',
+        flags: [ '-headless' ],
+      },
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    },
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
