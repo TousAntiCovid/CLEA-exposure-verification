@@ -6,7 +6,7 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Preliminary Draft (Work in Progress), current version, April 6th, 2021_**
+**_Work in Progress, April 6th, 2021_**
 
 
 ----
@@ -112,7 +112,6 @@ The backend may also leverage from specific hardware for storing system keys, in
 On the opposite, the Cléa system assumes that the authority in charge of the Manual Contact Tracing is trustworthy when it comes to dealing with personal data, for instance when a manual contact tracing team contact a location manager or event organizer, not to take advantage of the information collected beyond what is strictly required to perform its task.
 However this authority must not be involved in the cluster detection process, that is not under its responsibility.
 
-These considerations has impacted the Cléa design as explained in this document.
 It should be noted that technical implementation considerations (e.g., the exact design of the Cléa server) are out of scope of the present document.
 
 
@@ -257,12 +256,12 @@ Note that if there are several devices, an asynchronism between them during the 
 In the current specification (corresponding to protocol version 0), a single `location-specific--part` (identified as type 0) is defined.
 More precisely, it is structured as follows (high-level view):
 ```
-	LSP(t_periodStart, t_qrStart) = [ version | type | padding | LTId(t_periodStart)
+	LSP(t_periodStart, t_qrStart) = [ version | type | reserved1 | LTId(t_periodStart)
 		| Enc(PK_SA, msg) ]
 ```
 where:
 ```
-	msg = [ staff | locContactMsgPresent | countryCode | CRIexp | venueType | venueCategory1 | 
+	msg = [ staff | locContactMsgPresent | reserved2 | CRIexp | venueType | venueCategory1 | 
 		| venueCategory2 | periodDuration | ct_periodStart | t_qrStart | LTKey(t_periodStart)
 		| Enc(PK_MCTA, locContactMsg) if locContactMsgPresent==1 ]
 ```
@@ -278,7 +277,7 @@ The following binary format must be used for the location specific part:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| ver | type|pad|        ...                                    |
+| ver | type|res|        ...                                    |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |       ...                                                     |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -301,7 +300,7 @@ The following binary format for the `msg` message must be used:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|S|C|      countryCode      | CRIexp  |  vType  | vCat1 | vCat2 |
+|S|C|       reserved2       | CRIexp  |  vType  | vCat1 | vCat2 |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |periodDuration |           ct_periodStart (3 bytes)            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -344,7 +343,7 @@ this is the LSP type, in order to be able to use multiple formats in parallel in
 If several types are to be defined, the specification will have to clarify which protocol version supports which type.
 In the current specification, only LSP type 0 is defined.
 
-- `padding` (2 bits) (`pad`in figure):
+- `reserved1` (2 bits) (`res`in figure):
 this field is unused in the current specification and must be set to zero.
 
 - `LTId` (16 bytes, or 128 bits): 
@@ -357,10 +356,8 @@ this field, when equal to 0, indicates a regular QR code, for regular users, and
 this field, when equal to 1, indicates the `locContactMsg` is used and present in the QR code, and when equal to 0, indicates it is absent.
 It follows that the `msg` size can largely vary, depending on the use or not of a `locContactMsg`.
 
-- `countryCode` (12 bits):
-this field contains a country code, coded as the ISO 3166-1 country code of each of the 249 countries (see [List of ISO 3166 country codes](#references)).
-The 3 digits are coded one by one, each digit in a different 4-bit nibble.
-For instance `0x250` is used in case of France.
+- `reserved2` (12 bits):
+this field is unused in the current specification and must be set to zero.
 
 - `CRIexp` (5 bits):
 this field enables to communicate the `qrCodeRenewalInterval` value in a compact manner, as the exponent of a power of two.
@@ -830,9 +827,6 @@ However, the risk being assessed locally, by default, the authority will not kno
 **[QRcode18004]** "Information technology — Automatic identification and data capture techniques — Bar code symbology — QR Code", ISO/IEC 18004, First edition 2000-06-15, 2000.
 
 **[RFC4648]** S. Josefsson, "The Base16, Base32, and Base64 Data Encodings", Request for Comments (RFC) 4648, Standard Track, October 2006. [https://tools.ietf.org/html/rfc4648]
-
-**[ISO3166]** "List of ISO 3166 country codes", Wikipedia web page, 2021.    
-  [https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes]
 
 
 ## A- Description of the hybrid encryption scheme and the `Enc` and `Dec` functions
