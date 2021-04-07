@@ -34,16 +34,26 @@ validation list in progress:
 
 * Firefox 86
 * Chrome 89
-
 ## Continuous Integration
 
+
+### installation
+
+* apt-get install -y firefox-esr chromium
+* export CHROME_BIN=chromium
+* export FIREFOX_BIN=firefox-esr
+* cd ../java; mvn install
+* cd ../js; cp ../java/target/clea-crypto-*-jar-with-dependencies.jar ./clea-crypto.jar
+* npm install
 ### build
+
 * npm run build
 
 ### development deployment
+
 * npm run dev
 
 ### Test
+
 * npm test : deploy unit test on clea.js and build a csv file with all produced encrypted results
 * npm run testcrypto : final test to check the javascript encryption against the java decryption
-
