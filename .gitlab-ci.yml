@@ -68,7 +68,7 @@ deploy:
     - master
     - tags
 
-testjs:
+test-js:
   stage: test
   before_script:
     #Install  node and npm #
@@ -90,7 +90,7 @@ testjs:
     - npm test
     - npm run testcrypto
 
-buildjs:
+build-js:
   stage: build
   image: node:15.13.0
   tags:
