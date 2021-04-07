@@ -26,7 +26,8 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       { pattern : 'src/js/clea.js', type: 'module', included: true} ,
-      { pattern : 'test/clea.spec.js', type: 'module', included: true}
+      { pattern : 'test/clea.spec.js', type: 'module', included: true},
+      { pattern: 'test/dataset.js', included: false},
     ],
 
 
