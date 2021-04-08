@@ -1,4 +1,4 @@
-# The Cluster Exposure Verification (Cléa) Protocol: Specifications of the Lightweight Version
+# The Cluster Exposure Verification (Cléa) Protocol: Specifications of Protocol Version 0
 
 Vincent Roca, Antoine Boutet, Claude Castelluccia
 
@@ -6,7 +6,7 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Preliminary Draft (Work in Progress), current version, March XXX, 2021_**
+**_Preliminary Draft (Work in Progress), current version, April 6th, 2021_**
 
 
 ----
@@ -46,7 +46,7 @@ The following terms are used in this document:
 | **Period**         |	time is split into periods (e.g., 24 hours), during which the location pseudonyms (more precisely a temporary cryptographic key and a derived temporary UUID) are stable. After that period, a new location pseudonym is generated. For practical reasons, a new period MUST start at a round predefined hour (e.g., 4:00am may be chosen as a default period start). A period can also have an unlimited duration, meaning that the location pseudonym will remain unchanged. |
 | **(User) terminal**|	the user smartphone used to scan the QR code. |
 | **Cléa application** | the application on the user smartphone used to scan the QR code. |
-| **QR code** | The QR code of a location, usually dynamic, that needs to be scanned when entering a location. It contains a URL ("deep link") structured as: `"country-specific-prefix" / "Base64(location-specific-part)"`. |
+| **QR code** | The QR code of a location, usually dynamic, that needs to be scanned when entering a location. It contains a URL ("deep link") structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. |
 | **Location Specific Part**  | This is the location specific part of a the QR code, renewed periodically, that contains all the information related to the location, at a given time. |
 
 ### 2.2- Overview
@@ -60,10 +60,20 @@ In practice, no information is uploaded to the server unless a client is tested 
 In that case, if the user explicitly agrees (informed consent), the application uploads the list of scanned QR codes during the past 14 days[^footnote-1] along with timing information to the central server, in order to enable a **_centralized anonymous cluster detection_**.
 The server can detect clusters by considering the number of COVID+ users in  a location at the same time, without having access to the name nor address of this location.
 Then this central server updates its list of location temporary pseudonyms and time (with an hour granularity by default) corresponding to clusters.
+
+<img src="img/CLEA_centralized_cluster_detection.jpg" alt="CLEA_centralized_cluster_detection.jpg" width="700"/>    
+
+_Figure 1: Centralized cluster detection. Here Alice, tested COVID+, agrees to upload her scanned QR codes to the CLEA backend server, which, after verifying the validity of the upload, identifies if some of the visited locations needs to be qualified as potential cluster._    
+
+
 In parallel, each Cléa application periodically downloads this list containing the latest clusters that have been identified, in order to check locally whether or not there is a match.
 In case of a match, the user is informed with a "warning".
 The exact type of warning message could be adjusted to reflect the risk level (e.g., if a very high number of COVID+ users have been identified in a cluster), which is out of scope of the present specification.
 Therefore this solution follows a **_decentralized risk evaluation_**.
+
+<img src="img/CLEA_decentralized_risk_evaluation.jpg" alt="CLEA_decentralized_risk_evaluation.jpg" width="600"/>    
+
+_Figure 2: Decentralized risk evaluation. Here Bob compares his scanned QR codes with the new potential cluster location pseudonyms in a first step, and if a match is found, if the corresponding period overlaps significantly with his own presence as stored in his local database._    
 
 [^footnote-1]: the 14 days number is provided as an example. The national health authority will define the appropriate epidemiological value that is considered the most appropriate, that may also depend on another considerations like the date of first symptoms when known. The details are out of scope of this document.
 
@@ -110,9 +120,9 @@ It should be noted that technical implementation considerations (e.g., the exact
 
 Several technical requirements, in particular motivated by the compatibility with embedded devices, have shaped the design:
 
-- each QR code contains a country specific URL ("deep link"), composed of a contry specific prefix (for instance: `https://tac.gouv.fr/` in case of France), and a location specific part, defined in Section [Dynamic QR code generation within the device](#dynamic-qr-code-generation-within-the-device).
-Therefore, any binary information of the location specific part, is first translated to a printable character, using a Base64 encoding, which adds a 33% overhead compared to the binary size (see [RFC4648](#references)).
-Since the output of a Base64 encoding uses an alphabet of 65 characters, it is not compatible with the Alphanumeric Mode of a QR code (limited to 45 printable characters), and it requires the use of the 8-bit Byte Mode (see [QRcode18004](#references), Section~8.4.4).
+- each QR code contains a country specific URL ("deep link"), composed of a contry specific prefix (for instance: `https://tac.gouv.fr?v=0#` in case of France), and a location specific part, defined in Section [Dynamic QR code generation within the device](#dynamic-qr-code-generation-within-the-device).
+Therefore, any binary information of the location specific part, is first translated to a printable character, using a Base64url encoding, which adds a 33% overhead compared to the binary size (see [RFC4648](#references) section 5.). The Base64url is the Base 64 encoding with an URL and filename safe alphabet.
+Since the output of a Base64url encoding uses an alphabet of 65 characters, it is not compatible with the Alphanumeric Mode of a QR code (limited to 45 printable characters), and it requires the use of the 8-bit Byte Mode (see [QRcode18004](#references), Section~8.4.4).
 
 - the need to easily and reliably scan a QR code type 2 and the screen size/resolution constraints of the specialized device impact the maximum QR code size.
 In this specification, we limit the size of the QR code to be 65x65, using a Level 12 QR code Type 2 (see [QRcodeWeb](#references)).
@@ -137,8 +147,8 @@ The following acronyms and variable names are used:
 
 | Short name     | Full Name                 | Description                                        |
 |----------------|---------------------------|----------------------------------------------------|
-| `LSP`          | locationSpecificPart      | The QR code of a location, at any moment, contains a URL ("deep link"), structured as: `"country-specific-prefix" / "Base64(location-specific-part)"`. The location specific part, renewed periodically, contains information related to the location at a given time. |
-| `SK_L`      | permanentLocationSecretKey     | Permanent location 480-bits secret key. This key is never communicated, but is shared by all the location devices. For instance, this key can be stored in a protected stable memory of a dedicated device (or set of devices) by the manufacturer. The manufacturer should also keep a record of this `SK_L` in a secure place if the location manager later asks for additional devices. An appropriate location manager authentication mechanism needs to be defined for that purpose that is out of the scope of this document. |
+| `LSP`          | locationSpecificPart      | The QR code of a location, at any moment, contains a URL ("deep link"), structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. The location specific part, renewed periodically, contains information related to the location at a given time. |
+| `SK_L`      | permanentLocationSecretKey     | Permanent location 408-bits secret key. This key is never communicated, but is shared by all the location devices. For instance, this key can be stored in a protected stable memory of a dedicated device (or set of devices) by the manufacturer. The manufacturer should also keep a record of this `SK_L` in a secure place if the location manager later asks for additional devices. An appropriate location manager authentication mechanism needs to be defined for that purpose that is out of the scope of this document. |
 | `{PK_SA, SK_SA}` | serverAuthorityPublicKey / SecretKey | Public/secret key ECDH pair of the Authority in charge of the backend server. The public key is known by all devices. |
 | `{PK_MCTA, SK_MCTA}` | manualCTAuthorityPublicKey / SecretKey | Public/secret key ECDH pair of the Authority in charge of the manual contact tracing. The public key is known by all devices. It is assumed that this authority is different from the authority in charge of the backend server. |
 | `LTKey`     | locationTemporarySecretKey     | Location temporary 256-bits secret key, specific to a given Location at a given period. This key is never communicated outside of the device(s). |
@@ -230,10 +240,13 @@ Since the devices are not perfectly synchronized (device clock drifts), a small 
 
 The QR code of a location, at any moment, contains a URL ("deep link"), structured as:
 ```
-	"country-specific-prefix" / "Base64(location-specific-part)"
+	"country-specific-prefix" "Base64url(location-specific-part)"
 ```
-For instance, the country specific prefix is: `https://tac.gouv.fr/` in case of France.
-This section defines the structure of the location specific part.
+For instance, the country specific prefix is: `https://tac.gouv.fr?v=0#` in case of France, where:
+`v=0`indicates it's protocol version 0;
+the `#` character prevents the text that follows (namely the Base64url encoding of the location specific part) to be sent to the `tac.gouv.fr` server if the application is not already installed on the user terminal.
+
+In the remaining of this section, we define the structure of the location specific part.
 
 The QR code of a location is renewed when switching from one period to another (change of `LTKey`/`LTId`), but also periodically during the period.
 This renewal during the period is automatic every `qrCodeRenewalInterval` seconds.
@@ -403,8 +416,8 @@ When the `locContactMsgPresent == 1`, the `locContactMsg` message adds an extra 
 
 The total is therefore 175 bytes long with the `locContactMsg`, or 110 bytes long without.
 
-The size of this binary message, after Base64 encoding, increases to 235 characters that can be added to the example `https://tac.gouv.fr/` 19-character-long prefix, for a **total of 254 characters**.
-Or, without `locContactMsg`, respectively to 148 charaters, and a total of **167 characters** for the URL.
+The size of this binary message, after Base64url encoding, increases to 235 characters that are added to the `https://tac.gouv.fr?v=0#` 24-character-long prefix (in case of France), for a **total of 259 characters** for the URL.
+Or, without `locContactMsg`, the URL size amounts to **a total of 172 characters**.
 
 
 ### 3.5- Scan of the QR code when a client enters a location
@@ -592,13 +605,13 @@ Here is an example of `cluster_file_521_20210215.json` file (2 clusters only are
     },
     clusterInfo: [
         {
-            TLId: "put-here-the-resulf-of-base64-encoding-of-TLId",
+            TLId: "put-here-the-resulf-of-base64url-encoding-of-TLId",
             clusterStart: 3822346880,
             clusterDuration: 2
             warningLevel: 1
         },
         {
-            TLId: "put-here-the-resulf-of-base64-encoding-of-TLId",
+            TLId: "put-here-the-resulf-of-base64url-encoding-of-TLId",
             clusterStart: 3822354080,
             clusterDuration: 3
             warningLevel: 3
@@ -743,12 +756,16 @@ It is recommended to allow this feature only on a device located in a safe place
 
 ### 3.11- Web-based static QR code generation and integration in other web-based services
 
+#### The case of private events
+
 The system is compatible with a Web-based service meant to generate a static QR code, for instance to let an individual generate a QR code in the context of a private event.
 To that purpose, etc.
 
 ```diff
 - TODO: short description.
 ```
+
+#### The case of electronic ticketing
 
 This approach is also compatible with online electronic ticketing systems (e.g., for buses, shared rides, trains, or shows).
 Along with a ticket, a ready to be scanned QR code can be added, to let the user register their presence.
@@ -829,27 +846,27 @@ However, the risk being assessed locally, by default, the authority will not kno
 | `n` | Order of `G` |
 | `S` | Shared secret |
 | `K` | Derived key for symetric encryption |
+| `IV` | AES-GCM IV set to the 96-bit constant value  `0xF01F2F3F4F5F6F7F8F9FAFB` (big endian encoding) |
 | `C0` | Ephemeral public key |
 
 ### A.2- Pseudo-code:
 
 ```
-Enc(key, msg):
+Enc(pub_key, msg):
 	-Draw an ephemeral private key r in [1, n-1]
 	-Compute C0 = r * G
-	-Compute S = r * PK_SA
+	-Compute S = r * pub_key
 	-Compute K = KDF1(C0 | S)
-	-Compute (emsg, tag) = AES-256-GCM(K, msg)
+	-Compute emsg = AES-256-GCM(K, IV, msg) and tag = GMAC(K, IV, emsg)
 	-Return (emsg, tag, C0)
 ```
 
 ```
-Dec(key, emsg, tag, C0):
-	-Compute S = SK_SA * C0
+Dec(priv_key, emsg, tag, C0):
+	-Compute S = priv_key * C0
 	-Compute K = KDF1(C0 | S)
-	-Compute (msg, tag') = AES-256-GCM(K, emsg)
-	-Assert(tag == tag')
-	-Return msg
+	-Compute msg = AES-256-GCM(K, IV, emsg) and tag' = GMAC(K, IV, emsg)
+	-if(tag == tag') return msg else raise error
 ```
 
 Note that in computation of K with the KDF1 function C0 is represented in its compressed form as specified in ANSI X9.62 (i.e. 33 bytes) and S is represented by its X coordinate (i.e. 32 bytes)

@@ -46,7 +46,7 @@ import fr.inria.clea.lsp.utils.TimeUtils;
 class LocationSpecificPartTest {
 
     /* Example of a permanent Location Secret Key used for the tests */
-    private final String permanentLocationSecretKey = "23c9b8f36ac1c0cddaf869c3733b771c3dc409416a9695df40397cea53e7f39e21f76925fc0c74ca6ee7c7eafad92473fd85758bab8f45fe01aac504";
+    private final String permanentLocationSecretKey = "23c9b8f36ac1c0cddaf869c3733b771c3dc409416a9695df40397cea53e7f39e21f76925fc0c74ca6ee7c7eafad92473fd8575";
     private CleaEciesEncoder cleaEciesEncoder;
     private String[] serverAuthorityKeyPair;
     private String[] manualContactTracingAuthorityKeyPair;
@@ -181,7 +181,7 @@ class LocationSpecificPartTest {
         location.setPeriodStartTime(periodStartTime);
 
         /* QR-code = "country-specific-prefix" / "Base64(location-specific-part)" */
-        String qrCode = "https://tac.gouv.fr/" + location.getLocationSpecificPartEncryptedBase64();
+        String qrCode = "https://tac.gouv.fr?v=0#" + location.getLocationSpecificPartEncryptedBase64();
 
         /* encode Qrcode with default parameters, level L */
         BitMatrix bitMatrix = new QRCodeWriter().encode(qrCode, BarcodeFormat.QR_CODE, 200, 200);
@@ -302,7 +302,7 @@ class LocationSpecificPartTest {
         /* EC private key from C package */
         final String privateKey = "3108f08b1485adb6f72cfba1b55c7484c906a2a3a0a027c78dcd991ca64c97bd";
         /* message encrypted, from C package */
-        final String cipherTextBase64 = "AHHp6U8wrVQuWDomdZfDS0BHC45n72pzlmAhqE7AZp3hTWt2cuUOJ78nNeZSJCrpjpl3glMI49yjLEoIi73wqsSbja1sMH0XzuNoAssCV53wTItE3Nxg+J3FI78/W6uWD8IU+dn0YEroJwH2y1g=";
+        final String cipherTextBase64 = "AHHp6U8wrVQuWDomdZfDS0BHC45n72pzlmAhqE7AZp3hTWt2cuUOJ78nNeZSJCrpjpl3glMI49yjLEoIi73wqsSbja1sMH0XzuNoAssCV53wTItE3Nxg-J3FI78_W6uWD8IU-dn0YEroJwH2y1g=";
         /* plain text message byte array */
         byte[] plainTextBytes = { (byte) 0x00, (byte) 0x71, (byte) 0xE9, (byte) 0xE9, (byte) 0x4F, (byte) 0x30,
                 (byte) 0xAD, (byte) 0x54, (byte) 0x2E, (byte) 0x58, (byte) 0x3A, (byte) 0x26, (byte) 0x75, (byte) 0x97,
@@ -313,7 +313,7 @@ class LocationSpecificPartTest {
                 (byte) 0xA7, (byte) 0xCB, (byte) 0xFE, (byte) 0xE8, (byte) 0x09, (byte) 0x0B, (byte) 0x97, (byte) 0x08,
                 (byte) 0x00, (byte) 0x19, (byte) 0x96, (byte) 0xEA, (byte) 0xEB, (byte) 0x4B, (byte) 0xAF };
         /* String -> bytes array */
-        byte[] cipherText = Base64.getDecoder().decode(cipherTextBase64);
+        byte[] cipherText = Base64.getUrlDecoder().decode(cipherTextBase64);
         System.out.println("CIFFER LSP " + BytesUtils.bytesToString(cipherText));
 
         /* Java decrypt the message using the EC private key privKey */

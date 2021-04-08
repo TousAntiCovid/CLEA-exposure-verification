@@ -2,7 +2,7 @@
 
 ## Objectives
 
-The QR code of a location/event, dynamic, which must be scanned at the entrance contains an URL ("deep link") structured by a prefix (for example for France: https://tac.gouv.fr/), followed by the 'location Specific Part' coded in base64. This directory gives an example of encoding in Java language of the 'location Specific Part' of the QR code according to the [protocol Cléa](https://hal.inria.fr/hal-03146022).
+The QR code of a location/event, dynamic, which must be scanned at the entrance contains an URL ("deep link") structured by a prefix (for example for France: https://tac.gouv.fr?v=0#), followed by the 'location Specific Part' coded in base64. This directory gives an example of encoding in Java language of the 'location Specific Part' of the QR code according to the [protocol Cléa](https://hal.inria.fr/hal-03146022).
 
 This Proof of Concept can be used as a basis for:
 

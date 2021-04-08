@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Builder
 @Slf4j
 public class Location {
-    public static final String COUNTRY_SPECIFIC_PREFIX = "https://tac.gouv.fr/";
+    public static final String COUNTRY_SPECIFIC_PREFIX = "https://tac.gouv.fr?v=0#";
     private String permanentLocationSecretKey;
     private String serverAuthorityPublicKey;
     private String manualContactTracingAuthorityPublicKey;
@@ -75,7 +75,7 @@ public class Location {
      * @throws CleaEncryptionException
      */
     public String getLocationSpecificPartEncryptedBase64() throws CleaCryptoException {
-        return Base64.getEncoder().encodeToString(this.getLocationSpecificPartEncrypted());
+        return Base64.getUrlEncoder().encodeToString(this.getLocationSpecificPartEncrypted());
     }
 
     protected byte[] getLocationSpecificPartEncrypted() throws CleaCryptoException {

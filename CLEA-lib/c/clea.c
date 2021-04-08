@@ -164,7 +164,7 @@ static void compute_TLKey(void)
  */
 static void to_base64(uint8_t *in, uint8_t *out, uint8_t n)
 {
-    static const uint8_t base64_table[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    static const uint8_t base64_table[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     uint8_t *pos;
     const uint8_t *end, *start;
 
