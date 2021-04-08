@@ -53,7 +53,7 @@ import {cleaStartNewPeriod} from './clea'
 
             let b64 = await cleaStartNewPeriod(conf);
 
-            qrcode.makeCode("http://tac.gouv.fr/" + b64);
+            qrcode.makeCode("http://tac.gouv.fr?v=0#" + b64);
         }
     }
 
