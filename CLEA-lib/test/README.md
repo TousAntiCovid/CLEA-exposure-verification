@@ -30,11 +30,11 @@ The test cycle for each set is as follows:
 
 To launch the tests use `python3 test_clea.py`:
 
-By default, the test cycle uses the C encoder (see below). The option `--java` allows to use the Java encoder.
+The test cycle uses the C encoder and the Java decoder.
 
 ```shell
 >python3 test_clea.py --csvtest
-sEncode LSP 1
+Encode LSP 1
 Encode LSP 2
 Encode LSP 3
 Encode LSP 4
@@ -51,8 +51,10 @@ Ran 2 tests in 7.949s>python3 test_clea.py
 
 To generate CSV files to be used by java decoding tests, run `python3 test_clea.py --csvtest`
 
+It is also possible to test only the Java decoding phase `python3 test_clea.py --noencode` using as inputs the `encode_in.json` and `encode_out.json` (computed by a tier).
+
 ### Javascript
 
-For using the javacript encoder in phase 1. of the test cycle, we need to load the page `test_clea.html`, load the json file `encode_in.json` (button browse...) and save the results in `encode_out.json` (button Write).
+For debugging purpose, the web_decoder tool allows to decode in real-time a qrcode image captured by a webcam. To launch this tool, you need to load the webpage `web_decoder/index.html` in a web browser.
 
-It is now possible to test the Java decoding to check interoperability using `python3 test_clea.py --noencode`. The option allows the skip the C or java encoding performed by your web-browser.
+You should note that the reference decoder is the one in Java.
