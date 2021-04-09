@@ -8,9 +8,7 @@ function hexToBytes(hex) {
     return bytes;
 }
 function logEncodingDataAndResult(conf, result) {
-    console.log(JSON.stringify({filter_key: 'crypto-filter',
-        message: 
-            conf.SK_L_HEX+","
+    let message = conf.SK_L_HEX+","
             +conf.SK_MCTA_HEX+","
             +conf.SK_SA_HEX+","
             +result+","
@@ -20,19 +18,33 @@ function logEncodingDataAndResult(conf, result) {
             +conf.venueCategory1+","
             +conf.venueCategory2+","
             +conf.countryCode+","
-            +conf.periodDuration+",\""
-            +navigator.userAgent+"\""}));
+            +conf.periodDuration;
+    message += ",\"" +navigator.userAgent+"\"";
+    if (typeof conf.locContactMsg !== 'undefined') {
+        message += ","+conf.locContactMsg.locationPhone+
+            ","+conf.locContactMsg.locationRegion+","+conf.locContactMsg.locationPin;
+    }
+    console.log(JSON.stringify({filter_key: 'crypto-filter', message: message}));
 }
 function configurationFromRun(run) {
-    let conf =  Object.assign({}, runs[0]); // clone runs[0]
+    let conf =  Object.assign({}, run); // clone run
     conf.SK_L_HEX = conf.SK_L;
     conf.PK_SA_HEX = conf.PK_SA;
     conf.SK_SA_HEX = conf.SK_SA;
     conf.PK_MCTA_HEX = conf.PK_MCTA;
     conf.SK_MCTA_HEX = conf.SK_MCTA;
-    conf.SK_L = hexToBytes(conf.SK_L_HEX);
+    conf.SK_L = hexToBytes(conf.SK_L_HEX);        
     conf.PK_SA = hexToBytes(conf.PK_SA_HEX);
     conf.PK_MCTA = hexToBytes(conf.PK_MCTA_HEX);
+
+    if ((typeof conf.locationPhone !== 'undefined') && (typeof conf.locationRegion !== 'undefined') 
+            && (typeof conf.locationPIN !== 'undefined')) {
+        conf.locContactMsg = {
+                    locationPhone: conf.locationPhone,
+                    locationRegion: conf.locationRegion,
+                    locationPin: conf.locationPIN
+                }
+    }
     return conf;
 }
 
@@ -85,12 +97,12 @@ describe('getNtpUtc()', function () {
 
 describe('cleaRenewLSP()', function () {
     it('should return something with the right lenght and the right header', async () => {
-        let conf = configurationFromRun(run);
+        let conf = configurationFromRun(runs[0]);
 
         let result = await clea.cleaRenewLSP(conf);
 
         logEncodingDataAndResult(conf, result);
-        expect(result).to.length(148)
+        expect([148, 236]).to.include(result.length);
         expect(result.startsWith('AAAAAAAAAAAAAAAAAAAAAA')).to.be.true;
     })
 
@@ -105,7 +117,7 @@ describe('cleaStartNewPeriod()', function () {
                 let result = await clea.cleaStartNewPeriod(conf);
 
                 logEncodingDataAndResult(conf, result);
-                expect(result).to.length(148);
+                expect([148, 236]).to.include(result.length);
             });
         });
     });
@@ -124,7 +136,7 @@ describe('getInt64Bytes()', function () {
         }
     });
 
-    it('should return the correct resul for 331', function () {
+    it('should return the correct result for 331', function () {
         let expected = new Uint8Array(8);
         expected[6] = 1;
         expected[7] = 75;
@@ -183,7 +195,7 @@ describe('ecdhRawPubKeyCompressed()', function () {
 });
 
 describe('encrypt()', function () {
-    it('should return somethinh with the right length and the right header', async () => {
+    it('should return something with the right length and the right header', async () => {
         let header = new Uint8Array(5);
         header[0] = 4;
         header[1] = 9;

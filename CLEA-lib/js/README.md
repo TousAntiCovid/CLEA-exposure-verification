@@ -39,21 +39,29 @@ validation list in progress:
 
 ### installation
 
-* apt-get install -y firefox-esr chromium
-* export CHROME_BIN=chromium
-* export FIREFOX_BIN=firefox-esr
-* cd ../java; mvn install
-* cd ../js; cp ../java/target/clea-crypto-*-jar-with-dependencies.jar ./clea-crypto.jar
-* npm install
+```shell
+apt-get install -y firefox-esr chromium
+export CHROME_BIN=chromium
+export FIREFOX_BIN=firefox-esr
+cd ../java; mvn install
+cd ../js
+npm install
+```
+
 ### build
 
-* npm run build
+```shell
+npm run build
+```
 
 ### development deployment
 
-* npm run dev
+To test the example, run a local web server with the following command and browse http://localhost:1234 
+```shell
+npm run dev
+```
 
 ### Test
 
-* npm test : deploy unit test on clea.js and build a csv file with all produced encrypted results
-* npm run testcrypto : final test to check the javascript encryption against the java decryption
+* `npm test` : run unit tests on clea.js and build a csv file with all produced encrypted results. Encryption results are produced from data in `CLEA-lib/test/encode_in.json`. The file is copied to js/test/dataset.js and udpated to allow its inclusion as a standard JavaScript file.
+* `npm run testcrypto` : interoperabilty tests to check the javascript encryption (crypto.csv file produced by `npm test`) against the java decryption

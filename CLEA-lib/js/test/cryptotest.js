@@ -1,10 +1,11 @@
-const assert = require('chai').assert;
-const csv=require('csvtojson')
+const expect = require('chai').expect;
+const csv=require('csvtojson');
 const { spawn } = require('child_process');
+const glob = require("glob");
 // setup : load cvs file
 let cryptoList;
 csv({noheader: true,
-            headers:['sk_l','sk_mcta','sk_sa','result','staff','CRIexp','venueType','venueCategory1','venueCategory2','countryCode','periodDuration','browser']})
+            headers:['sk_l','sk_mcta','sk_sa','result','staff','CRIexp','venueType','venueCategory1','venueCategory2','countryCode','periodDuration','browser', 'locationPhone', 'locationRegion', 'locationPIN']})
     .fromFile('./crypto.csv')
     .then((jsonObj)=> {
         cryptoList = jsonObj;
@@ -14,15 +15,17 @@ csv({noheader: true,
 setTimeout(function() {
 
     describe('test suite for crypto', function () {
+        let cleaCryptoJarPath;
+        glob("../java/target/clea-crypto-*-jar-with-dependencies.jar", function (error, files) {
+            cleaCryptoJarPath = files[0];
+        });
 
             cryptoList.forEach(function (cryptoItem) {
                 it('test on [' + cryptoItem.browser + '] with ' + cryptoItem.staff + ' ' + cryptoItem.CRIexp + ' ' + cryptoItem.venueType + ' ' + cryptoItem.venueCategory1
                     + ' ' + cryptoItem.venueCategory2 + ' ' + cryptoItem.countryCode + ' ' + cryptoItem.periodDuration , async () => {
                     await new Promise((resolve) => {
                         let result = '';
-
-                        let javadir = process.cwd();
-                        const javaproc = spawn('java', ['-cp', javadir+'/clea-crypto.jar',
+                        const javaproc = spawn('java', ['-cp', cleaCryptoJarPath,
                             'fr.inria.clea.lsp.LspEncoderDecoder', 'decode',
                             cryptoItem.result,
                             cryptoItem.sk_sa,
@@ -43,14 +46,24 @@ setTimeout(function() {
 
                         javaproc.on('exit', (code) => {
                             console.log(`Child exited with code ${code}`);
-                            assert.equal(0, code);
-                            assert.equal(result[0], cryptoItem.staff);
-                            assert.equal(result[1], cryptoItem.countryCode);
-                            assert.equal(result[2], cryptoItem.CRIexp);
-                            assert.equal(result[3], cryptoItem.venueType);
-                            assert.equal(result[4], cryptoItem.venueCategory1);
-                            assert.equal(result[5], cryptoItem.venueCategory2);
-                            assert.equal(result[6], cryptoItem.periodDuration);
+                            expect(code).to.equal(0);
+                            expect([10, 13]).to.include(result.length);
+                            expect(result[0]).to.equal(cryptoItem.staff);
+                            expect(result[1]).to.equal(cryptoItem.countryCode);
+                            expect(result[2]).to.equal(cryptoItem.CRIexp);
+                            expect(result[3]).to.equal(cryptoItem.venueType);
+                            expect(result[4]).to.equal(cryptoItem.venueCategory1);
+                            expect(result[5]).to.equal(cryptoItem.venueCategory2);
+                            expect(result[6]).to.equal(cryptoItem.periodDuration);
+                            // result[7] LTId
+                            // result[8] ct_periodStart
+                            // result[9] t_qrStart
+                            if (result.length == 13) {
+                                console.log('checking location');
+                                expect(result[10]).to.equal(cryptoItem.locationPhone);
+                                expect(result[11]).to.equal(cryptoItem.locationRegion);
+                                expect(result[12]).to.equal(cryptoItem.locationPIN);
+                            }
                             resolve();
                         });
                     })
