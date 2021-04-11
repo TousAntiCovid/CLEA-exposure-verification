@@ -51,7 +51,7 @@ function start_decoder()
 
 function show_result(msg)
 {
-  var key = ["version", "lspType", "LTId", "staff", "CRIexp", "venueType", "venueCategory1", "venueCategory2", "countryCode", "periodDuration", "ct_periodStart", "t_qrStart", "LTKey"];
+  var key = ["version", "lspType", "LTId", "staff", "CRIexp", "venueType", "venueCategory1", "venueCategory2",  "periodDuration", "ct_periodStart", "t_qrStart", "LTKey"];
 
   for(i in key)
   {
@@ -86,7 +86,6 @@ async function got_content(data)
     venueType: -1,
     venueCategory1: -1,
     venueCategory2: -1,
-    countryCode: -1,
     periodDuration: -1,
     ct_periodStart: -1,
     t_qrStart: -1,
@@ -103,7 +102,6 @@ async function got_content(data)
     var dec = await decode(lsp.slice(0, 17), lsp.slice(17), sk_sa);
   
     decoded.staff = ((dec[0] & 0x80) >>> 7);
-    decoded.countryCode = ((dec[0] & 0x3F) << 6) | (dec[1] >>> 2);
     decoded.CRIexp = ((dec[1] & 0x3) << 3) | (dec[2] >>> 5);
     decoded.venueType = dec[2] & 0x1F;
     decoded.venueCategory1 = dec[3] >>> 4;

@@ -17,7 +17,6 @@ function logEncodingDataAndResult(conf, result) {
             +conf.venueType+","
             +conf.venueCategory1+","
             +conf.venueCategory2+","
-            +conf.countryCode+","
             +conf.periodDuration;
     message += ",\"" +navigator.userAgent+"\"";
     if (typeof conf.locContactMsg !== 'undefined') {
