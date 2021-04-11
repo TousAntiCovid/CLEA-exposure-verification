@@ -101,7 +101,7 @@ class LocationSpecificPartTest {
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         LocationContact locationContact = new LocationContact("33800130000", 12, "012345", periodStartTime);
         /* Encode a LSP with location */
-        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
+        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true)
                 .qrCodeRenewalIntervalExponentCompact(2).venueType(4).venueCategory1(0).venueCategory2(0)
                 .periodDuration(3).build();
         Location location = Location.builder().contact(locationContact).locationSpecificPart(lsp)
@@ -127,7 +127,7 @@ class LocationSpecificPartTest {
             throws CleaCryptoException {
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         /* Encode a LSP with location */
-        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
+        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true)
                 .qrCodeRenewalIntervalExponentCompact(2).venueType(4).venueCategory1(0).venueCategory2(0)
                 .periodDuration(3).build();
         Location location = Location.builder().locationSpecificPart(lsp)
@@ -172,7 +172,7 @@ class LocationSpecificPartTest {
     public void testQrCodeGeneration() throws Exception {
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         /* Encode the LSP */
-        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true).countryCode(33)
+        LocationSpecificPart lsp = LocationSpecificPart.builder().staff(true)
                 .qrCodeRenewalIntervalExponentCompact(2).venueType(4).venueCategory1(0).venueCategory2(0)
                 .periodDuration(3).build();
         Location location = Location.builder().locationSpecificPart(lsp)
@@ -201,7 +201,7 @@ class LocationSpecificPartTest {
      */
     @ParameterizedTest
     @CsvFileSource(resources = "/testLSPDecoding.csv", numLinesToSkip = 1)
-    public void testDecodingOfLocationSpecificPartInBase64(int staff, int countryCode, String locationTemporaryPublicID,
+    public void testDecodingOfLocationSpecificPartInBase64(int staff, String locationTemporaryPublicID,
             int qrCodeRenewalIntervalExponentCompact, int venueType, int venueCat1, int venueCat2, int periodDuration,
             int periodStartTime, long qrStartTime, String serverAuthoritySecretKey, String serverAuthorityPublicKey,
             String lspbase64) throws CleaEncryptionException, CleaEncodingException {
@@ -209,7 +209,6 @@ class LocationSpecificPartTest {
         LocationSpecificPart lsp = decoder.decrypt(lspbase64);
 
         assertThat(lsp.isStaff()).isEqualTo(staff == 1);
-        assertThat(lsp.getCountryCode()).isEqualTo(countryCode);
         assertThat(lsp.getQrCodeRenewalIntervalExponentCompact()).isEqualTo(qrCodeRenewalIntervalExponentCompact);
         assertThat(lsp.getLocationTemporaryPublicId()).isEqualTo(UUID.fromString(locationTemporaryPublicID));
         assertThat(lsp.getPeriodDuration()).isEqualTo(periodDuration);
@@ -227,7 +226,7 @@ class LocationSpecificPartTest {
      */
     @ParameterizedTest
     @CsvFileSource(resources = "/testLSPDecoding.csv", numLinesToSkip = 1)
-    public void testEncodingDecodingOfLSPSpecificPartInBase64(int staff, int countryCode,
+    public void testEncodingDecodingOfLSPSpecificPartInBase64(int staff,
             String locationTemporaryPublicID, int qrCodeRenewalIntervalExponentCompact, int venueType, int venueCat1,
             int venueCat2, int periodDuration, int periodStartTime, long qrStartTime, String serverAuthoritySecretKey,
             String serverAuthorityPublicKey, String lspbase64) throws CleaCryptoException {
@@ -243,7 +242,6 @@ class LocationSpecificPartTest {
         /* Encode a LSP with location */
         LocationSpecificPart lsp = LocationSpecificPart.builder()
                 .staff(staff == 1)
-                .countryCode(countryCode)
                 .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact)
                 .venueType(venueType)
                 .venueCategory1(venueCat1)

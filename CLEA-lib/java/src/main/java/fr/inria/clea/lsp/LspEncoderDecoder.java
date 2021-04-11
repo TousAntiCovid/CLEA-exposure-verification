@@ -15,14 +15,14 @@ public class LspEncoderDecoder {
      * @see README.md
      */
     public static void main(String[] args) throws Exception {
-        final String help = "Usage: LspEncoderDecoder [decode  lsp64 privKey] [encode staff countryCode CRIexp venueType venueCategory1 venueCategory2 periodDuration locationPhone locationPin pubkey]";
+        final String help = "Usage: LspEncoderDecoder [decode  lsp64 SK_SA SK_MCTA] [encode staff CRIexp venueType venueCategory1 venueCategory2 periodDuration locationPhone locationPin pubkey]";
 
         if (args.length == 0) {
             System.out.println(help);
             System.exit(0);
         }
 
-        if ("encode".equals(args[0]) && ((args.length == 14) || (args.length == 11))) {
+        if ("encode".equals(args[0]) && ((args.length == 13) || (args.length == 10))) {
             encodeLsp(args);
         } else if ("decode".equals(args[0]) && args.length == 4) {
             decodeLsp(args);
@@ -38,7 +38,7 @@ public class LspEncoderDecoder {
         LocationSpecificPartDecoder lspDecoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey);
         LocationSpecificPart lsp = lspDecoder.decrypt(lspBase64);
       
-        String valuesToreturn =  "=VALUES="+ (lsp.isStaff()? 1 : 0) + " " + lsp.getCountryCode() + " " + lsp.getQrCodeRenewalIntervalExponentCompact()  + " " + lsp.getVenueType(); 
+        String valuesToreturn =  "=VALUES="+ (lsp.isStaff()? 1 : 0) +  " " + lsp.getQrCodeRenewalIntervalExponentCompact()  + " " + lsp.getVenueType(); 
         valuesToreturn += " " + lsp.getVenueCategory1() + " " + lsp.getVenueCategory2() + " " + lsp.getPeriodDuration() + " " + lsp.getLocationTemporaryPublicId();
         valuesToreturn += " " + Integer.toUnsignedString(lsp.getCompressedPeriodStartTime()) + " " + TimeUtils.ntpTimestampFromInstant(lsp.getQrCodeValidityStartTime());
 
@@ -52,21 +52,19 @@ public class LspEncoderDecoder {
 
     protected static void encodeLsp(String[] args) throws CleaCryptoException {
         int staff = Integer.parseInt(args[1]);
-        int countryCode = Integer.parseInt(args[2]);
-        int qrCodeRenewalIntervalExponentCompact = Integer.parseInt(args[3]);
-        int venueType = Integer.parseInt(args[4]);
-        int venueCategory1 = Integer.parseInt(args[5]);
-        int venueCategory2 = Integer.parseInt(args[6]);
-        int periodDuration = Integer.parseInt(args[7]);
-        final String serverAuthorityPublicKey = args[8];
-        final String manualContactTracingAuthorityPublicKey = args[9];
-        final String permanentLocationSecretKey = args[10];
+        int qrCodeRenewalIntervalExponentCompact = Integer.parseInt(args[2]);
+        int venueType = Integer.parseInt(args[3]);
+        int venueCategory1 = Integer.parseInt(args[4]);
+        int venueCategory2 = Integer.parseInt(args[5]);
+        int periodDuration = Integer.parseInt(args[6]);
+        final String serverAuthorityPublicKey = args[7];
+        final String manualContactTracingAuthorityPublicKey = args[8];
+        final String permanentLocationSecretKey = args[9];
         
         Instant periodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);
         /* Encode a LSP with location */
         LocationSpecificPart lsp = LocationSpecificPart.builder()
                 .staff(staff == 1)
-                .countryCode(countryCode)
                 .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact)
                 .venueType(venueType)
                 .venueCategory1(venueCategory1)
@@ -79,10 +77,10 @@ public class LspEncoderDecoder {
                 .serverAuthorityPublicKey(serverAuthorityPublicKey)
                 .permanentLocationSecretKey(permanentLocationSecretKey);
         
-        if (args.length == 14) {
-            final String locationPhone = args[11];
-            final int locationRegion = Integer.parseInt(args[12]);
-            final String locationPin = args[13];
+        if (args.length == 13) {
+            final String locationPhone = args[10];
+            final int locationRegion = Integer.parseInt(args[11]);
+            final String locationPin = args[12];
             locationBuilder.contact( new LocationContact(locationPhone, locationRegion, locationPin, periodStartTime));
         }
 

@@ -30,7 +30,6 @@ typedef struct
     uint8_t venueType;            // 5 bits
     uint8_t venueCategory1;       // 4 bits
     uint8_t venueCategory2;       // 4 bits
-    uint16_t countryCode;         // 12 bits
     uint8_t periodDuration;       // 8 bits: period duration in hours
 
     // Location contact

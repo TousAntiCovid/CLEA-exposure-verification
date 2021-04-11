@@ -96,7 +96,6 @@ def lsp_encode(cfg, java=False):
     else:
         cmd.extend(CMD_C)
     cmd.append(str(cfg['staff']))
-    cmd.append(str(cfg['countryCode']))
     cmd.append(str(cfg['CRIexp']))
     cmd.append(str(cfg['venueType']))
     cmd.append(str(cfg['venueCategory1']))
@@ -145,23 +144,22 @@ def lsp_decode(cfg):
     cmd.append(cfg['SK_SA'])
     cmd.append(cfg['SK_MCTA'])
     vals = run_cmd(cmd)
-    if len(vals) == 10 or len(vals) == 13:
+    if len(vals) == 9 or len(vals) == 12:
         lsp_dict = {"staff": int(vals[0]),
-                    "countryCode": int(vals[1]),
-                    "CRIexp": int(vals[2]),
-                    "venueType": int(vals[3]),
-                    "venueCategory1": int(vals[4]),
-                    "venueCategory2": int(vals[5]),
-                    "periodDuration": int(vals[6]),
-                    "LTId": vals[7],
-                    "ct_periodStart": int(vals[8]),
-                    "t_qrStart": int(vals[9]),
+                    "CRIexp": int(vals[1]),
+                    "venueType": int(vals[2]),
+                    "venueCategory1": int(vals[3]),
+                    "venueCategory2": int(vals[4]),
+                    "periodDuration": int(vals[5]),
+                    "LTId": vals[6],
+                    "ct_periodStart": int(vals[7]),
+                    "t_qrStart": int(vals[8]),
                     "SK_SA": cfg['SK_SA'],
                     "SK_MCTA": cfg['SK_MCTA']}
-        if len(vals) == 13:
-            lsp_dict["locationPhone"] = vals[10]
-            lsp_dict["locationRegion"] = int(vals[11])
-            lsp_dict["locationPIN"] = vals[12]
+        if len(vals) == 12:
+            lsp_dict["locationPhone"] = vals[9]
+            lsp_dict["locationRegion"] = int(vals[10])
+            lsp_dict["locationPIN"] = vals[11]
     else:
         lsp_dict = {"Error": "lsp_decode failed"}
     return lsp_dict
@@ -236,7 +234,6 @@ def lsp_cmp(enc_in, enc_out, dec_out):
     assert enc_in['venueType'] == dec_out['venueType']
     assert enc_in['venueCategory1'] == dec_out['venueCategory1']
     assert enc_in['venueCategory2'] == dec_out['venueCategory2']
-    assert enc_in['countryCode'] == dec_out['countryCode']
     assert enc_in['periodDuration'] == dec_out['periodDuration']
     assert enc_out['LTId'] == dec_out['LTId']
     assert enc_out['ct_periodStart'] == dec_out['ct_periodStart']
@@ -282,7 +279,7 @@ def lsps_cmp(enc_in_file, enc_out_file, dec_out_file, csv_lsp_file, csv_loc_file
 def save_lsp_encoding_decoding_results(enc_in, enc_out, csv_lsp_file, csv_loc_file):
     sep = ', '
     if csv_lsp_file is not None:
-        row = str(enc_in['staff']) + sep + str(enc_in['countryCode']) + sep
+        row = str(enc_in['staff']) + sep 
         row += str(enc_out['LTId']) + sep + str(enc_in['CRIexp']) + sep
         row += str(enc_in['venueType']) + sep + str(enc_in['venueCategory1']) + sep
         row += str(enc_in['venueCategory2']) + sep + str(enc_in['periodDuration']) + sep
@@ -311,7 +308,7 @@ if __name__ == "__main__":
     if args.csvtest:
         CSV_TEST_FILES_GENERATION =  True
         with open(CSV_LSP_TST, "w") as outFile:
-            HEADER = 'staff, countryCode, LTId, CRIexp, venueType, venueCat1, venueCat2, periodDuration, ct_periodStart, t_qrStart, SK_SA, PK_SA, lsp_base64\n'
+            HEADER = 'staff, LTId, CRIexp, venueType, venueCat1, venueCat2, periodDuration, ct_periodStart, t_qrStart, SK_SA, PK_SA, lsp_base64\n'
             outFile.write(HEADER)
         with open(CSV_LOC_TST, "w") as outFile:
             HEADER = 'locationPhone, locationRegion, locationPin, t_periodStart, SK_SA, PK_SA, SK_MCTA, PK_MCTA, lsp_base64\n'

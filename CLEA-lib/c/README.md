@@ -66,10 +66,10 @@ Test #3 passed
 >./test_ecies
 Usage: ./test_ecies random priv_key data
 
-> test_clea
+> simple_clea
 AE7ovhtS8OmTGOVkk/5kcp6G0r5FBDCbQQffyCRE4U5LSG2Muxk12q/iWhpnHVucPMIkAJ5UZVFnfGHjmt3B8xFVERSoCT0fiBtFE7GGZUSQVvvZJ3ujtdLTqVVsO2ONOsAuRqHNOqXdzlQlWzua2X2qOahDScgC1IHe00ftKR6aOrdCpn1ZA2XJeWmt6wIyJX+XKF/qUqL7/p0Bj9NvorGxWRmIST3c+OFHkbBLsw==
 AE7ovhtS8OmTGOVkk/5kcp6yyiQaTivN8kC8MT9FaGlcMYXetqJm9hzUQZhlvV4DQFrPdXASsNuHPfrbQWHkwLtktrEj/y6DuTwQz774KyVtknUE6oMpBp8inzQaHx4mrimPqQa1vEkI7BiRKKbtcVYT6H7LYcHZq5sOKCIE4Pmm6mJcGXmU6CJWMhVZpAORdEQswqnR9k1gNibRhhQhVmzs+WAGVOGJeANUyj+rzA==
 
-> ./build_clea 
-Usage: build_clea staff CRIexp venueType venueCategory1 venueCategory2 countryCode periodDuration locationPhone locationPin PK_SA PK_MCTA
+> ./test_clea 
+Usage: build_clea staff CRIexp venueType venueCategory1 venueCategory2 periodDuration locationPhone locationPin PK_SA PK_MCTA
 ```

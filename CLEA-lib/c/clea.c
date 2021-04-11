@@ -62,8 +62,9 @@ int32_t clea_renew_qrcode(uint32_t *ptr_ct_periodStart, uint32_t *ptr_t_qrStart)
         LSP[cpt++] = LTId[i];
     }
 
-    LSP[cpt++] = (c->staff & 0x1) << 7 | ((c->locContactMsgPresent & 0x1) << 6) | ((c->countryCode & 0xFC0) >> 6);
-    LSP[cpt++] = ((c->countryCode & 0x3F) << 2) | ((c->CRIexp & 0x18) >> 3);
+    uint8_t reserved = 0x0; /* 12 bits reserved for the spec. evolution */
+    LSP[cpt++] = (c->staff & 0x1) << 7 | ((c->locContactMsgPresent & 0x1) << 6) | ((reserved & 0xFC0) >> 6);
+    LSP[cpt++] = ((reserved & 0x3F) << 2) | ((c->CRIexp & 0x18) >> 3);
     LSP[cpt++] = ((c->CRIexp & 0x7) << 5) | (c->venueType & 0x1F);
     LSP[cpt++] = ((c->venueCategory1 & 0xF) << 4) | (c->venueCategory2 & 0xF);
     LSP[cpt++] = c->periodDuration;

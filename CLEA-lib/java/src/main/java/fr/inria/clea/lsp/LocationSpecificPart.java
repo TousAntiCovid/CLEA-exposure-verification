@@ -37,7 +37,6 @@ public class LocationSpecificPart {
     public static final short LOCATION_TEMPORARY_SECRET_KEY_SIZE = 32; // 256 bits
     public static final String VERSION_VALIDATION_MESSAGE = "Version should have a value between 0 and 8 (included)";
     public static final String TYPE_VALIDATION_MESSAGE = "Type should have a value between 0 and 8 (included)";
-    public static final String COUNTRY_CODE_VALIDATION_MESSAGE = "Country code should have a value between 0 and 4096 (included)";
     public static final String LOCATION_TEMPORARY_PUBLIC_ID_VALIDATION_MESSAGE = "Location temporary public Id must not be null";
     public static final String QRCODE_RENEWAL_INTERVAL_VALIDATION_MESSAGE = "QR-code renewal interval exponent compact should have a value between 0 and 32 (included)";
     public static final String VENUE_TYPE_VALIDATION_MESSAGE = "Venue type should have a value between 0 and 32 (included)";
@@ -63,15 +62,6 @@ public class LocationSpecificPart {
     @Min(value = 0, message = TYPE_VALIDATION_MESSAGE)
     @Max(value = 8, message = TYPE_VALIDATION_MESSAGE)
     protected int type = 0;
-    
-    /*
-     * Country code, coded as the ISO 3166-1 country code, for instance 0x250 for
-     * France
-     */
-    @Builder.Default
-    @Min(value = 0, message = COUNTRY_CODE_VALIDATION_MESSAGE)
-    @Max(value = 4096, message = COUNTRY_CODE_VALIDATION_MESSAGE)
-    protected int countryCode = 250;
     
     /* regular users or staff member of the location */
     protected boolean staff;

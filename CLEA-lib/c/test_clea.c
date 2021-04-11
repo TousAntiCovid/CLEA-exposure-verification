@@ -32,7 +32,7 @@ void print_uuid(uint8_t uuid[16])
 void usage(char *s, char *err)
 {
     printf("ERROR: %s\n\n", err);
-    printf("Usage: %s staff countryCode CRIexp venueType venueCategory1 venueCategory2 periodDuration PK_SA PK_MCTA SK_L [locationPhone locationRegion locationPin]\n\n", s);
+    printf("Usage: %s staff CRIexp venueType venueCategory1 venueCategory2 periodDuration PK_SA PK_MCTA SK_L [locationPhone locationRegion locationPin]\n\n", s);
     printf("locationPhone: 15-digit-max international phone number\n");
     printf("locationPin: 8-digit-max pin code\n");
     exit(1);
@@ -49,31 +49,30 @@ int main(int argc, char *argv[])
     uint32_t t_qrStart, ct_periodStart;
     uint8_t LTId[16];
 
-    if ((argc == 14) || (argc == 11))
+    if ((argc == 13) || (argc == 10))
     {
         clea_conf.staff = atoi(argv[1]);
-        clea_conf.locContactMsgPresent = (argc == 14);
-        clea_conf.countryCode = atoi(argv[2]);
-        clea_conf.CRIexp = atoi(argv[3]);
-        clea_conf.venueType = atoi(argv[4]);
-        clea_conf.venueCategory1 = atoi(argv[5]);
-        clea_conf.venueCategory2 = atoi(argv[6]);
-        clea_conf.periodDuration = atoi(argv[7]);
+        clea_conf.locContactMsgPresent = (argc == 13);
+        clea_conf.CRIexp = atoi(argv[2]);
+        clea_conf.venueType = atoi(argv[3]);
+        clea_conf.venueCategory1 = atoi(argv[4]);
+        clea_conf.venueCategory2 = atoi(argv[5]);
+        clea_conf.periodDuration = atoi(argv[6]);
         // Skip "04" for uncompressed keys
-        parse(&(argv[8][2]), PK_SA);
-        parse(&(argv[9][2]), PK_MCTA);
-        parse(argv[10], SK_L);
+        parse(&(argv[7][2]), PK_SA);
+        parse(&(argv[8][2]), PK_MCTA);
+        parse(argv[9], SK_L);
 
         if (clea_conf.locContactMsgPresent)
         {
-            if (parse_bcd(argv[11], clea_conf.locationPhone, sizeof(clea_conf.locationPhone)))
+            if (parse_bcd(argv[10], clea_conf.locationPhone, sizeof(clea_conf.locationPhone)))
             {
                 USAGE("Too many digits in locationPhone");
             }
 
-            clea_conf.locationRegion = atoi(argv[12]);
+            clea_conf.locationRegion = atoi(argv[11]);
 
-            if (parse_bcd(argv[13], clea_conf.locationPin, sizeof(clea_conf.locationPin)))
+            if (parse_bcd(argv[12], clea_conf.locationPin, sizeof(clea_conf.locationPin)))
             {
                 USAGE("Too many digits in locationPin");
             }

@@ -30,7 +30,6 @@ public class LocationSpecificPartValidationTest {
         locationSpecificPartBuilder = LocationSpecificPart.builder()
                 .version(0)
                 .type(0)
-                .countryCode(250)
                 .staff(false)
                 .locationTemporaryPublicId(UUID.randomUUID())
                 .qrCodeRenewalIntervalExponentCompact(0)
@@ -97,29 +96,6 @@ public class LocationSpecificPartValidationTest {
         assertThat(exception.getViolations()).anyMatch(violation -> violation.getMessage().equals(LocationSpecificPart.TYPE_VALIDATION_MESSAGE));
     }
     
-    @Test
-    public void testWhenCountryCodeHasnegativeValueThenValidationFails() {
-        LocationSpecificPart lsp = locationSpecificPartBuilder.countryCode(-1).build();
-        
-        CleaInvalidLocationMessageException exception = assertThrows(CleaInvalidLocationMessageException.class, () -> {
-            this.validator.validateMessage(lsp);
-        });
-        
-        assertThat(exception.getViolations().size()).isEqualTo(1);
-        assertThat(exception.getViolations()).anyMatch(violation -> violation.getMessage().equals(LocationSpecificPart.COUNTRY_CODE_VALIDATION_MESSAGE));
-    }
-
-    @Test
-    public void testWhenCountryCodeGreaterThan4096ThenValidationFails() {
-        LocationSpecificPart lsp = locationSpecificPartBuilder.countryCode(4097).build();
-        
-        CleaInvalidLocationMessageException exception = assertThrows(CleaInvalidLocationMessageException.class, () -> {
-            this.validator.validateMessage(lsp);
-        });
-        
-        assertThat(exception.getViolations().size()).isEqualTo(1);
-        assertThat(exception.getViolations()).anyMatch(violation -> violation.getMessage().equals(LocationSpecificPart.COUNTRY_CODE_VALIDATION_MESSAGE));
-    }
 
     @Test
     public void testWhenLocationTemporaryPublicIdIsIsNullThenValidationFails() {
