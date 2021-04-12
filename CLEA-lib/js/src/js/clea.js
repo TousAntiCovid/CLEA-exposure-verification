@@ -101,7 +101,7 @@ export async function cleaRenewLSP(config) {
   msg[9] = (gConf.t_qrStart >> 16) & 0xFF;
   msg[10] = (gConf.t_qrStart >> 8) & 0xFF;
   msg[11] = gConf.t_qrStart & 0xFF;
-  msg.set(gConf.LTKey, 12);
+  msg.set(new Uint8Array(gConf.LTKey), 12);
 
   if (config.locContactMsg) {
     const phone = parseBcd(config.locContactMsg.locationPhone, 8);
