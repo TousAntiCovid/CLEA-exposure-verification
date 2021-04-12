@@ -90,7 +90,7 @@ test-interop:
     - cd CLEA-lib/test
     - python test_clea.py
 
-deploy:
+deploy-java:
   stage: deploy
   tags:
     - ci
@@ -100,3 +100,13 @@ deploy:
   only:
     - master
     - tags
+
+deploy-js:
+  stage: deploy
+  image: node:15.13.0
+  tags:
+    - ci
+  script:
+    - echo "//gitlab.inria.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}">.npmrc
+    - cd CLEA-lib/js
+    - npm publish
