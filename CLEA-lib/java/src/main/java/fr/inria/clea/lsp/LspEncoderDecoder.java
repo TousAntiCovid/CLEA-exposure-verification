@@ -3,6 +3,7 @@ package fr.inria.clea.lsp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import fr.devnied.bitlib.BytesUtils;
 import fr.inria.clea.lsp.Location.LocationBuilder;
 import fr.inria.clea.lsp.exception.CleaCryptoException;
 import fr.inria.clea.lsp.utils.TimeUtils;
@@ -37,10 +38,11 @@ public class LspEncoderDecoder {
         String manualContactTracingAuthoritySecretKey = args[3];
         LocationSpecificPartDecoder lspDecoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey);
         LocationSpecificPart lsp = lspDecoder.decrypt(lspBase64);
-      
+
         String valuesToreturn =  "=VALUES="+ (lsp.isStaff()? 1 : 0) +  " " + lsp.getQrCodeRenewalIntervalExponentCompact()  + " " + lsp.getVenueType(); 
         valuesToreturn += " " + lsp.getVenueCategory1() + " " + lsp.getVenueCategory2() + " " + lsp.getPeriodDuration() + " " + lsp.getLocationTemporaryPublicId();
         valuesToreturn += " " + Integer.toUnsignedString(lsp.getCompressedPeriodStartTime()) + " " + TimeUtils.ntpTimestampFromInstant(lsp.getQrCodeValidityStartTime());
+        valuesToreturn += " " + BytesUtils.bytesToStringNoSpace(lsp.getLocationTemporarySecretKey()).toLowerCase();
 
         if (lsp.isLocationContactMessagePresent()) {
             LocationContactMessageEncoder contactMessageDecode = new LocationContactMessageEncoder(manualContactTracingAuthoritySecretKey);
@@ -90,11 +92,13 @@ public class LspEncoderDecoder {
         location.getLocationSpecificPart().setQrCodeValidityStartTime(Instant.now().truncatedTo(ChronoUnit.HOURS));
         
         String encryptedLocationSpecificPart = location.getLocationSpecificPartEncryptedBase64();
-        
+        String LTKey =  BytesUtils.bytesToStringNoSpace(location.getLocationSpecificPart().getLocationTemporarySecretKey()).toLowerCase();
+
         final String valuesToreturn = "=VALUES=" + encryptedLocationSpecificPart + " " 
                 + location.getLocationSpecificPart().getLocationTemporaryPublicId() + " "
                 + Integer.toUnsignedString(location.getLocationSpecificPart().getCompressedPeriodStartTime()) + " "
-                + TimeUtils.ntpTimestampFromInstant(location.getLocationSpecificPart().getQrCodeValidityStartTime());
+                + TimeUtils.ntpTimestampFromInstant(location.getLocationSpecificPart().getQrCodeValidityStartTime()) + " "
+                + LTKey ;
         System.out.println(valuesToreturn);
     }
 

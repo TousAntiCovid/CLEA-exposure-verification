@@ -2,6 +2,7 @@
 #define CLEA_H__
 
 #include <stdint.h>
+#include "hash/sha256.h"
 
 #define SK_L_SIZE (51)
 
@@ -42,6 +43,8 @@ extern clea_conf_t clea_conf;
 
 #define LSP_BASE64_SIZE (237)
 extern uint8_t LSP_base64[LSP_BASE64_SIZE];
+
+extern uint8_t LTKey[SHA256_DIGEST_SIZE]; // Temporary location secret key
 
 void clea_init(void);
 

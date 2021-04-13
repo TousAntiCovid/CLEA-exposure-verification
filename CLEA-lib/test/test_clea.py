@@ -24,7 +24,7 @@ class CleaEncoderInteroperabilityTestCase(unittest.TestCase):
             os.remove(self.ENC_OUT)
         if os.path.exists(self.DEC_OUT):
             os.remove(self.DEC_OUT)
-    
+
     def testCEncodingAndJavaDecoding(self):
         print("Running test with C encoding and Java decoding")
         lsps_encode(self.ENC_IN, self.ENC_OUT, java=False)
@@ -71,7 +71,7 @@ def run_cmd(cmd_with_args):
         process.wait()
         out = process.stdout.read()
         process.kill()
-    
+
     outs = out.decode().replace("\n", "")
     outs = outs.split('=VALUES=')
     results = outs[1].split(' ')
@@ -114,11 +114,12 @@ def lsp_encode(cfg, java=False):
         cmd.append(str(pin))
 
     vals = run_cmd(cmd)
-    if len(vals) == 4:
+    if len(vals) == 5:
         lsp_base_64 = {"lsp_base64": vals[0],
                        "LTId": vals[1],
                        "ct_periodStart": int(vals[2]),
                        "t_qrStart": int(vals[3]),
+                       "LTKey": vals[4],
                        "SK_SA": cfg["SK_SA"],
                        "SK_MCTA": cfg["SK_MCTA"]}
     else:
@@ -144,7 +145,7 @@ def lsp_decode(cfg):
     cmd.append(cfg['SK_SA'])
     cmd.append(cfg['SK_MCTA'])
     vals = run_cmd(cmd)
-    if len(vals) == 9 or len(vals) == 12:
+    if len(vals) == 10 or len(vals) == 13:
         lsp_dict = {"staff": int(vals[0]),
                     "CRIexp": int(vals[1]),
                     "venueType": int(vals[2]),
@@ -154,12 +155,13 @@ def lsp_decode(cfg):
                     "LTId": vals[6],
                     "ct_periodStart": int(vals[7]),
                     "t_qrStart": int(vals[8]),
+                    "LTKey": vals[9],
                     "SK_SA": cfg['SK_SA'],
                     "SK_MCTA": cfg['SK_MCTA']}
-        if len(vals) == 12:
-            lsp_dict["locationPhone"] = vals[9]
-            lsp_dict["locationRegion"] = int(vals[10])
-            lsp_dict["locationPIN"] = vals[11]
+        if len(vals) == 13:
+            lsp_dict["locationPhone"] = vals[10]
+            lsp_dict["locationRegion"] = int(vals[11])
+            lsp_dict["locationPIN"] = vals[12]
     else:
         lsp_dict = {"Error": "lsp_decode failed"}
     return lsp_dict
@@ -238,6 +240,7 @@ def lsp_cmp(enc_in, enc_out, dec_out):
     assert enc_out['LTId'] == dec_out['LTId']
     assert enc_out['ct_periodStart'] == dec_out['ct_periodStart']
     assert enc_out['t_qrStart'] == dec_out['t_qrStart']
+    assert enc_out['LTKey'] == dec_out['LTKey']
     nbr = int(enc_in.get('locationPhone') is not None) + \
         int(enc_in.get('locationPIN') is not None) + \
         int(enc_in.get('locationRegion') is not None) + \
@@ -274,28 +277,30 @@ def lsps_cmp(enc_in_file, enc_out_file, dec_out_file, csv_lsp_file, csv_loc_file
         for idx, _ in enumerate(enc_in_s):
             lsp_cmp(enc_in_s[idx], enc_out_s[idx], dec_out_s[idx])
             if CSV_TEST_FILES_GENERATION:
-                save_lsp_encoding_decoding_results(enc_in_s[idx], enc_out_s[idx], csv_lsp_file, csv_loc_file)
-    
+                save_lsp_encoding_decoding_results(enc_in_s[idx],
+                                                    enc_out_s[idx], csv_lsp_file, csv_loc_file)
+
 def save_lsp_encoding_decoding_results(enc_in, enc_out, csv_lsp_file, csv_loc_file):
     sep = ', '
     if csv_lsp_file is not None:
-        row = str(enc_in['staff']) + sep 
+        row = str(enc_in['staff']) + sep
         row += str(enc_out['LTId']) + sep + str(enc_in['CRIexp']) + sep
         row += str(enc_in['venueType']) + sep + str(enc_in['venueCategory1']) + sep
         row += str(enc_in['venueCategory2']) + sep + str(enc_in['periodDuration']) + sep
         row += str(enc_out['ct_periodStart']) + sep + str(enc_out['t_qrStart']) + sep
+        row += str(enc_out['LTKey']) + sep
         row += str(enc_in['SK_SA']) + sep + str(enc_in['PK_SA']) + sep
         row += str(enc_out['lsp_base64'])
-        with open(csv_lsp_file, 'a') as outFile:
-            outFile.write(row + '\n')
+        with open(csv_lsp_file, 'a') as outfile:
+            outfile.write(row + '\n')
     if csv_loc_file is not None and enc_in.get('locationPhone') is not None:
         row = str(enc_in['locationPhone']) + sep + str(enc_in['locationRegion']) + sep
         row += str(enc_in['locationPIN']) + sep + str(enc_out['ct_periodStart']*3600)
         row += sep + str(enc_in['SK_SA']) + sep + str(enc_in['PK_SA']) + sep
         row += str(enc_in['SK_MCTA']) + sep + str(enc_in['PK_MCTA']) + sep
         row += str(enc_out['lsp_base64'])
-        with open(csv_loc_file, 'a') as outFile:
-            outFile.write(row + '\n')
+        with open(csv_loc_file, 'a') as outfile:
+            outfile.write(row + '\n')
 
 if __name__ == "__main__":
     # Parse command line arguments
@@ -304,16 +309,16 @@ if __name__ == "__main__":
                         help="saving file testDecoding.csv",
                         action="store_true")
     args = parser.parse_args()
-    
+
     if args.csvtest:
         CSV_TEST_FILES_GENERATION =  True
         with open(CSV_LSP_TST, "w") as outFile:
-            HEADER = 'staff, LTId, CRIexp, venueType, venueCat1, venueCat2, periodDuration, ct_periodStart, t_qrStart, SK_SA, PK_SA, lsp_base64\n'
+            HEADER = 'staff, LTId, CRIexp, venueType, venueCat1, venueCat2, periodDuration, ct_periodStart, t_qrStart, LTKey, SK_SA, PK_SA, lsp_base64\n'
             outFile.write(HEADER)
         with open(CSV_LOC_TST, "w") as outFile:
             HEADER = 'locationPhone, locationRegion, locationPin, t_periodStart, SK_SA, PK_SA, SK_MCTA, PK_MCTA, lsp_base64\n'
             outFile.write(HEADER)
-    
+
     sys.argv = [ sys.argv[0] ]
-    
+
     unittest.main()

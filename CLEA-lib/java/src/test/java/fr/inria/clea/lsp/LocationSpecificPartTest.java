@@ -203,7 +203,8 @@ class LocationSpecificPartTest {
     @CsvFileSource(resources = "/testLSPDecoding.csv", numLinesToSkip = 1)
     public void testDecodingOfLocationSpecificPartInBase64(int staff, String locationTemporaryPublicID,
             int qrCodeRenewalIntervalExponentCompact, int venueType, int venueCat1, int venueCat2, int periodDuration,
-            int periodStartTime, long qrStartTime, String serverAuthoritySecretKey, String serverAuthorityPublicKey,
+            int periodStartTime, long qrStartTime, String locationTemporarySecretKey,
+            String serverAuthoritySecretKey, String serverAuthorityPublicKey,
             String lspbase64) throws CleaEncryptionException, CleaEncodingException {
         LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey);
         LocationSpecificPart lsp = decoder.decrypt(lspbase64);
@@ -216,6 +217,8 @@ class LocationSpecificPartTest {
         assertThat(lsp.getVenueCategory1()).isEqualTo(venueCat1);
         assertThat(lsp.getVenueCategory2()).isEqualTo(venueCat2);
         assertThat(lsp.getCompressedPeriodStartTime()).isEqualTo(periodStartTime);
+        String lsp_locationTemporarySecretKey = BytesUtils.bytesToStringNoSpace(lsp.getLocationTemporarySecretKey()).toLowerCase();
+        assertThat(lsp_locationTemporarySecretKey).isEqualTo(locationTemporarySecretKey);
         assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(TimeUtils.instantFromTimestamp(qrStartTime));
     }
 
@@ -228,8 +231,8 @@ class LocationSpecificPartTest {
     @CsvFileSource(resources = "/testLSPDecoding.csv", numLinesToSkip = 1)
     public void testEncodingDecodingOfLSPSpecificPartInBase64(int staff,
             String locationTemporaryPublicID, int qrCodeRenewalIntervalExponentCompact, int venueType, int venueCat1,
-            int venueCat2, int periodDuration, int periodStartTime, long qrStartTime, String serverAuthoritySecretKey,
-            String serverAuthorityPublicKey, String lspbase64) throws CleaCryptoException {
+            int venueCat2, int periodDuration, int periodStartTime, long qrStartTime,  String locationTemporarySecretKey,
+            String serverAuthoritySecretKey, String serverAuthorityPublicKey, String lspbase64) throws CleaCryptoException {
         /* Use only testLSPDecoding.csv parameters to have a variety of parameters */
         /* times parameters and location are generated */
         Instant myPeriodStartTime = Instant.now().truncatedTo(ChronoUnit.HOURS);

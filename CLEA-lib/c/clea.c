@@ -6,12 +6,12 @@
 #include "clea.h"
 
 static uint32_t t_periodStart;            // Starting time of the period, NTP UTC timestamp limited to the 32-bit seconds field (starting at a round hour)
-static uint8_t LTKey[SHA256_DIGEST_SIZE]; // Temporary location secret key
+uint8_t LTKey[SHA256_DIGEST_SIZE];        // Temporary location secret key
 static uint8_t LTId[16];                  // Temporary location public universally unique Identifier
 static const uint8_t version = 0;
 static const uint8_t qrType = 0;
 
-static void compute_TLKey(void);
+static void compute_LTKey(void);
 static void to_base64(uint8_t *in, uint8_t *out, uint8_t n);
 static uint32_t get_ntp_utc(bool round);
 
@@ -24,7 +24,7 @@ int32_t clea_start_new_period(uint8_t ptr_LTId[16], uint32_t *ptr_ct_periodStart
 {
     t_periodStart = get_ntp_utc(true);
 
-    compute_TLKey();
+    compute_LTKey();
 
     // Compute LTId
     hmac_sha256_128(LTKey, sizeof(LTKey), (uint8_t *)"1", 1, LTId);
@@ -139,7 +139,7 @@ int32_t clea_renew_qrcode(uint32_t *ptr_ct_periodStart, uint32_t *ptr_t_qrStart)
     return 0;
 }
 
-static void compute_TLKey(void)
+static void compute_LTKey(void)
 {
     static uint8_t buffer[64]; // 512-bit input data buffer
     uint8_t i;

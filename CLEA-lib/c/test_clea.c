@@ -29,6 +29,15 @@ void print_uuid(uint8_t uuid[16])
     uuid[8], uuid[9], uuid[10], uuid[11], uuid[12], uuid[13], uuid[14], uuid[15]);
 }
 
+void print_hex(uint8_t key[SHA256_DIGEST_SIZE])
+{ 
+    for (int i = 0; i < SHA256_DIGEST_SIZE; i++)
+    {
+        printf("%02x", key[i]);
+    } 
+}
+
+
 void usage(char *s, char *err)
 {
     printf("ERROR: %s\n\n", err);
@@ -90,7 +99,9 @@ int main(int argc, char *argv[])
         printf("=VALUES=");
         print_qrcode();
         print_uuid(LTId);
-        printf(" %lu %lu\n",ct_periodStart, t_qrStart);
+        printf(" %lu %lu ",ct_periodStart, t_qrStart);
+        print_hex(LTKey);
+        printf("\n");
     }
     else
     {

@@ -47,7 +47,8 @@ setTimeout(function() {
                         javaproc.on('exit', (code) => {
                             console.log(`Child exited with code ${code}`);
                             expect(code).to.equal(0);
-                            expect([9, 12]).to.include(result.length);
+                            console.log("OUT", result);
+                            expect([10, 13]).to.include(result.length);
                             expect(result[0]).to.equal(cryptoItem.staff);
                             expect(result[1]).to.equal(cryptoItem.CRIexp);
                             expect(result[2]).to.equal(cryptoItem.venueType);
@@ -57,11 +58,12 @@ setTimeout(function() {
                             // result[6] LTId
                             // result[7] ct_periodStart
                             // result[8] t_qrStart
-                            if (result.length == 12) {
+                            // result[9] LTKey
+                            if (result.length == 13) {
                                 console.log('checking location');
-                                expect(result[9]).to.equal(cryptoItem.locationPhone);
-                                expect(result[10]).to.equal(cryptoItem.locationRegion);
-                                expect(result[11]).to.equal(cryptoItem.locationPIN);
+                                expect(result[10]).to.equal(cryptoItem.locationPhone);
+                                expect(result[11]).to.equal(cryptoItem.locationRegion);
+                                expect(result[12]).to.equal(cryptoItem.locationPIN);
                             }
                             resolve();
                         });
