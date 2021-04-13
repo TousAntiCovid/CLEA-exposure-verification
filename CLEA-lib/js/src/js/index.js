@@ -52,7 +52,7 @@ import {cleaStartNewPeriod} from './clea'
             }
 
             let b64 = await cleaStartNewPeriod(conf);
-			let newDeeplink = "https://tac.gouv.fr?v=0#" + encodeURIComponent(b64);
+			let newDeeplink = "https://tac.gouv.fr?v=0#" + b64;
 			let deeplinks = document.getElementById('deeplinks').innerHTML;
 			document.getElementById('deeplinks').innerHTML = deeplinks  + "<p><a href="+newDeeplink+">" + newDeeplink + "</a></p>";
             qrcode.makeCode(newDeeplink);
