@@ -117,7 +117,7 @@ export async function cleaRenewLSP(config) {
   let output = await encrypt(header, msg, config.PK_SA);
 
   // Convert output to Base64
-  return btoa((Array.from(new Uint8Array(output))).map(ch => String.fromCharCode(ch)).join('')).replace(/\+/g, '-').replace(/\//g, '_');
+  return btoa((Array.from(new Uint8Array(output))).map(ch => String.fromCharCode(ch)).join('')).replace(/\+/g, '-').replace(/\//g, '_').replace('=', '');
 }
 
 
