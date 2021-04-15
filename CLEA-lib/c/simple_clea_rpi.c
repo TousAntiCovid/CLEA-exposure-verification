@@ -25,7 +25,6 @@ clea_conf_t clea_conf =
     .venueType            = 10,
     .venueCategory1       = 0,
     .venueCategory2       = 0,
-    .countryCode          = 250, // France
     .periodDuration       = 1,  // 1 hour
     .locationPhone        = {0x33, 0x80, 0x01, 0x30, 0x00, 0x0F, 0xFF, 0xFF}, // +33 800 130 000
     .locationPin          = {0xDE, 0xAD, 0xBE, 0xEF} // "DEADBEEF"

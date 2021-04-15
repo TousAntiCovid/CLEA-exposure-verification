@@ -37,7 +37,6 @@ import {cleaStartNewPeriod} from './clea'
                 venueType: parseInt($("#venueType").val()),
                 venueCategory1: parseInt($("#venueCategory1").val()),
                 venueCategory2: parseInt($("#venueCategory2").val()),
-                countryCode: parseInt($("#countryCode").val()),
                 periodDuration: parseInt($("#periodDuration").val()),
                 locContactMsg: null
             };

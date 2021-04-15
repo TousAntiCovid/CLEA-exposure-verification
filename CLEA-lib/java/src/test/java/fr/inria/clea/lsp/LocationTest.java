@@ -108,7 +108,7 @@ public class LocationTest {
 
     protected LocationSpecificPart newLocationSpecificPart(int qrCodeRenewalIntervalExponentCompact,
             int periodDuration) {
-        return LocationSpecificPart.builder().staff(true).countryCode(33)
+        return LocationSpecificPart.builder().staff(true)
                 .qrCodeRenewalIntervalExponentCompact(qrCodeRenewalIntervalExponentCompact).venueType(4)
                 .venueCategory1(0).venueCategory2(0).periodDuration(periodDuration).build();
     }

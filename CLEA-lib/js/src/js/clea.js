@@ -26,7 +26,7 @@ let verbose = false;
  * @param {conf} config user configuration
  *   conf = {SK_L, PK_SA, PK_MCTA, 
  *           staff, CRIexp, venueType, venueCategory1, venueCategory2,
- *           countryCode, periodDuration, locContactMsg}
+ *           periodDuration, locContactMsg}
  * 
  * @return
  */
@@ -66,7 +66,7 @@ export async function cleaStartNewPeriod(config) {
  * @param {conf} config user configuration
  *   conf = {SK_L, PK_SA, PK_MCTA, 
  *           staff, CRIexp, venueType, venueCategory1, venueCategory2,
- *           countryCode, periodDuration, locContactMsg}
+ *           periodDuration, locContactMsg}
  * 
  * @return {string} encoded LSP in Base64 format
  */
@@ -88,8 +88,9 @@ export async function cleaRenewLSP(config) {
   header.set(gConf.LTId, 1);
 
   // Fill message
-  msg[0] = ((config.staff & 0x1) << 7) | (config.locContactMsg ? 0x40 : 0) | ((config.countryCode & 0xFC0) >>> 6);
-  msg[1] = ((config.countryCode & 0x3F) << 2) | ((config.CRIexp & 0x18) >> 3);
+  let reserved = 0x0; // reserved for specification evolution
+  msg[0] = ((config.staff & 0x1) << 7) | (config.locContactMsg ? 0x40 : 0) | ((reserved & 0xFC0) >>> 6);
+  msg[1] = ((reserved & 0x3F) << 2) | ((config.CRIexp & 0x18) >> 3);
   msg[2] = ((config.CRIexp & 0x7) << 5) | (config.venueType & 0x1F);
   msg[3] = ((config.venueCategory1 & 0xF) << 4) | (config.venueCategory2 & 0xF);
   msg[4] = config.periodDuration;
@@ -100,7 +101,7 @@ export async function cleaRenewLSP(config) {
   msg[9] = (gConf.t_qrStart >> 16) & 0xFF;
   msg[10] = (gConf.t_qrStart >> 8) & 0xFF;
   msg[11] = gConf.t_qrStart & 0xFF;
-  msg.set(gConf.LTKey, 12);
+  msg.set(new Uint8Array(gConf.LTKey), 12);
 
   if (config.locContactMsg) {
     const phone = parseBcd(config.locContactMsg.locationPhone, 8);

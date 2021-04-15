@@ -129,7 +129,7 @@ public class LocationSpecificPartDecoder {
     /**
      * Unpack the data message (binary format) :
      * | Staff | pad2 |CRIexp | vType |
-     * vCat1 | vCat2 | countryCode | | periodDuration | ct_periodStart | t_qrStart |
+     * vCat1 | vCat2 | reserved | | periodDuration | ct_periodStart | t_qrStart |
      * LTKey | to extract parameters
      */
     public LocationSpecificPart decodeMessage(byte[] binaryLocationSpecificPart, LocationSpecificPartBuilder locationSpecificPartbuilder) {
@@ -145,8 +145,8 @@ public class LocationSpecificPartDecoder {
         locationSpecificPartbuilder
             .staff(message.getNextInteger(1) == 1);
         message.getNextInteger(1); // skip locationContactMessagePresent
+        message.getNextInteger(12); // skip reserved 
         locationSpecificPartbuilder
-            .countryCode(message.getNextInteger(12))
             .qrCodeRenewalIntervalExponentCompact(message.getNextInteger(5))
             .venueType(message.getNextInteger(5))
             .venueCategory1(message.getNextInteger(4))

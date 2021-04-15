@@ -1,6 +1,5 @@
 [{
         "staff": 0,
-        "countryCode": 492,
         "CRIexp": 5,
         "venueType": 12,
         "venueCategory1": 0,
@@ -17,7 +16,6 @@
     },
     {
         "staff": 1,
-        "countryCode": 4095,
         "CRIexp": 31,
         "venueType": 31,
         "venueCategory1": 15,
@@ -35,7 +33,6 @@
 
     {
         "staff": 1,
-        "countryCode": 592,
         "CRIexp": 31,
         "venueType": 31,
         "venueCategory1": 15,
@@ -49,7 +46,6 @@
     },
     {
         "staff": 0,
-        "countryCode": 492,
         "CRIexp": 5,
         "venueType": 10,
         "venueCategory1": 3,
@@ -66,7 +62,6 @@
     },
     {
         "staff": 1,
-        "countryCode": 202,
         "CRIexp": 5,
         "venueType": 31,
         "venueCategory1": 3,

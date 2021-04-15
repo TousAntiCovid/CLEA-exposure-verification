@@ -87,8 +87,8 @@ public class LocationSpecificPartEncoder {
     }
 
     /**
-     * Encode the data message in binary format: | Staff | pad2 |CRIexp | vType |
-     * vCat1 | vCat2 | countryCode | | periodDuration | ct_periodStart | t_qrStart |
+     * Encode the data message in binary format: | Staff | locContactMsgPresent | reserved | CRIexp | vType |
+     * vCat1 | vCat2 | periodDuration | ct_periodStart | t_qrStart |
      * LTKey |
      * 
      * @return data message in binary format
@@ -102,8 +102,8 @@ public class LocationSpecificPartEncoder {
         message.setNextInteger(locationSpecificPart.isStaff() ? 1 : 0, 1);
         /* locContactMsgPresent (1 bit) */
         message.setNextInteger(locationSpecificPart.isLocationContactMessagePresent() ? 1 : 0, 1);
-        /* countryCode (12 bits) */
-        message.setNextInteger(locationSpecificPart.getCountryCode(), 12);
+        /* reserved (12 bits) */
+        message.setNextInteger(0x0, 12);
         /* CRIexp (5 bits) */
         message.setNextInteger(locationSpecificPart.getQrCodeRenewalIntervalExponentCompact(), 5);
         /* venueType (5 bits) */
