@@ -64,7 +64,9 @@ public class Location {
      * @throws CleaEncryptionException
      */
     public String newDeepLink(Instant periodStartTime, Instant qrCodeValidityStartTime) throws CleaCryptoException {
-        this.setPeriodStartTime(periodStartTime);
+        if(!this.locationSpecificPart.getPeriodStartTime().equals(periodStartTime)){
+            this.setPeriodStartTime(periodStartTime);
+        }
         this.setQrCodeValidityStartTime(periodStartTime, qrCodeValidityStartTime);
         return COUNTRY_SPECIFIC_PREFIX + this.getLocationSpecificPartEncryptedBase64();
     }
@@ -95,6 +97,7 @@ public class Location {
         this.locationSpecificPart.setPeriodStartTime(periodStartTime);
         this.locationSpecificPart.setLocationTemporarySecretKey(locationTemporarySecretKey);
         this.locationSpecificPart.setLocationTemporaryPublicId(currentLocationTemporaryPublicId);
+        this.locationSpecificPart.setQrCodeValidityStartTime(null);
         if (Objects.nonNull(this.contact)) {
             this.contact.setPeriodStartTime(periodStartTime);
         }
