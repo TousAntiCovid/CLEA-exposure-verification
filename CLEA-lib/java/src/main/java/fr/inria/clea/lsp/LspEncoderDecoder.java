@@ -16,7 +16,7 @@ public class LspEncoderDecoder {
      * @see README.md
      */
     public static void main(String[] args) throws Exception {
-        final String help = "Usage: LspEncoderDecoder [decode  lsp64 SK_SA SK_MCTA] [encode staff CRIexp venueType venueCategory1 venueCategory2 periodDuration locationPhone locationPin pubkey]";
+        final String help = "Usage: LspEncoderDecoder [gen-keys] [decode  lsp64 privKey] [encode staff CRIexp venueType venueCategory1 venueCategory2 periodDuration locationPhone locationPin pubkey]";
 
         if (args.length == 0) {
             System.out.println(help);
@@ -27,9 +27,17 @@ public class LspEncoderDecoder {
             encodeLsp(args);
         } else if ("decode".equals(args[0]) && args.length == 4) {
             decodeLsp(args);
+        } else if ("gen-keys".equals(args[0])) {
+            generateKeyPair();
         } else {
             System.out.println(help);
         }
+    }
+
+    protected static void generateKeyPair() throws Exception {
+        String[] keyPair = new CleaEciesEncoder().genKeysPair(true);
+        System.out.println("Clea EC Private Key: " + keyPair[0]);
+        System.out.println("Clea EC Public Key : " + keyPair[1]);
     }
 
     protected static void decodeLsp(String[] args) throws CleaCryptoException {

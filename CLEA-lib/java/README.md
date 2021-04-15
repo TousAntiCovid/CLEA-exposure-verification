@@ -49,9 +49,10 @@ All dependencies are noted in the `pom.xml`
 
 Possibility to use encoding and decoding of a LSP using the main executable (`LspEncoderDecoder.java`)
 
-* `java  -cp  java/target/clea-lsp-0.0.1-SNAPSHOT-jar-with-dependencies.jar fr.inria.clea.lsp.LspEncoderDecoder`
-* `Usage: LspEncoderDecoder [read  qrcode64 privKey] [build staff countryCode CRIexp venueType venueCategory1 venueCategory2 periodDuration pubkey]`
+* `java  -jar  java/target/clea-lsp-*-jar-with-dependencies.jar`
+* `Usage: LspEncoderDecoder [gen-keys] [decode  lsp64 privKey] [encode staff countryCode CRIexp venueType venueCategory1 venueCategory2 periodDuration locationPhone locationPin pubkey]`
 * the result is displayed on the console
+* To generate a Clea key pair, use `java  -jar  java/target/clea-lsp-*-jar-with-dependencies.jar gen-keys`. Generated keys will be displayed on std output.
 * used for C(encoding)/Java(decoding) operability tests in the project `../test`.
 
 ## TODO
