@@ -193,6 +193,32 @@ class LocationSpecificPartTest {
         MatrixToImageWriter.writeToStream(bitMatrix, imageFormat, fileOutputStream);
         fileOutputStream.close();
     }
+    
+     /**
+     * Testing the decoding of a LSP in base64 (encoded by C lib)
+     * using several type of padding
+     */
+    @Test
+    public void testDecodingInBase64withDifferentaPadding() throws Exception {
+            
+        final String serverAuthoritySecretKey = "3108f08b1485adb6f72cfba1b55c7484c906a2a3a0a027c78dcd991ca64c97bd";
+        /* message encrypted, from C package with different padding */
+        String lspBase64Pad0 = "AMSXLACY_zHatRP_ikRhFsR2sQW2hIaN7ZfvfHhYL02sYoxXnk4VAi-nqTeA2f312xVRYHCFgQOviOfT1yOlrBh0Wp7xVAEghYzqwhoCm9dWjMl6G4IM4rEHPmiLOkCxYp75_aIWavRSA-1NB6E";
+        final int nbPad = 5;
+        final String[] variousPad = {"=", "%3d", "%3D"};
+        LocationSpecificPart[] lsp = new LocationSpecificPart[variousPad.length];
+       
+        LocationSpecificPartDecoder decoder = new LocationSpecificPartDecoder(serverAuthoritySecretKey);
+        LocationSpecificPart lsp0 = decoder.decrypt(lspBase64Pad0+variousPad[0]);
+                
+        for (int i = 0; i < variousPad.length; i++) {
+                lsp[i] = decoder.decrypt(lspBase64Pad0+variousPad[i]);
+        }
+
+        for (int i = 0; i < variousPad.length; i++) {
+                assertThat(lsp0).isEqualTo(lsp[i]);
+        }
+    }
 
     /**
      * Testing the decoding of a LSP in base64 (encoded by C lib)

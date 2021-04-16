@@ -70,35 +70,39 @@ async function got_content(data)
 {
   $("#qrcode_content").html(data);
 
-  var lsp_base64 = data.split("https://tac.gouv.fr?v=0#").join('');
-  lsp_base64 = lsp_base64.replace(/_/g, '/').replace(/-/g, '+').replace(/={1,2}$/, '');
-  var lsp = Uint8Array.from(atob(lsp_base64), c => c.charCodeAt(0)); 
-  var sk_sa = new Uint8Array($("#sk_sa").val().match(/.{1,2}/g).map(b => parseInt(b, 16)));
-  var sk_mcta = new Uint8Array($("#sk_mcta").val().match(/.{1,2}/g).map(b => parseInt(b, 16)));
-
-  var decoded = 
-  {
-    version: -1,
-    lspType: -1,
-    LTId: "",
-    staff: false,
-    CRIexp: -1,
-    venueType: -1,
-    venueCategory1: -1,
-    venueCategory2: -1,
-    periodDuration: -1,
-    ct_periodStart: -1,
-    t_qrStart: -1,
-    LTKey: "",
-    locationMsg: null
-  }
-
-  decoded.version = lsp[0] >>> 5;
-  decoded.lspType = (lsp[0] >>> 2) & 0x7;
-  decoded.LTId = buf2bn(lsp.slice(1, 17)).toString(16);
-
   try
   {
+    var lsp_base64 = data.split("https://tac.gouv.fr?v=0#").join('');
+    if (data==lsp_base64) {
+      console.error("Bad url base" );
+    }
+
+    lsp_base64 = lsp_base64.replace(/_/g, '/').replace(/-/g, '+').replace(/={1,2}$/, '');
+    var lsp = Uint8Array.from(atob(lsp_base64), c => c.charCodeAt(0)); 
+    var sk_sa = new Uint8Array($("#sk_sa").val().match(/.{1,2}/g).map(b => parseInt(b, 16)));
+    var sk_mcta = new Uint8Array($("#sk_mcta").val().match(/.{1,2}/g).map(b => parseInt(b, 16)));
+
+    var decoded = 
+    {
+      version: -1,
+      lspType: -1,
+      LTId: "",
+      staff: false,
+      CRIexp: -1,
+      venueType: -1,
+      venueCategory1: -1,
+      venueCategory2: -1,
+      periodDuration: -1,
+      ct_periodStart: -1,
+      t_qrStart: -1,
+      LTKey: "",
+      locationMsg: null
+    }
+
+    decoded.version = lsp[0] >>> 5;
+    decoded.lspType = (lsp[0] >>> 2) & 0x7;
+    decoded.LTId = buf2bn(lsp.slice(1, 17)).toString(16);
+
     var dec = await decode(lsp.slice(0, 17), lsp.slice(17), sk_sa);
   
     decoded.staff = ((dec[0] & 0x80) >>> 7);
