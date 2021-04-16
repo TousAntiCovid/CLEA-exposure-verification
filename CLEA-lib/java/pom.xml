@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.inria.clea</groupId>
     <artifactId>clea-crypto</artifactId>
-    <version>0.2</version>
+    <version>0.3-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
