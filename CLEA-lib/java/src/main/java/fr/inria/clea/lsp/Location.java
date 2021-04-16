@@ -77,7 +77,7 @@ public class Location {
      * @throws CleaEncryptionException
      */
     public String getLocationSpecificPartEncryptedBase64() throws CleaCryptoException {
-        return Base64.getUrlEncoder().encodeToString(this.getLocationSpecificPartEncrypted());
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(this.getLocationSpecificPartEncrypted());
     }
 
     protected byte[] getLocationSpecificPartEncrypted() throws CleaCryptoException {
