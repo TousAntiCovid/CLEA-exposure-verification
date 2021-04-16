@@ -55,7 +55,7 @@ export async function cleaStartNewPeriod(config) {
     ["sign"]
   );
   gConf.LTId = new Uint8Array(await crypto.subtle.sign("HMAC", key, one), 0, 16); // HMAC-SHA256-128
-
+  
   return cleaRenewLSP(config);
 }
 
@@ -115,7 +115,7 @@ export async function cleaRenewLSP(config) {
   }
 
   let output = await encrypt(header, msg, config.PK_SA);
-
+  
   // Convert output to Base64
   return btoa((Array.from(new Uint8Array(output))).map(ch => String.fromCharCode(ch)).join('')).replace(/\+/g, '-').replace(/\//g, '_');
 }
