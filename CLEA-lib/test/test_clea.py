@@ -49,7 +49,7 @@ and Java LSP decoding
 # Java executable can encode or decode
 # a Clé location Specific Part (LSP)
 CMD_JAVA = ['java', '-cp',
-            '../java/target/clea-crypto-0.2-jar-with-dependencies.jar',
+            '../java/target/clea-crypto-0.3-SNAPSHOT-jar-with-dependencies.jar',
             'fr.inria.clea.lsp.LspEncoderDecoder']
 # C executable can encode t a Cléa LSP
 CMD_C = ['../c/build/test_clea']
