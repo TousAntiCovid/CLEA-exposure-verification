@@ -70,8 +70,8 @@ async function got_content(data)
 {
   $("#qrcode_content").html(data);
 
-  var lsp_base64 = data.split("http://tac.gouv.fr?v=0#").join('');
-  lsp_base64 = lsp_base64.replace(/_/g, '/').replace(/-/g, '+');
+  var lsp_base64 = data.split("https://tac.gouv.fr?v=0#").join('');
+  lsp_base64 = lsp_base64.replace(/_/g, '/').replace(/-/g, '+').replace(/={1,2}$/, '');
   var lsp = Uint8Array.from(atob(lsp_base64), c => c.charCodeAt(0)); 
   var sk_sa = new Uint8Array($("#sk_sa").val().match(/.{1,2}/g).map(b => parseInt(b, 16)));
   var sk_mcta = new Uint8Array($("#sk_mcta").val().match(/.{1,2}/g).map(b => parseInt(b, 16)));
