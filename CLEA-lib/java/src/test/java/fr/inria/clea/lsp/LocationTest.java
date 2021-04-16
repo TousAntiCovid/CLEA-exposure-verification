@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import fr.inria.clea.lsp.exception.CleaCryptoException;
+import fr.inria.clea.lsp.exception.CleaEncryptionException;
 
 // @ExtendWith(MockitoJUnitRunner.class)
 public class LocationTest {
@@ -79,6 +80,24 @@ public class LocationTest {
         Instant newQrCodeValidityStartTime = periodStartTime.plus(1, ChronoUnit.SECONDS);
         location.setQrCodeValidityStartTime(periodStartTime, newQrCodeValidityStartTime);
         assertThat(lsp.getQrCodeValidityStartTime()).isNotEqualTo(newQrCodeValidityStartTime);
+    }
+
+    @Test
+    public void testWhenSettingQrCodeValidityStartTimeWithNoQrCodeRenewalIntervalThenQrValidityStartTimeUpdatedWhenNewPeriod() throws CleaEncryptionException {
+        int qrCodeRenewalIntervalExponentCompact = 0x1F;
+        int periodDuration = 3;
+
+        lsp = newLocationSpecificPart(qrCodeRenewalIntervalExponentCompact, periodDuration);
+        location = newLocation(locationContact, lsp);
+
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime);
+        assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(periodStartTime);
+
+        
+        periodStartTime = periodStartTime.plus(3, ChronoUnit.HOURS);
+        location.setPeriodStartTime(periodStartTime);
+        location.setQrCodeValidityStartTime(periodStartTime, periodStartTime);
+        assertThat(lsp.getQrCodeValidityStartTime()).isEqualTo(periodStartTime);
     }
 
     @Test
