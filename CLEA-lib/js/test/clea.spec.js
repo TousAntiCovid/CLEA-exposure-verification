@@ -101,7 +101,7 @@ describe('cleaRenewLSP()', function () {
         let result = await clea.cleaRenewLSP(conf);
 
         logEncodingDataAndResult(conf, result);
-        expect([148, 236]).to.include(result.length);
+        expect([147, 234]).to.include(result.length);
         expect(result.startsWith('AAAAAAAAAAAAAAAAAAAAAA')).to.be.true;
     })
 
@@ -110,13 +110,13 @@ describe('cleaRenewLSP()', function () {
 describe('cleaStartNewPeriod()', function () {
     describe('test suite for cleaStartNewPeriod()', function () {
         runs.forEach(function (run) {
-            it('should return a result with 148 length', async () => {
+            it('should return a result with 147 length', async () => {
                 let conf = configurationFromRun(run);
 
                 let result = await clea.cleaStartNewPeriod(conf);
 
                 logEncodingDataAndResult(conf, result);
-                expect([148, 236]).to.include(result.length);
+                expect([147, 234]).to.include(result.length);
             });
         });
     });
