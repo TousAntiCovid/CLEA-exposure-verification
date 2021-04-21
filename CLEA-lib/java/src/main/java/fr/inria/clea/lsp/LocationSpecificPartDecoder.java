@@ -80,6 +80,7 @@ public class LocationSpecificPartDecoder {
      * @throws CleaEncodingException 
      */
     public LocationSpecificPart decrypt(String lspBase64) throws CleaEncryptionException, CleaEncodingException {
+        /* The decoder is compliant with or without padding */
         byte[] encryptedLocationSpecificPart = Base64.getUrlDecoder().decode(lspBase64);
         log.debug("Base 64 decoded LSP: {}", encryptedLocationSpecificPart);
         return this.decrypt(encryptedLocationSpecificPart);

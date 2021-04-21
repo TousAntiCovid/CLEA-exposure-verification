@@ -43,7 +43,7 @@ void usage(char *s, char *err)
     printf("ERROR: %s\n\n", err);
     printf("Usage: %s staff CRIexp venueType venueCategory1 venueCategory2 periodDuration PK_SA PK_MCTA SK_L [locationPhone locationRegion locationPin]\n\n", s);
     printf("locationPhone: 15-digit-max international phone number\n");
-    printf("locationPin: 8-digit-max pin code\n");
+    printf("locationPin: 6-digit-max pin code\n");
     exit(1);
 }
 

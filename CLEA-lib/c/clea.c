@@ -189,14 +189,12 @@ static void to_base64(uint8_t *in, uint8_t *out, uint8_t n)
         if (end - start == 1)
         {
             *pos++ = base64_table[(start[0] & 0x03) << 4];
-            *pos++ = '=';
         }
         else
         {
             *pos++ = base64_table[((start[0] & 0x03) << 4) | (start[1] >> 4)];
             *pos++ = base64_table[(start[1] & 0x0f) << 2];
         }
-        *pos++ = '=';
     }
 
     // Add terminal zero to string
