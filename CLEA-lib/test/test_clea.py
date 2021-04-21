@@ -9,6 +9,7 @@ import os
 import argparse
 import unittest
 import sys
+import glob
 
 CSV_LSP_TST = 'testLSPDecoding.csv'
 CSV_LOC_TST = 'testLocationDecoding.csv'
@@ -48,9 +49,8 @@ and Java LSP decoding
 
 # Java executable can encode or decode
 # a Clé location Specific Part (LSP)
-CMD_JAVA = ['java', '-cp',
-            '../java/target/clea-crypto-0.3-SNAPSHOT-jar-with-dependencies.jar',
-            'fr.inria.clea.lsp.LspEncoderDecoder']
+CLEA_CRYPTO_JAR = glob.glob('../java/target/clea-crypto-*-jar-with-dependencies.jar')[0]
+CMD_JAVA = ['java', '-jar', CLEA_CRYPTO_JAR]
 # C executable can encode t a Cléa LSP
 CMD_C = ['../c/build/test_clea']
 
