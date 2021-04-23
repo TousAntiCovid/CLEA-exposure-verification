@@ -299,7 +299,10 @@ public class CleaEciesEncoder {
             byte[] tlidB = hmacSha256.doFinal(message.getBytes("UTF-8"));
             /* Convert in UUID format */
             byte[] tlidBTrunc = Arrays.copyOfRange(tlidB, 0, 16);
-            locationTemporaryPublicID = UUID.nameUUIDFromBytes(tlidBTrunc);
+            ByteBuffer bb = ByteBuffer.wrap(tlidBTrunc);
+            long high = bb.getLong();
+            long low = bb.getLong();
+            locationTemporaryPublicID = new UUID(high, low);
     
             return locationTemporaryPublicID;
         } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalStateException | UnsupportedEncodingException e) {
