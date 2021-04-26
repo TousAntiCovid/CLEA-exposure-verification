@@ -49,7 +49,7 @@ export async function cleaStartNewPeriod(config) {
     "raw",
     gConf.LTKey, {
       name: "HMAC",
-      hash: "SHA-512"
+      hash: "SHA-256"
     },
     true,
     ["sign"]
