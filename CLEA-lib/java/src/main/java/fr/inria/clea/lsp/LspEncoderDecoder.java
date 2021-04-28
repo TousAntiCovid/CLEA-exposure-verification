@@ -35,7 +35,7 @@ public class LspEncoderDecoder {
     }
 
     protected static void generateKeyPair() throws Exception {
-        String[] keyPair = new CleaEciesEncoder().genKeysPair(true);
+        String[] keyPair = new CleaEciesEncoder().genKeysPair(false);
         System.out.println("Clea EC Private Key: " + keyPair[0]);
         System.out.println("Clea EC Public Key : " + keyPair[1]);
     }
