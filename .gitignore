@@ -15,3 +15,5 @@ c/build
 /CLEA-lib/js/dist
 /CLEA-lib/js/.cache
 /CLEA-lib/js/node_modules
+CLEA-lib/java/.idea/
+*.iml
