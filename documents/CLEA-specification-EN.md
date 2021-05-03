@@ -1,4 +1,4 @@
-# The Cluster Exposure Verification (Cléa) Protocol: Specifications of Protocol Version 0
+# The Cluster Exposure Verification (CL\'EA) Protocol: Specifications of Protocol Version 0
 
 Vincent Roca, Antoine Boutet, Claude Castelluccia
 
@@ -6,7 +6,7 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Work in Progress, April 6th, 2021_**
+**_Work in Progress, May 3rd, 2021_**
 
 
 ----
@@ -22,18 +22,22 @@ PRIVATICS team, Inria, France
 
 ## 1- Introduction
 
-This document specifies the Cluster Exposure Verification (Cléa) protocol meant to warn the participants of a private event (e.g., wedding or private party) or the persons present in a commercial or public location (e.g., bar, restaurant, sport center, or train) that became a cluster because a certain number of people who were present at the same time have been tested COVID+.
+This document specifies the Cluster Exposure Verification (CL\'EA) protocol meant to warn the participants of a private event (e.g., wedding or private party) or the persons present in a commercial or public location (e.g., bar, restaurant, sport center, or train) that became a cluster because a certain number of people who were present at the same time have been tested COVID+.
 
-It is based: (1) on a central server, under the responsibility of an authority (e.g., a health authority), that performs an automatic and centralized cluster detection; (2) on the display a QR code at the location, either in a dynamic manner (e.g., via a dedicated device, smartphone, or tablet) or static manner (e.g., printed); and (3) on a smartphone application used by people present at the location.
-This smartphone application enables to scan this QR code when entering the location, to store it locally (encrypted) for the next 14 days, and to perform periodic risk analyses, in a decentralized manner, after downloading information about the new clusters.
-
-In order to enable a decentralized risk analysis, information about clusters (i.e., the location pseudonyms and cluster timing information) needs to be disclosed.
+It is based: (1) on a central server, under the responsibility of an authority (typically a health authority), that automatically detects potential clusters; (2) on the display a QR code at the location or on a ticket, either in a static (e.g., printed) or dynamic manner (e.g., via a dedicated device, smartphone, or tablet); and (3) on a smartphone application.
+This smartphone application enables its user to scan a QR code, to store it locally for the next 14 days, and to perform periodic risk analyses, in a decentralized manner.
+In order to enable this decentralized (i.e., on the smartphone) risk analysis, information about clusters (location pseudonyms and timing information) needs to be disclosed.
 We believe this is an acceptable downside because this information is not per se sensitive health data (it does not reveal any user health information to an eavesdropper), although it can be considered as personal data (it is indirectly linked to the location manager).
 
-This protocol is also meant to be used by the location employees in order to warn them if their work place is qualified as cluster, or on the opposite to let them upload information to the server if they are tested COVID+.
+Two broad categories of use-cases exist:
+
+- those involving a synchronous scan of a QR code, for situations where a user scans a QR code upon entering an event or location (e.g., a restaurant);
+- those involving an asynchronous scan of a QR code, for situations where a QR code is produced that can be scanned either in advance or after visiting the event or location (e.g., an on-line train ticketing service can add a QR code on the ticket to let a user scan it at its discretion).
+
+Finally, the CL\'EA protocol is also meant to be used by the location employees in order to warn them if their work place is qualified as cluster, or on the opposite to let them upload information to the server if they are themselves tested COVID+.
 
 
-## 2- Cléa protocol high level principles
+## 2- CL\'EA protocol high level principles
 
 ### 2.1- Terminology
 
@@ -45,7 +49,7 @@ The following terms are used in this document:
 | **Device**         |	a specialized device or a general purpose smartphone or tablet with the appropriate software, used by the location manager or event organizer, that displays a QR code. |
 | **Period**         |	time is split into periods (e.g., 24 hours), during which the location pseudonyms (more precisely a temporary cryptographic key and a derived temporary UUID) are stable. After that period, a new location pseudonym is generated. For practical reasons, a new period MUST start at a round predefined hour (e.g., 4:00am may be chosen as a default period start). A period can also have an unlimited duration, meaning that the location pseudonym will remain unchanged. |
 | **(User) terminal**|	the user smartphone used to scan the QR code. |
-| **Cléa application** | the application on the user smartphone used to scan the QR code. |
+| **CL\'EA application** | the application on the user smartphone used to scan the QR code. |
 | **QR code** | The QR code of a location, usually dynamic, that needs to be scanned when entering a location. It contains a URL ("deep link") structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. |
 | **Location Specific Part**  | This is the location specific part of a the QR code, renewed periodically, that contains all the information related to the location, at a given time. |
 
@@ -54,7 +58,7 @@ The following terms are used in this document:
 This protocol must comply with two privacy-related requirements:
 
 - the location manager must not be able to collect any data with respect to the clients (unlike written records where clients fill-in their name and contact information), and
-- the amount of information uploaded by the Cléa application to the central server must be minimized.
+- the amount of information uploaded by the CL\'EA application to the central server must be minimized.
 
 In practice, no information is uploaded to the server unless a client is tested COVID+.
 In that case, if the user explicitly agrees (informed consent), the application uploads the list of scanned QR codes during the past 14 days[^footnote-1] along with timing information to the central server, in order to enable a **_centralized anonymous cluster detection_**.
@@ -66,7 +70,7 @@ Then this central server updates its list of location temporary pseudonyms and t
 _Figure 1: Centralized cluster detection. Here Alice, tested COVID+, agrees to upload her scanned QR codes to the CLEA backend server, which, after verifying the validity of the upload, identifies if some of the visited locations needs to be qualified as potential cluster._    
 
 
-In parallel, each Cléa application periodically downloads this list containing the latest clusters that have been identified, in order to check locally whether or not there is a match.
+In parallel, each CL\'EA application periodically downloads this list containing the latest clusters that have been identified, in order to check locally whether or not there is a match.
 In case of a match, the user is informed with a "warning".
 The exact type of warning message could be adjusted to reflect the risk level (e.g., if a very high number of COVID+ users have been identified in a cluster), which is out of scope of the present specification.
 Therefore this solution follows a **_decentralized risk evaluation_**.
@@ -88,7 +92,7 @@ The current specification can also be used with static QR codes (e.g., printed o
 Being static, this solution has downsides: it is less robust in front of relay attacks, and it enables an attacker to display all the clusters on a map (since the location UUIDs will not frequently change over time, it is relatively easy to collect them) or to focus on a specific set of locations to know if they are cluster.
 A good practice is to regularly change the QR codes, in particular if the location is identified as a cluster.
 This aspect is out of scope of the present specification.
-It can also be noticed that both systems can nicely cohabit, on the same Cléa application, using the same protocol and central server.
+It can also be noticed that both systems can nicely cohabit, on the same CL\'EA application, using the same protocol and central server.
 
 Finally the employees of a location can benefit from the service, in order to be warned if their workplace is a cluster, or on the opposite to upload to the server that they have been tested COVID+.
 Since they have a long presence in the location, the employees must scan a specific QR code which differs from regular QR codes scanned by clients.
@@ -99,20 +103,20 @@ Since they have a long presence in the location, the employees must scan a speci
 This specification considers two different types of attackers.
 The first type is composed of individuals who try to corrupt the service, deny the service, or break the confidentiality of the service.
 
-In the second type, the authority that operates the Cléa system, tries to reidentify the users and know as much as possible on the users.
+In the second type, the authority that operates the CL\'EA system, tries to reidentify the users and know as much as possible on the users.
 The system is expected to be audited by an external trusted authority (e.g., a national Data Protection Agency, like CNIL in case of France).
 Because of these audits, this authority is assumed to be curious but honest.
-It means the authority in charge of the server will not try to modify the Cléa protocol itself, nor the implementation of the Cléa protocol, since this would be detected by the external trusted authority.
+It means the authority in charge of the server will not try to modify the CL\'EA protocol itself, nor the implementation of the CL\'EA protocol, since this would be detected by the external trusted authority.
 However, it may benefit from the recorded information to infer additional information or use it for different purposes.
 
-It follows that the Cléa server should be split into several independent entities: a front end that collects the traffic from the Cléa users and sanitizes the traffic, removing the source IP address for instance, "on-the-fly", without storing any piece of information beyond what is strictly required (care should be put to logs for instance).
+It follows that the CL\'EA server should be split into several independent entities: a front end that collects the traffic from the CL\'EA users and sanitizes the traffic, removing the source IP address for instance, "on-the-fly", without storing any piece of information beyond what is strictly required (care should be put to logs for instance).
 On the opposite, the back end only processes messages that have been sanitized by the front end.
 The backend may also leverage from specific hardware for storing system keys, in order to minimize the security risks in case of intrusion.
 
-On the opposite, the Cléa system assumes that the authority in charge of the Manual Contact Tracing is trustworthy when it comes to dealing with personal data, for instance when a manual contact tracing team contact a location manager or event organizer, not to take advantage of the information collected beyond what is strictly required to perform its task.
+On the opposite, the CL\'EA system assumes that the authority in charge of the Manual Contact Tracing is trustworthy when it comes to dealing with personal data, for instance when a manual contact tracing team contact a location manager or event organizer, not to take advantage of the information collected beyond what is strictly required to perform its task.
 However this authority must not be involved in the cluster detection process, that is not under its responsibility.
 
-It should be noted that technical implementation considerations (e.g., the exact design of the Cléa server) are out of scope of the present document.
+It should be noted that technical implementation considerations (e.g., the exact design of the CL\'EA server) are out of scope of the present document.
 
 
 ### 2.4- Technical requirements
@@ -267,7 +271,7 @@ where:
 ```
 
 The various fields are described below.
-The `Enc(PK_MCTA, locContactMsg)` is defined in section ["A user tested COVID+ has used the Cléa system"](#a-user-tested-covid-has-used-the-cléa-system).
+The `Enc(PK_MCTA, locContactMsg)` is defined in section ["A user tested COVID+ has used the CL\'EA system"](#a-user-tested-covid-has-used-the-cléa-system).
 
 
 **_Binary format of the location-specific-part_**
@@ -419,17 +423,17 @@ Or, without `locContactMsg`, the URL size amounts to **a total of 172 characters
 
 ### 3.5- Scan of the QR code when a client enters a location
 
-A client entering a location scans the QR code, and the Cléa application adds the following tuple to its local list, `localList`, which records the visited locations:
+A client entering a location scans the QR code, and the CL\'EA application adds the following tuple to its local list, `localList`, which records the visited locations:
 ```
 	{QR_code, t_qrScan}
 ```
-where `t_qrScan` is the timestamp in NTP format (32-bit seconds field) of the Cléa application.
+where `t_qrScan` is the timestamp in NTP format (32-bit seconds field) of the CL\'EA application.
 Entries in the local list are automatically removed after 14 days.
 
 
-**_Detection of duplicate scans by the Cléa application:_**
+**_Detection of duplicate scans by the CL\'EA application:_**
 
-Before adding `{QR_code, t_qrScan}` in the local list, the Cléa application checks that an entry with the same `LTId` is not already there, with a scanning time "close" to `t_qrScan`:
+Before adding `{QR_code, t_qrScan}` in the local list, the CL\'EA application checks that an entry with the same `LTId` is not already there, with a scanning time "close" to `t_qrScan`:
 ```C
 	// assume a previous entry already exists for the same LTId, with a scanning time t_scan0
 	if (abs(t_qrScan - t_scan0) > dupScanThreshold) {
@@ -450,7 +454,7 @@ By default, a value of 3 hours is used:
 ```
 
 Note that this is not an absolute protection as an attacker using a malicious application could easily bypass this check.
-Note also that having a `dupScanThreshold` value that depends on the location specificities (e.g., the expected duration during which a client is supposed to stay in a location) is not feasible since this piece of information is in the encrypted part of the QR code and is not accessible to the Cléa application.
+Note also that having a `dupScanThreshold` value that depends on the location specificities (e.g., the expected duration during which a client is supposed to stay in a location) is not feasible since this piece of information is in the encrypted part of the QR code and is not accessible to the CL\'EA application.
 
 
 **_Reliability of the t_qrScan timestamp:_**
@@ -460,13 +464,13 @@ The replay protection is limited by the availability of a trustworthy `t_qrScan`
 Although nothing can prevent a malicious application from storing a specially crafted timestamp, the official application should propose a trustworthy internal clock to be used for this purpose.
 The accuracy of this trustworthy clock needs to be in line with the `qrCodeRenewalInterval`. 
 With an interval of `2^^10 = 1024 seconds`, the accuracy requirement is pretty low.
-The Cléa application benefits from such an internal trustworthy clock, making it relatively robust in front of such a relay attack.
+The CL\'EA application benefits from such an internal trustworthy clock, making it relatively robust in front of such a relay attack.
 
 
 ### 3.6- Upload of the location history by a client tested COVID+ and cluster detection on the server
 
 Let us assume the user has been tested COVID+.
-In that case, her Cléa application asks for her explicit informed consent to upload her location history.
+In that case, her CL\'EA application asks for her explicit informed consent to upload her location history.
 If the user explicitly agrees, the following operations take place.
 
 
@@ -504,13 +508,13 @@ In case of problem, the server rejects the tuple.
 
 
 **_- Step 2:_** If `qrCodeRenewalInterval > 0`, a freshness check is performed for this tuple in order to limit relay attacks.
-More precisely, if `t_qrScan` (generated by the Cléa application during the scan) and `t_qrStart` (generated by the device and protected from malicious modifications by being in the encrypted part of the QR code) are "too different", the server rejects the tuple.
-The tolerance depends on the `qrCodeRenewalInterval` value, on the possible drift of the device clock (e.g., one or two minutes per year), and on the accuracy of the Cléa application clock on the user terminal.
+More precisely, if `t_qrScan` (generated by the CL\'EA application during the scan) and `t_qrStart` (generated by the device and protected from malicious modifications by being in the encrypted part of the QR code) are "too different", the server rejects the tuple.
+The tolerance depends on the `qrCodeRenewalInterval` value, on the possible drift of the device clock (e.g., one or two minutes per year), and on the accuracy of the CL\'EA application clock on the user terminal.
 For instance it checks that: 
 ```
 	| t_qrScan - t_qrStart | < qrCodeRenewalInterval + 300 sec + 300 sec
 ```
-in order to take into account the possibility of scanning the code just before its renewal, including a maximum drift of 5mn for this device compared to the official time, and also a maximum drift of 5mn for the Cléa clock.
+in order to take into account the possibility of scanning the code just before its renewal, including a maximum drift of 5mn for this device compared to the official time, and also a maximum drift of 5mn for the CL\'EA clock.
 
 This verification is intended to limit (without being able to totally prevent them) relay attacks where the attacker scans a QR code from a target location and communicates it to several supposed patients in order to create a fake cluster afterwards. The attack is thus limited in time to the defined tolerance.
 
@@ -632,13 +636,13 @@ Note that Unix timestamps (that uses an epoch located at 1/1/1970-00:00h (UTC)) 
 [^footnote-5]: See: [https://stackoverflow.com/questions/29112071/how-to-convert-ntp-time-to-unix-epoch-time-in-c-language-linux]
 
 
-### 3.8- Decentralized risk analysis in the Cléa application 
+### 3.8- Decentralized risk analysis in the CL\'EA application 
 
-Each Cléa application periodically downloads the `clusterList` from the server, in an incremental manner.
+Each CL\'EA application periodically downloads the `clusterList` from the server, in an incremental manner.
 This is achieved by downloading the `index.txt` file first, identifying the newly available files (it is assumed the application remembers what is the latest file name downloaded).
-The Cléa application then downloads each of the new files, remembers the name of the last one, and processes them one by one.
+The CL\'EA application then downloads each of the new files, remembers the name of the last one, and processes them one by one.
 
-Then the Cléa application checks locally if there is one or more intersections between:
+Then the CL\'EA application checks locally if there is one or more intersections between:
 
 - the information `{LTId, t_qrScan}` from each tuple of its `localList` (the `LTId` is available in clear text in the QR code scanned in order to allow this comparison).
 - the information `{LTId_cluster, h1_cluster}` from the downloaded `clusterList`.
@@ -647,21 +651,21 @@ It the server provide a certain degree of risk (i.e., distinguishes low and high
 However, since the `{LTId_cluster, h1_cluster}` information is public, a curious user may be able to know more about the exact time of exposure.
 
 
-### 3.9- Linking the Cléa digital system and the hand-written attendance register
+### 3.9- Linking the CL\'EA digital system and the hand-written attendance register
 
-The use of the Cléa digital system is based on a voluntary decision of the user, the alternative consisting for this user in leaving her name in the hand-written attendance register.
+The use of the CL\'EA digital system is based on a voluntary decision of the user, the alternative consisting for this user in leaving her name in the hand-written attendance register.
 Consequently, a link between the two systems should be established. 
-The following sections explain how this can be done, depending on whether a user tested COVID+ has used the Cléa system or the hand-written attendance register.
+The following sections explain how this can be done, depending on whether a user tested COVID+ has used the CL\'EA system or the hand-written attendance register.
 
 It should also be noted that there are use-cases where the hand-written attendance register may not exist, for instance in case of digital ticketing.
 In that case, the `locContactMsg` should be ignored, by setting the `locContacMsgPresent` flag to 0.
 Similarly, the Health Authority may decide not to link the two systems together, in which case the `locContacMsgPresent` flag should be set to 0.
 
 It should also be noted that the link between the two systems is not perfect.
-If the cluster qualification threshold is strictly superior to `1`, it can happen that a given location should be qualified as cluster because the total number of COVID+ persons who were there at the same time is sufficient, but no alert is raised because some of them used the Cléa application, and the others the attendance register.
+If the cluster qualification threshold is strictly superior to `1`, it can happen that a given location should be qualified as cluster because the total number of COVID+ persons who were there at the same time is sufficient, but no alert is raised because some of them used the CL\'EA application, and the others the attendance register.
 
 
-#### A user tested COVID+ has used the Cléa system
+#### A user tested COVID+ has used the CL\'EA system
 
 In that case, the backend server qualifies as a cluster a given location, based on an uploaded QR code (and perhaps previous ones depending on the threshold).
 Since the re-identification of the location is the responsibility of the authority in charge of the manual contact tracing, assumed different from the authority in charge of the backend server, the backend server communicates through a TLS connection the location contact re-identification part of the QR code, encrypted via the public key of the Manual Contact Tracing Authority, along with cluster timing information.
@@ -703,7 +707,7 @@ In case of France, it can contain a department number.
 - `locationPIN` (3 bytes):
 this field contains a 6-digit secret PIN known only by the location contact, communicated when registering to the device manufacturer or on the web site when generating a static QR code.
 It is meant to prevent an attacker who knows the contact phone number of a target location (this phone number is usually public) to forge a new QR code and handle it to a user tested COVID+.
-Thanks to the `locationPIN`, the manual contact tracing team can check the QR code validity with the location contact: if the two pin codes do not match, the QR code is reputed invalid and ignored (note that the Cléa users have no risk, the forged `LTKey` and `LTId` being totally distinct from the ones actually used in this location).
+Thanks to the `locationPIN`, the manual contact tracing team can check the QR code validity with the location contact: if the two pin codes do not match, the QR code is reputed invalid and ignored (note that the CL\'EA users have no risk, the forged `LTKey` and `LTId` being totally distinct from the ones actually used in this location).
 
 - `t_periodStart` (4 bytes):
 Starting time of the period.
@@ -724,7 +728,7 @@ In order to make it possible, the Manual Contact Tracing team needs to ask the l
 For instance, the team can physically visit the location, discuss with the manager and help her upload her own scanned QR code of that day, using a dedicated authorization token.
 In case of a static QR code, obtaining the required QR code is not an issue.
 In case of a dynamic QR code, this scenario requires that the location manager scans her location QR code everyday, as any employee is supposed to do.
-Although there is a risk that she omitted to do so on that day (thereby preventing a notification through the Cléa applications), the probability this happened is reasonable.
+Although there is a risk that she omitted to do so on that day (thereby preventing a notification through the CL\'EA applications), the probability this happened is reasonable.
 
 
 ### 3.10- Management of the location employees
@@ -734,7 +738,7 @@ Since they have a long presence in the location, the employees must scan a speci
 Such an "staff" QR code can be generated through an appropriate manipulation on the box (e.g., using a magnetic badge).
 
 1. to warn an employee that their workplace is a cluster:
-        As the risk analysis is local, it is sufficient to use a dedicated "extended presence range" mode in their Cléa application.
+        As the risk analysis is local, it is sufficient to use a dedicated "extended presence range" mode in their CL\'EA application.
 	The verification is then done based on this extended presence range starting from the scan time.
         However, an employee who has two disjoint working periods may be warned whereas the cluster corresponds to a non working period.
 	To address this issue, the employee can obtain more precise information from the application on the times when the location was declared as a cluster in order to perform a manual verification (the detailed information is anyway public).
@@ -778,15 +782,15 @@ For instance, after buying a train ticket, the user will receive a QR code assoc
 
 ## 4- Conclusions
 
-The Cléa cluster exposure verification protocol features key privacy properties thanks to its local risk evaluation (the list of scanned QR codes remains on the user's smartphone) and its totally anonymous approach (no user pseudonym, no user-related information kept in the backend server).
+The CL\'EA cluster exposure verification protocol features key privacy properties thanks to its local risk evaluation (the list of scanned QR codes remains on the user's smartphone) and its totally anonymous approach (no user pseudonym, no user-related information kept in the backend server).
 Only users tested COVID+ upload information to the central server (their list of scanned QR codes with a scanning timestamp, without any user identifying information), on a voluntary basis: this upload is required in order to identify potential clusters and inform other users.
 
 Flexibility is another key design requirement. 
-Indeed, the Cléa protocol can be used in a dynamic manner, QR code being renewed periodically which leads to location temporary pseudonyms (`LTId`).
+Indeed, the CL\'EA protocol can be used in a dynamic manner, QR code being renewed periodically which leads to location temporary pseudonyms (`LTId`).
 Having temporary pseudonyms is key to avoid most practical attacks attempting to collect these pseudonyms on a large scale (for instance to display geolocated maps of cluster locations).
 However this dynamic approach requires the location to have one or more devices (depending on the location size) in order to display such dynamic QR codes.
 Not all locations are concerned by such attacks.
-Therefore a location manager or a private event organizer may prefer the practical and device-free static variant of Cléa, where a QR code has a permanent validity: a QR code will be generated using a dedicated web service, and then be printed and displayed in the location.
+Therefore a location manager or a private event organizer may prefer the practical and device-free static variant of CL\'EA, where a QR code has a permanent validity: a QR code will be generated using a dedicated web service, and then be printed and displayed in the location.
 
 Another key design requirement is the ability to use embedded, autonomous devices, that are:
 
@@ -794,14 +798,14 @@ Another key design requirement is the ability to use embedded, autonomous device
 - feature an limited screen size and resolution (e.g., a maximum of 196 printable characters can be encoded into the QR code);
 - have no network connection, neither wired nor wireless.
 
-This opens the road to cheap, fully dedicated, and secure devices, meant to facilitate the practical deployment of the Cléa system in commercial locations (once installed, the device can be forgotten).
+This opens the road to cheap, fully dedicated, and secure devices, meant to facilitate the practical deployment of the CL\'EA system in commercial locations (once installed, the device can be forgotten).
 
-The Cléa system being totally anonymous, mitigating replay attacks is needed.
+The CL\'EA system being totally anonymous, mitigating replay attacks is needed.
 This attack consists, for the attacker, to scan a target location QR code and relay it to a potentially COVID+ user in the hope to trigger a cluster decision.
-If a static Cléa deployment is vulnerable, the dynamic version includes counter-measures, limiting the QR code validity duration and including automatic timing information when a QR code is scanned, which also requires the application to provide a trustworthy clock.
-Although not perfect (a modified Cléa application could easily bypass the protection, and the QR code validity period is anyway limited by the ability for an embedded device to renew it frequently), it is considered a reasonable protection.
+If a static CL\'EA deployment is vulnerable, the dynamic version includes counter-measures, limiting the QR code validity duration and including automatic timing information when a QR code is scanned, which also requires the application to provide a trustworthy clock.
+Although not perfect (a modified CL\'EA application could easily bypass the protection, and the QR code validity period is anyway limited by the ability for an embedded device to renew it frequently), it is considered a reasonable protection.
 
-Finally, the Cléa system enables the authority in charge of the backend server to gather some basic statistics on the pandemic and the potential efficacy of the system:
+Finally, the CL\'EA system enables the authority in charge of the backend server to gather some basic statistics on the pandemic and the potential efficacy of the system:
 number of locations that triggered a warning on a daily basis and typology of these locations (see the `venueType`, `venueCategory*` fields).
 However, the risk being assessed locally, by default, the authority will not know the number of people warned.
 
