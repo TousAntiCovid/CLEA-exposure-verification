@@ -2,125 +2,131 @@
  * Copyright (C) Inria, 2021
  */
 
-/*
-global configuration
-*/
-let gConf = {
-  LTKey: new Uint8Array(32),
-  LTId: new Uint8Array(16),
-  t_periodStart: getNtpUtc(true),
-  ct_periodStart: 0,
-  t_qrStart: 0
-}
-
+export const COUNTRY_SPECIFIC_PREFIX = "https://tac.gouv.fr?v=0#";
 
 // Display debug information on console
 let verbose = false;
 
-
-/**
- * Start a new period to generate a new LSP computing LTKey (Temporary location
- * 256-bits secret key) and LTId (Temporary location public UUID)
- * 
- * use gConf (see above)
- * @param {conf} config user configuration
- *   conf = {SK_L, PK_SA, PK_MCTA, 
- *           staff, CRIexp, venueType, venueCategory1, venueCategory2,
- *           periodDuration, locContactMsg}
- * 
- * @return
- */
-export async function cleaStartNewPeriod(config) {
-  gConf.t_periodStart = getNtpUtc(true);
-
-  // Compute LTKey
+async function generateLocationTemporarySecretKey(SK_L, periodStartTime) {
   let tmp = new Uint8Array(64);
-  tmp.set(config.SK_L, 0);
-  tmp[60] = (gConf.t_periodStart >> 24) & 0xFF;
-  tmp[61] = (gConf.t_periodStart >> 16) & 0xFF;
-  tmp[62] = (gConf.t_periodStart >> 8) & 0xFF;
-  tmp[63] = gConf.t_periodStart;
-  gConf.LTKey = await crypto.subtle.digest("SHA-256", tmp)
+  tmp.set(SK_L, 0);
+  tmp[60] = (periodStartTime >> 24) & 0xFF;
+  tmp[61] = (periodStartTime >> 16) & 0xFF;
+  tmp[62] = (periodStartTime >> 8) & 0xFF;
+  tmp[63] = periodStartTime;
+  return await crypto.subtle.digest("SHA-256", tmp);
+}
 
-  // Compute LTId
+async function generateLocationTemporaryId(LTKey) {
   let one = new Uint8Array(1);
   one[0] = 0x31; // '1'
   let key = await crypto.subtle.importKey(
     "raw",
-    gConf.LTKey, {
+    LTKey, {
       name: "HMAC",
       hash: "SHA-256"
     },
     true,
     ["sign"]
   );
-  gConf.LTId = new Uint8Array(await crypto.subtle.sign("HMAC", key, one), 0, 16); // HMAC-SHA256-128
-
-  return cleaRenewLSP(config);
+  return new Uint8Array(await crypto.subtle.sign("HMAC", key, one), 0, 16); // HMAC-SHA256-128
 }
 
-/**
- * Generate a new locationSpecificPart (LSP)
- * 
- * use gConf (see above)
- * @param {conf} config user configuration
- *   conf = {SK_L, PK_SA, PK_MCTA, 
- *           staff, CRIexp, venueType, venueCategory1, venueCategory2,
- *           periodDuration, locContactMsg}
- * 
- * @return {string} encoded LSP in Base64 format
- */
-export async function cleaRenewLSP(config) {
+export function newLocation(permanentLocationSecretKey, serverAuthorityPublicKey, manualContactTracingAuthorityPublicKey) {
+  return {
+    permanentLocationSecretKey,
+    serverAuthorityPublicKey,
+    manualContactTracingAuthorityPublicKey,
+  };
+}
+
+export async function newLocationSpecificPart(location, venueType, venueCategory1, venueCategory2, periodDuration, periodStartTime, qrCodeRenewalIntervalExponentCompact, qrCodeValidityStartTime) {
+  let locationTemporarySecretKey = await generateLocationTemporarySecretKey(location.permanentLocationSecretKey);
+  let locationTemporaryPublicId = await generateLocationTemporaryId(locationTemporarySecretKey);
+  return {
+    locationTemporarySecretKey,
+    locationTemporaryPublicId,
+    venueType,
+    venueCategory1,
+    venueCategory2,
+    periodDuration,
+    periodStartTime,
+    qrCodeRenewalIntervalExponentCompact,
+    qrCodeValidityStartTime,
+  };
+}
+
+export function renewLocationSpecificPart(locationSpecificPart, qrCodeValidityStartTime) {
+  locationSpecificPart.qrCodeValidityStartTime = qrCodeValidityStartTime;
+}
+
+export async function newDeepLink(location, locationSpecificPart, staff) {
+  let header = buildHeader(0, 0, locationSpecificPart.locationTemporaryPublicId); // FIXME version and qrType
+  let msg = await buildMessage(location, locationSpecificPart, staff);
+  let output = await encrypt(header, msg, location.serverAuthorityPublicKey);
+
+  // Convert output to Base64url
+  let base64url = btoa((Array.from(new Uint8Array(output))).map(ch => String.fromCharCode(ch)).join('')).replace(/\+/g, '-').replace(/\//g, '_').replace(/={1,2}$/, '');
+  return COUNTRY_SPECIFIC_PREFIX + base64url;
+}
+
+export async function newDeepLinks(location, locationSpecificPart) {
+  let staffDeepLink = newDeepLink(location, locationSpecificPart, true);
+  let visitorsDeepLink = newDeepLink(location, locationSpecificPart, false);
+  { staffDeepLink; visitorsDeepLink }
+}
+
+function buildHeader(version, qrType, locationTemporaryPublicId) {
   const CLEAR_HEADER_SIZE = 17;
+
+  let header = new Uint8Array(CLEAR_HEADER_SIZE);
+
+  // Fill header
+  header[0] = ((version & 0x7) << 5) | ((qrType & 0x7) << 2);
+  header.set(locationTemporaryPublicId, 1);
+
+  return header;
+}
+
+async function buildMessage(location, locationSpecificPart, staff) {
   const MSG_SIZE = 44;
   const LOC_MSG_SIZE = 16;
   const TAG_AND_KEY = 49;
-
-  gConf.t_qrStart = getNtpUtc(false);
-  gConf.ct_periodStart = gConf.t_periodStart / 3600;
-
-  let header = new Uint8Array(CLEAR_HEADER_SIZE);
-  let msg = new Uint8Array(MSG_SIZE + (config.locContactMsg ? LOC_MSG_SIZE + TAG_AND_KEY : 0));
+  let msg = new Uint8Array(MSG_SIZE + (locationSpecificPart.locContactMsg ? LOC_MSG_SIZE + TAG_AND_KEY : 0));
   let loc_msg = new Uint8Array(LOC_MSG_SIZE);
 
-  // Fill header
-  header[0] = ((config.version & 0x7) << 5) | ((config.qrType & 0x7) << 2);
-  header.set(gConf.LTId, 1);
+  let compressedPeriodStartTime = locationSpecificPart.periodStartTime / 3600;
+  let qrCodeValidityStartTime = locationSpecificPart.qrCodeValidityStartTime;
 
-  // Fill message
   let reserved = 0x0; // reserved for specification evolution
-  msg[0] = ((config.staff & 0x1) << 7) | (config.locContactMsg ? 0x40 : 0) | ((reserved & 0xFC0) >>> 6);
-  msg[1] = ((reserved & 0x3F) << 2) | ((config.CRIexp & 0x18) >> 3);
-  msg[2] = ((config.CRIexp & 0x7) << 5) | (config.venueType & 0x1F);
-  msg[3] = ((config.venueCategory1 & 0xF) << 4) | (config.venueCategory2 & 0xF);
-  msg[4] = config.periodDuration;
-  msg[5] = (gConf.ct_periodStart >> 16) & 0xFF; // multi-byte numbers are stored with the big endian convention as required by the specification
-  msg[6] = (gConf.ct_periodStart >> 8) & 0xFF;
-  msg[7] = gConf.ct_periodStart & 0xFF;
-  msg[8] = (gConf.t_qrStart >> 24) & 0xFF;
-  msg[9] = (gConf.t_qrStart >> 16) & 0xFF;
-  msg[10] = (gConf.t_qrStart >> 8) & 0xFF;
-  msg[11] = gConf.t_qrStart & 0xFF;
-  msg.set(new Uint8Array(gConf.LTKey), 12);
+  msg[0] = ((staff & 0x1) << 7) | (locationSpecificPart.locContactMsg ? 0x40 : 0) | ((reserved & 0xFC0) >>> 6);
+  msg[1] = ((reserved & 0x3F) << 2) | ((locationSpecificPart.qrCodeRenewalIntervalExponentCompact & 0x18) >> 3);
+  msg[2] = ((locationSpecificPart.qrCodeRenewalIntervalExponentCompact & 0x7) << 5) | (locationSpecificPart.venueType & 0x1F);
+  msg[3] = ((locationSpecificPart.venueCategory1 & 0xF) << 4) | (locationSpecificPart.venueCategory2 & 0xF);
+  msg[4] = locationSpecificPart.periodDuration;
+  msg[5] = (compressedPeriodStartTime >> 16) & 0xFF; // multi-byte numbers are stored with the big endian convention as required by the specification
+  msg[6] = (compressedPeriodStartTime >> 8) & 0xFF;
+  msg[7] = compressedPeriodStartTime & 0xFF;
+  msg[8] = (qrCodeValidityStartTime >> 24) & 0xFF;
+  msg[9] = (qrCodeValidityStartTime >> 16) & 0xFF;
+  msg[10] = (qrCodeValidityStartTime >> 8) & 0xFF;
+  msg[11] = qrCodeValidityStartTime & 0xFF;
+  msg.set(new Uint8Array(locationSpecificPart.locationTemporarySecretKey), 12);
 
-  if (config.locContactMsg) {
-    const phone = parseBcd(config.locContactMsg.locationPhone, 8);
+  if (locationSpecificPart.locContactMsg) {
+    const phone = parseBcd(locationSpecificPart.locContactMsg.locationPhone, 8);
     loc_msg.set(phone, 0);
     // Max digit is 15, the last 4 bits are set to 0 (pad)
     loc_msg[7] = loc_msg[7] & 0xF0;
-    loc_msg[8] = config.locContactMsg.locationRegion & 0xFF;
-    const pin = parseBcd(config.locContactMsg.locationPin, 3);
+    loc_msg[8] = locationSpecificPart.locContactMsg.locationRegion & 0xFF;
+    const pin = parseBcd(locationSpecificPart.locContactMsg.locationPin, 3);
     loc_msg.set(pin, 9);
-    let encrypted_loc_msg = await encrypt(new Uint8Array(0), loc_msg, config.PK_MCTA);
+    let encrypted_loc_msg = await encrypt(new Uint8Array(0), loc_msg, location.manualContactTracingAuthorityPublicKey);
     msg.set(new Uint8Array(encrypted_loc_msg), 44);
   }
 
-  let output = await encrypt(header, msg, config.PK_SA);
-
-  // Convert output to Base64
-  return btoa((Array.from(new Uint8Array(output))).map(ch => String.fromCharCode(ch)).join('')).replace(/\+/g, '-').replace(/\//g, '_').replace(/={1,2}$/, '');
+  return msg;
 }
-
 
 /**
  * Encrypt, respecting CLEA protocol: | header | msg |
@@ -237,14 +243,6 @@ export function getNtpUtc(round) {
 
   if (round) {
     let th = Math.floor(t / ONE_HOUR_IN_MS); // Number of hours since the epoch
-    let rem = t % ONE_HOUR_IN_MS; // Number of ms since the last round hour
-
-    // Round the hour, i.e. if we are closer to the next round
-    // hour than the last one, round to the next hour
-    if (rem > ONE_HOUR_IN_MS / 2) {
-      th++;
-    }
-
     t = th * 3600;
   } else {
     t /= 1000;

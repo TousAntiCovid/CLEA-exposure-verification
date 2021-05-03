@@ -11,7 +11,7 @@ function logEncodingDataAndResult(conf, result) {
     let message = conf.SK_L_HEX+","
             +conf.SK_MCTA_HEX+","
             +conf.SK_SA_HEX+","
-            +result+","
+            +result.substring(clea.COUNTRY_SPECIFIC_PREFIX.length)+","
             +conf.staff+","
             +conf.CRIexp+","
             +conf.venueType+","
@@ -94,29 +94,38 @@ describe('getNtpUtc()', function () {
     });
 });
 
-describe('cleaRenewLSP()', function () {
-    it('should return something with the right lenght and the right header', async () => {
-        let conf = configurationFromRun(runs[0]);
+describe('renewLocationSpecificPart()', function () {
+    describe('test suite for renewLocationSpecificPart()', function () {
+        it('should return something with the right length and the right header', async () => {
+            let conf = configurationFromRun(runs[0]);
+            let location = await clea.newLocation(conf.SK_L, conf.PK_SA, conf.PK_MCTA);
+            let periodStartTime = clea.getNtpUtc(true);
+            let qrCodeValidityStartTime = clea.getNtpUtc(false);
+            let locationSpecificPart = await clea.newLocationSpecificPart(location, conf.venueType, conf.venueCategory1, conf.venueCategory2, conf.periodDuration, periodStartTime, conf.CRIexp, qrCodeValidityStartTime);
+            qrCodeValidityStartTime = clea.getNtpUtc(false);
+            await clea.renewLocationSpecificPart(locationSpecificPart, qrCodeValidityStartTime);
+            let result = await clea.newDeepLink(location, locationSpecificPart, conf.staff);
 
-        let result = await clea.cleaRenewLSP(conf);
-
-        logEncodingDataAndResult(conf, result);
-        expect([147, 234]).to.include(result.length);
-        expect(result.startsWith('AAAAAAAAAAAAAAAAAAAAAA')).to.be.true;
-    })
-
+            logEncodingDataAndResult(conf, result);
+            expect([147, 234]).to.include(result.length - clea.COUNTRY_SPECIFIC_PREFIX.length);
+        });
+    });
 });
 
-describe('cleaStartNewPeriod()', function () {
-    describe('test suite for cleaStartNewPeriod()', function () {
+describe('newDeepLink()', function () {
+    describe('test suite for newDeepLink()', function () {
         runs.forEach(function (run) {
             it('should return a result with 147 length', async () => {
                 let conf = configurationFromRun(run);
+                let location = await clea.newLocation(conf.SK_L, conf.PK_SA, conf.PK_MCTA);
 
-                let result = await clea.cleaStartNewPeriod(conf);
+                let periodStartTime = clea.getNtpUtc(true);
+                let qrCodeValidityStartTime = clea.getNtpUtc(false);
+                let locationSpecificPart = await clea.newLocationSpecificPart(location, conf.venueType, conf.venueCategory1, conf.venueCategory2, conf.periodDuration, periodStartTime, conf.CRIexp, qrCodeValidityStartTime);
+                let result = await clea.newDeepLink(location, locationSpecificPart, conf.staff);
 
                 logEncodingDataAndResult(conf, result);
-                expect([147, 234]).to.include(result.length);
+                expect([147, 234]).to.include(result.length - clea.COUNTRY_SPECIFIC_PREFIX.length);
             });
         });
     });
@@ -214,4 +223,4 @@ describe('encrypt()', function () {
             expect(resultInt8Array[i]).to.be.equal(header[i]);
         }
     });
-})
+});
