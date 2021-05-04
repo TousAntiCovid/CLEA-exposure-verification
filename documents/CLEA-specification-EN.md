@@ -531,17 +531,30 @@ This scheme is implemented using SECP256R1 ECDH as KEM, KDF1 using SHA256 hash a
 
 **_QR code size:_**
 
-For the LSP type 0 specified in this document, the plain text part is 17 bytes long.
+For the LSP type 0, the plain text part is 17 bytes long, and 22 bytes long for the LSP type 1.
 
 The `msg` message, without taking `Enc(PK_MCTA, locContactMsg)` into account (or when absent), is 44 bytes long.
 The hybrid ECIES-KEM adds an overhead of 49 bytes (see [Description of the hybrid encryption scheme and the Enc and Dec functions](#a-description-of-the-hybrid-encryption-scheme-and-the-enc-and-dec-functions)), for a total of 93 bytes.
 
 When the `locContactMsgPresent == 1`, the `locContactMsg` message adds an extra 16 bytes, as well as the same 49-byte overhead for the hybrid ECIES-KEM encryption, for a total of 65 bytes.
 
-The total is therefore 175 bytes long with the `locContactMsg`, or 110 bytes long without.
+The total is therefore 175 bytes long (resp. 180 for LSP type 1) with the `locContactMsg`, or 110 bytes long (resp. 115 for LSP type 1) without.
 
-The size of this binary message, after Base64url encoding, increases to 235 characters that are added to the `https://tac.gouv.fr?v=0#` 24-character-long prefix (in case of France), for a **total of 259 characters** for the URL.
-Or, without `locContactMsg`, the URL size amounts to **a total of 172 characters**.
+The size of this binary message, after Base64url encoding, increases to 235 characters (resp. 242) that are added to the `https://tac.gouv.fr?v=0#` 24-character-long prefix (in case of France), for a **total of 259 characters** (resp. 266) for the URL.
+Or, without `locContactMsg`, the URL size amounts to **a total of 171 characters** (resp. 177).
+
+| Name                                                         | size when LSP TYpe 0 | size when LSP Type 1 |
+|--------------------------------------------------------------|----------------------|----------------------|
+| `https://tac.gouv.fr?v=0#` preffix (characters)              | 24 chars             | 24 chars             |
+| Plain text part of the LSP (bytes)                           | 17 bytes             | 22 bytes             |
+| msg part of the LSP, without `locContactMsg` (bytes)         | 93 bytes             | 93 bytes             |
+| `locContactMsg` size (bytes)                                 | 65 bytes             | 65 bytes             |
+| size with `locContactMsg` before Base64url encoding (bytes)  | 175 bytes            | 180 bytes            |
+| size with `locContactMsg` after Base64url encoding (chars)   | 233 chars            | 240 chars            |
+| total URL (deep link) size with `locContactMsg` (characters) | 257 chars            | 264 chars            |
+| size w/o `locContactMsg` before Base64url encoding (bytes)   | 110 bytes            | 115 bytes            |
+| size w/o `locContactMsg` after Base64url encoding (chars)    | 147 chars            | 153 chars            |
+| total URL (deep link) size w/o `locContactMsg` (chars)       | 171 chars            | 177 chars            |
 
 
 ### 3.5- Scan of the QR code when a client enters a location
