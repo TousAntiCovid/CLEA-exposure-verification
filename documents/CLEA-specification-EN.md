@@ -32,6 +32,7 @@ We believe this is an acceptable downside because this information is not per se
 Two broad categories of use-cases exist:
 
 - those involving a synchronous scan of a QR code, for situations where a user scans a QR code upon entering an event or location (e.g., a restaurant);
+
 - those involving an asynchronous scan of a QR code, for situations where a QR code is produced that can be scanned either in advance or after visiting the event or location (e.g., an on-line train ticketing service can add a QR code on the ticket to let a user scan it at its discretion).
 
 Finally, the CLEA protocol is also meant to be used by the location employees in order to warn them if their work place is qualified as cluster, or on the opposite to let them upload information to the server if they are themselves tested COVID+.
@@ -95,11 +96,23 @@ Three options exist:
 
 - Option 1: the MCT is at the center, for a maximum control.
 	Here the upload of Alice scanned QR code history is done during or after an interview with the MCT, under MCT control;
+
+<img src="img/CLEA_deployment_option1.jpg" alt=".CLEA_deployment_option1.jpg" width="700"/>    
+
+_Figure 3: CLEA deployment option 1, with the MCT at the center._
+
 - Option 2: the MCT is at the edge, for maximum scalability and speed, and to avoid overloading the MCT.
 	Here clusters can potentially be identified as soon as Alice uploads her scanned QR code history, without any delay.
 	The MCT is also informed of those new clusters but they are not in the critical path;
-- Option 3: the MCT is not involved in any manner.
+
+<img src="img/CLEA_deployment_option2.jpg" alt=".CLEA_deployment_option2.jpg" width="700"/>    
+
+_Figure 4: CLEA deployment option 2, with the MCT at the edge._
+
+- Option 3: the MCT is not involved in any manner (same as Fig. 4 without step 4).
 	Here it is not possible to couple the digital system with any hand-written attendance register.
+
+Choosing an option is a local decision that does not compromize interoperability with other types of deployment in neighbouring countries.
 
 
 **_QR codes for synchronous versus asynchronous scans_**
@@ -152,7 +165,7 @@ The backend may also leverage from specific hardware for storing system keys, in
 On the opposite, the CLEA system assumes that the authority in charge of the Manual Contact Tracing is trustworthy when it comes to dealing with personal data, for instance when a manual contact tracing team contact a location manager or event organizer, not to take advantage of the information collected beyond what is strictly required to perform its task.
 However this authority must not be involved in the cluster detection process, that is not under its responsibility.
 
-It should be noted that technical implementation considerations (e.g., the exact design of the CLEA server) are out of scope of the present document.
+It should be noted that technical implementation considerations (e.g., the exact design of the CLEA server or application) are out of scope of the present document, whereas such considerations can impact security and privacy.
 
 
 ### 2.4- Technical requirements
