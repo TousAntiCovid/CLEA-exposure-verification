@@ -543,7 +543,7 @@ The total is therefore 175 bytes long (resp. 180 for LSP type 1) with the `locCo
 The size of this binary message, after Base64url encoding, increases to 235 characters (resp. 242) that are added to the `https://tac.gouv.fr?v=0#` 24-character-long prefix (in case of France), for a **total of 259 characters** (resp. 266) for the URL.
 Or, without `locContactMsg`, the URL size amounts to **a total of 171 characters** (resp. 177).
 
-| Name                                                         | size when LSP TYpe 0 | size when LSP Type 1 |
+| Name                                                         | size with LSP Type 0 | size with LSP Type 1 |
 |--------------------------------------------------------------|----------------------|----------------------|
 | `https://tac.gouv.fr?v=0#` preffix (characters)              | 24 chars             | 24 chars             |
 | Plain text part of the LSP (bytes)                           | 17 bytes             | 22 bytes             |
