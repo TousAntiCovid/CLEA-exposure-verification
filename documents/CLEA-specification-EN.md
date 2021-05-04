@@ -293,7 +293,7 @@ Renewal at a pre-defined full hour associated with a limited drift of the boxes 
 Since the devices are not perfectly synchronized (device clock drifts), a small hazard is possible (i.e., some devices will still display the old QR code and others the new one), but without any consequence if the location is closed to public at that moment.
 
 
-### 3.4- QR code generation 
+### 3.4- QR code content 
 
 **_Principles_**
 
@@ -557,7 +557,7 @@ Or, without `locContactMsg`, the URL size amounts to **a total of 171 characters
 | **_total URL size w/o `locContactMsg` (chars)_**             | **_171 chars_**      | **_177 chars_**            |
 
 
-### 3.5- Scan of the QR code when a client enters a location
+### 3.5- Synchronous scan of the QR code when a client enters a location (LSP Type 0)
 
 A client entering a location scans the QR code, and the CLEA application adds the following tuple to its local list, `localList`, which records the visited locations:
 ```
@@ -603,7 +603,10 @@ With an interval of `2^^10 = 1024 seconds`, the accuracy requirement is pretty l
 The CLEA application benefits from such an internal trustworthy clock, making it relatively robust in front of such a relay attack.
 
 
-### 3.6- Upload of the location history by a client tested COVID+ and cluster detection on the server
+### 3.5- Asynchronous scan of the QR code (LSP Type 1)
+
+
+### 3.7- Upload of the location history by a client tested COVID+ and cluster detection on the server
 
 Let us assume the user has been tested COVID+.
 In that case, her CLEA application asks for her explicit informed consent to upload her location history.
@@ -704,7 +707,7 @@ Several levels of severity could also be considered depending on the exposure co
 The details on how to exploit the various exposure counters are related to epidemiological policy considerations and are therefore out of scope of the present document.
 
 
-### 3.7- Incremental downloads of the clusterList
+### 3.8- Incremental downloads of the clusterList
 
 The `clusterList` is made available by the server to all terminals, for instance via a Content Delivery Network, CDN, service.
 The `clusterList` information is structured in a manner that enables a terminal to download the entries in an incremental manner (rather than the 14 days content at once).
@@ -772,7 +775,7 @@ Note that Unix timestamps (that uses an epoch located at 1/1/1970-00:00h (UTC)) 
 [^footnote-5]: See: [https://stackoverflow.com/questions/29112071/how-to-convert-ntp-time-to-unix-epoch-time-in-c-language-linux]
 
 
-### 3.8- Decentralized risk analysis in the CLEA application 
+### 3.9- Decentralized risk analysis in the CLEA application 
 
 Each CLEA application periodically downloads the `clusterList` from the server, in an incremental manner.
 This is achieved by downloading the `index.txt` file first, identifying the newly available files (it is assumed the application remembers what is the latest file name downloaded).
@@ -787,7 +790,7 @@ It the server provide a certain degree of risk (i.e., distinguishes low and high
 However, since the `{LTId_cluster, h1_cluster}` information is public, a curious user may be able to know more about the exact time of exposure.
 
 
-### 3.9- Linking the CLEA digital system and the hand-written attendance register
+### 3.10- Linking the CLEA digital system and the hand-written attendance register
 
 The use of the CLEA digital system is based on a voluntary decision of the user, the alternative consisting for this user in leaving her name in the hand-written attendance register.
 Consequently, a link between the two systems should be established. 
@@ -867,7 +870,7 @@ In case of a dynamic QR code, this scenario requires that the location manager s
 Although there is a risk that she omitted to do so on that day (thereby preventing a notification through the CLEA applications), the probability this happened is reasonable.
 
 
-### 3.10- Management of the location employees
+### 3.11- Management of the location employees
 
 The employees of a location should be able to benefit from the service in order to be warned if their workplace is a cluster, or to upload to the server that an employee has been tested COVID+.
 Since they have a long presence in the location, the employees must scan a specific QR code which differs from regular QR codes by the "staff" flag set to 1.
