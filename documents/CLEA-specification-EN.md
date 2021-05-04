@@ -112,6 +112,10 @@ _Figure 4: CLEA deployment option 2, with the MCT at the edge._
 - Option 3: the MCT is not involved in any manner (same as Fig. 4 without step 4).
 	Here it is not possible to couple the digital system with any hand-written attendance register.
 
+<img src="img/CLEA_deployment_option3.jpg" alt=".CLEA_deployment_option3.jpg" width="600"/>    
+
+_Figure 4: CLEA deployment option 3, involving no MCT._
+
 Choosing an option is a local decision, based on local criteria, that does not compromize interoperability with other types of deployment in neighbouring countries.
 
 
