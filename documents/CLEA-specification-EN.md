@@ -47,12 +47,12 @@ The following terms are used in this document:
 | Name                     | Description                                                                     |
 |--------------------------|---------------------------------------------------------------------------------|
 | **Location**       |	synonymous to venue, this is a closed area where people meet. It can be a private venue (e.g., for a wedding or a party) or a commercial or public venue (e.g., a bar, a restaurant, a sport center, an entertainment hall or auditorium, a train). |
-| **Device**         |	a specialized device or a general purpose smartphone or tablet with the appropriate software, used by the location manager or event organizer, that displays a QR code. |
+| **Device**         |	a specialized device or a general purpose smartphone or tablet with the appropriate software, used by the location manager or event organizer, that displays a QR code. Note that in alternative use-cases, QR codes can also be printed or included in a digital ticket. |
 | **Period**         |	time is split into periods (e.g., 24 hours), during which the location pseudonyms (more precisely a temporary cryptographic key and a derived temporary UUID) are stable. After that period, a new location pseudonym is generated. For practical reasons, a new period MUST start at a round predefined hour (e.g., 4:00am may be chosen as a default period start). A period can also have an unlimited duration, meaning that the location pseudonym will remain unchanged. |
 | **(User) terminal**|	the user smartphone used to scan the QR code. |
 | **CLEA application** | the application on the user smartphone used to scan the QR code. |
 | **QR code** | The dynamic or static QR code of a location that is scanned (e.g., when entering the location). It contains a URL ("deep link") structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. |
-| **Location Specific Part**  | This is the location specific part of a the QR code that contains all the information related to the location. With a dynamic QR code, the information contained is periodically renewed. |
+| **Location Specific Part**  | This is the part of the QR code that contains the information specific to the location. With a dynamic QR code, the information contained in this part is periodically renewed. |
 
 ### 2.2- Overview
 
@@ -112,7 +112,7 @@ _Figure 4: CLEA deployment option 2, with the MCT at the edge._
 - Option 3: the MCT is not involved in any manner (same as Fig. 4 without step 4).
 	Here it is not possible to couple the digital system with any hand-written attendance register.
 
-Choosing an option is a local decision that does not compromize interoperability with other types of deployment in neighbouring countries.
+Choosing an option is a local decision, based on local criteria, that does not compromize interoperability with other types of deployment in neighbouring countries.
 
 
 **_QR codes for synchronous versus asynchronous scans_**
@@ -132,7 +132,7 @@ Regardless of which deployment option is chosen, two types of QR codes exist in 
 
 In order to further improve privacy and security considerations, the current specification defines **_dynamic QR codes_** that are periodically renewed and displayed with the help of a dedicated physical device.
 Each QR code includes, among other things, the location temporary UUID (behaving as a temporary pseudonym) that typically changes at least once a day (another period is possible, as explained later).
-These dynamic QR codes necessarily require a **synchronous scan**, since the QR code will change over the time.
+These dynamic QR codes necessarily require a synchronous scan, since the QR code will change over the time.
 
 The current specification can also be used with **_static QR codes_** (e.g., printed on paper and made available to clients) if a location does not own a dedicated physical device or with QR codes for an asynchronous scan.
 Being static, this solution has downsides: it is less robust in front of relay attacks, and it enables an attacker to display all the clusters on a map (since the location UUIDs will not frequently change over time, it is relatively easy to collect them) or to focus on a specific set of locations to know if they are cluster.
@@ -176,7 +176,7 @@ Several technical requirements, in particular motivated by the compatibility wit
 Therefore, any binary information of the location specific part, is first translated to a printable character, using a Base64url encoding, which adds a 33% overhead compared to the binary size (see [RFC4648](#references) section 5.). The Base64url is the Base 64 encoding with an URL and filename safe alphabet.
 Since the output of a Base64url encoding uses an alphabet of 65 characters, it is not compatible with the Alphanumeric Mode of a QR code (limited to 45 printable characters), and it requires the use of the 8-bit Byte Mode (see [QRcode18004](#references), Section~8.4.4).
 
-- the need to easily and reliably scan a QR code type 2 and the screen size/resolution constraints of the specialized device impact the maximum QR code size.
+- the need to easily and reliably scan a QR code type 2 and the screen size/resolution constraints of the specialized device (e.g., 200 x 200 pixels) impact the maximum QR code size.
 In this specification, we limit the size of the QR code to be 65x65, using a Level 12 QR code Type 2 (see [QRcodeWeb](#references)).
 With this level, using the 8-bit byte mode, the information size to be between 155 and 367 binary characters, depending on the chosen redundancy.
 Given the size of data to be embedded in the QR code, the redundancy is set to the Medium level, leaving a maximum of 287 characters for the URL.
@@ -188,7 +188,7 @@ If the URL is shorter (e.g., when `locContactMsg` is absent, see below), the red
 This embedded platform has low computation capabilities, which limits the QR code renewal period.
 Power consumption also limits the QR code renewal period.
 
-- a dedicated tablet could easily remove some of the above limitations, but on the other hand a tablet is more costly, is subject to theft, and is subject to attacks, being connected. It is therefore a potential target device for displaying dynamic QR codes, but not the privileged one.
+- a dedicated tablet could easily remove some of the above limitations, but on the other hand a tablet is more costly, is subject to theft, and is subject to attacks, being connected to wireless networks. It is therefore a potential target device for displaying dynamic QR codes, but not the privileged one.
 
 
 ## 3- Detailed operational description
@@ -220,7 +220,7 @@ The following acronyms and variable names are used:
 | `locationPIN` | idem                         |  Secret 6 digit PIN, known only by the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance register. |
 
 
-### 3.2- Initial configuration of the device(s) at the manufacturer (specialized device) or location (tablet)
+### 3.2- Initial configuration of the device(s) at the manufacturer (specialized device), location (tablet)
 
 The following rules apply to the configuration of the device(s) of a given location:
 
@@ -228,7 +228,8 @@ The following rules apply to the configuration of the device(s) of a given locat
 If this location uses several devices, each of them must be configured with this same `SK_L`.
 This configuration can be done by the device manufacturer meaning that the manufacturer is in charge of keeping this long-term secret. Details are out of the scope of this document.
 
-- Each device knows the public key of the Authority in charge of the backend server, `PK_SA`, and the public key of the Authority in charge of manual contact tracing, `PK_MCTA`.
+- Each device knows the public key of the Authority in charge of the backend server, `PK_SA`.
+When the deployment involves the MCT (options 1 and 2), the device also knows the public key of the Authority in charge of manual contact tracing, `PK_MCTA`.
 
 - If the location has several totally independent rooms (e.g., a restaurant across two different buildings), distinct devices initialized with different long-term secrets, `SK_R1` and `SK_R2`, may be used in order to generate different location keys and identifiers.
 
@@ -259,7 +260,7 @@ It is therefore a key parameter that defines the robustness against attackers wh
 A default value is: `2^^10 = 1024 seconds` (approx. 17 minutes).
 
 
-### 3.3- Location Temporary Key (LTKey) and UUID (LTId) generation within the device
+### 3.3- Location Temporary Key (LTKey) and UUID (LTId) generation
 
 **_Step 1: key generation:_**
 A temporary key is generated for the location, which is automatically renewed (by default once a day) at a predefined round hour (e.g., at 4:00 am) which ideally corresponds to a closing time of the location.
@@ -272,7 +273,7 @@ The `t_periodStart` value must match the predefined round hour: it cannot just b
 For instance, 3h59mn48s and 4h00mn31s are both rounded to the same 4h00mn00 `t_periodStart` value, that is also necessarily multiple of 3600 seconds.
 
 **_Step 2: UUID generation:_**
-In order not to communicate this key in clear text to the clients, the device derives the following UUID from it:
+In order to keep this key secret with respect to the user, the device derives the following UUID from it:
 ```
 	LTId(t_periodStart) = HMAC-SHA-256-128(LTKey(t_periodStart), "1")
 ```
@@ -286,7 +287,7 @@ Renewal at a pre-defined full hour associated with a limited drift of the boxes 
 Since the devices are not perfectly synchronized (device clock drifts), a small hazard is possible (i.e., some devices will still display the old QR code and others the new one), but without any consequence if the location is closed to public at that moment.
 
 
-### 3.4- Dynamic QR code generation within the device
+### 3.4- QR code generation 
 
 **_Principles_**
 
@@ -300,16 +301,22 @@ the `#` character prevents the text that follows (namely the Base64url encoding 
 
 In the remaining of this section, we define the structure of the location specific part.
 
-The QR code of a location is renewed when switching from one period to another (change of `LTKey`/`LTId`), but also periodically during the period.
+With a dynamic QR code, this QR code is renewed when switching from one period to another (change of `LTKey`/`LTId`), but also periodically during the period.
 This renewal during the period is automatic every `qrCodeRenewalInterval` seconds.
 This QR code renewal interval is a balance between the calculation and/or autonomy constraints of the device on the one hand (the higher the `qrCodeRenewalInterval` value, the better), and the desired protection against relay attacks that would otherwise be possible during the entire period on the other hand (the lower, the better, see below).
 Note that if there are several devices, an asynchronism between them during the renewal of the QR code does not pose a problem: the `t_qrStart` values may differ, only the `LTId(t_periodStart)` must be identical across all QR codes, which is guaranteed.
+With a static QR code, the `LTKey`/`LTId` are kept unchanged for an undefined duration.
 
 
-In the current specification (corresponding to protocol version 0), a single `location-specific--part` (identified as type 0) is defined.
+In the current specification, corresponding to protocol version 0, two `location-specific--part` are defined:
+
+- LSPtype = 0, for a QR code that only enables a synchronous scan (i.e., when entering a location).
+	The QR code may either be static or dynamic, and in that case associated to a freshness check.
+	The check-in timestamp is the time when the user scans this QR code.
+
 More precisely, it is structured as follows (high-level view):
 ```
-	LSP(t_periodStart, t_qrStart) = [ version | type | reserved1 | LTId(t_periodStart)
+	LSP(t_periodStart, t_qrStart) = [ version | LSPtype = 0 | reserved1 | LTId(t_periodStart)
 		| Enc(PK_SA, msg) ]
 ```
 where:
@@ -319,11 +326,25 @@ where:
 		| Enc(PK_MCTA, locContactMsg) if locContactMsgPresent==1 ]
 ```
 
+- LSPtype = 1, for a QR code that enables an asynchronous scan (i.e., before, during, or after visiting a location).
+	The QR code is necessarily static (i.e., the LTId/LTKey remain constant over the whole period), qrCodeRenewalInterval is necessarily equal to 0 (i.e., there is no renewal), and there is no freshness check.
+	The check-in timestamp is the one provided in the clear-text part of the LSP, and not the timestamp when scaning the QR code (which may happen several days before or after the visit).
+	The check-in time may not exactly correspond to the reality (e.g., case of a delayed train), but this is not an issue since all users will use the same time.
+	When meaningful (e.g., a train trip), a duration information is also provided in the clear-text part of the LSP, otherwise 
+
+More precisely, it is structured as follows (high-level view):
+```
+	LSP(t_periodStart, t_qrStart) = [ version | LSPtype = 1 | reserved1 | visitDuration | t_checkin | LTId(t_periodStart)
+		| Enc(PK_SA, msg) ]
+```
+with the same definition for `msg`.
+
+
 The various fields are described below.
 The `Enc(PK_MCTA, locContactMsg)` is defined in section ["A user tested COVID+ has used the CLEA system"](#a-user-tested-covid-has-used-the-cléa-system).
 
 
-**_Binary format of the location-specific-part_**
+**_Binary format of the location-specific-part for LSPtype = 0 (synchronous scan)_**
 
 The following binary format must be used for the location specific part:
 ```
@@ -348,7 +369,38 @@ The following binary format must be used for the location specific part:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ```
 
-The following binary format for the `msg` message must be used:
+
+**_Binary format of the location-specific-part for LSPtype = 1 (asynchronous scan)_**
+
+The following binary format must be used for the location specific part:
+```
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| ver | type|res| visitDuration |      t_checkin (4 bytes)      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       ...                     |                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       ...                                                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       ...            LTId (16 bytes)                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       ...                                                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       ...                                                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|       ...                     |       Enc(PK_SA, msg)         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+.                    (variable size...)                         |
+.                                                               .
+.                                                               .
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+```
+
+
+**_Binary format of the msg_**
+
+Regardless of the `LSTtype`, the following binary format for the `msg` message must be used:
 ```
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
@@ -385,6 +437,9 @@ The following binary format for the `msg` message must be used:
 +-+-+-+-+-+-+-+-+
 ```
 
+
+**_Field descriptions_**
+
 The "big endianness" (also called "network endianness" with the Internet protocol suite), transmitting the most significant byte first, must be used whenever meaningful.
 The location specific part contains (in plaintext or encrypted) the following fields, in this order:
 
@@ -395,15 +450,9 @@ this is the protocol version number, in order to enable an evolution of the prot
 this is the LSP type. Two types are specified in protocol version 0:
 	- LSPtype = 0:
 	this type indicates a QR code that only enables a synchronous scan (i.e., when entering a location).
-	The QR code may either be static or dynamic, and in that case associated to a freshness check.
-	The check-in timestamp is the time when the user scans this QR code.
 
 	- LSPtype = 1:
 	this type enables an asynchronous scan (i.e., before, during, or after visiting a location).
-	The QR code is necessarily static (i.e., the LTId/LTKey remain constant over the whole period), qrCodeRenewalInterval is necessarily equal to 0 (i.e., there is no renewal), and there is no freshness check.
-	The check-in timestamp is the one provided in the clear-text part of the LSP, and not the timestamp when scaning the QR code (which may happen several days before or after the visit).
-	The check-in time may not exactly correspond to the reality (e.g., case of a delayed train), but this is not an issue since all users will use the same time.
-	When meaningful (e.g., a train trip), a duration information is also provided in the clear-text part of the LSP.
 
 - `reserved1` (2 bits) (`res`in figure):
 this field is unused in the current specification and must be set to zero.
