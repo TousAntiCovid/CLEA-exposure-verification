@@ -529,7 +529,7 @@ this field carries the location temporary key for the period.
 The `msg` message must be encrypted using the ECIES-KEM **[ISO18033-2] [Shoup2006] [Libecc]** hybrid encryption scheme that provides both confidentiality, using an asymmetric encryption scheme, and integrity verification.
 This scheme is implemented using SECP256R1 ECDH as KEM, KDF1 using SHA256 hash as KDF and AES-256-GCM with a fixed 96-bits IV as DEM and TAG. A detailed description of the `Enc` function is given in appendix A
 
-**_QR code size:_**
+**_Size of the various QR codes_**
 
 For the LSP type 0, the plain text part is 17 bytes long, and 22 bytes long for the LSP type 1.
 
