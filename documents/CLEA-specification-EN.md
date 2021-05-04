@@ -295,7 +295,7 @@ Since the devices are not perfectly synchronized (device clock drifts), a small 
 
 ### 3.4- QR code content 
 
-**_Principles_**
+**_High level view of the QR code content_**
 
 The QR code of a location, at any moment, contains a URL ("deep link"), structured as:
 ```
