@@ -109,7 +109,7 @@ _Figure 3: CLEA deployment option 1, with the MCT at the center._
 
 _Figure 4: CLEA deployment option 2, with the MCT at the edge._
 
-- Option 3: the MCT is not involved in any manner (same as Fig. 4 without step 4).
+- Option 3: the MCT is not involved in any manner.
 	Here it is not possible to couple the digital system with any hand-written attendance register.
 
 <img src="img/CLEA_deployment_option3.jpg" alt=".CLEA_deployment_option3.jpg" width="600"/>    
@@ -216,6 +216,8 @@ The following acronyms and variable names are used:
 | `CRIexp` | qrCodeRenewalIntervalExponent     | Compact version of the `qrCodeRenewalInterval` as the exponent of a power of two, coded in 5 bits. When equal to `0x1F`, `qrCodeRenewalInterval` must be set to `0` (i.e. no renewal period), otherwise `qrCodeRenewalInterval` must be set to `2^^CRIexp` seconds. |
 | `t_qrStart` (in seconds) | qrCodeValidityStartingTime | Starting time of the QR code validity timespan, expressed as the number of seconds since January 1st, 1900 (NTP timestamp limited to the 32-bit seconds field), by convention in UTC (Coordinated Universal Time) timezone. |
 | `t_qrScan` (in seconds) | qrCodeScanTime     | Timestamp when a user terminal scans a given QR code, expressed as the number of seconds since January 1st, 1900 (NTP timestamp limited to the 32-bit seconds field), by convention in UTC (Coordinated Universal Time) timezone. |
+| `t_checkin`(in seconds) | checkinTime        | When `LSPtype = 1`, this is the time when the user is expected to enter the location, expressed as the number of seconds since January 1st, 1900 (NTP timestamp limited to the 32-bit seconds field), by convention in UTC (Coordinated Universal Time) timezone. |
+| `visitDuration (in hours) | idem             | When `LSPtype = 1`, this is the expected duration of the stay in the location, expressed in number of hours. This field is not necessarily meaningful nor known upon the generation of QR code. In that case it must contain value 0. |
 | `localList` | idem                           | Within the user terminal, this list contains all the `{QR code, t_qrScan}` tuples collected by a user within the current 14-day window. Entries are added in this localList as the user visits new locations and scans the corresponding QR code, and automatically deleted after 14 days. |
 | `clusterList` | idem                         | Within the backend server, this list contains all the `LTId` and timing information corresponding to a potential cluster. This list is public, it is downloaded by all the user terminals, and is updated each time a new cluster is identified. The cluster qualification happens when the hourly counter of a location exceeds a given threshold that depends on the location features. |
 | `dupScanThreshold` (in seconds) | idem       | Time tolerance in the duplicate scan mechanism: for a given `LTId`, a single QR code can be recorded in the localList every `dupScanThreshold` seconds. A similar check is performed on the server frontend. |
@@ -314,7 +316,7 @@ With a static QR code, the `LTKey`/`LTId` are kept unchanged for an undefined du
 
 In the current specification, corresponding to protocol version 0, two `location-specific--part` are defined:
 
-- LSPtype = 0, for a QR code that only enables a synchronous scan (i.e., when entering a location).
+- LSPtype = 0, for a QR code compatible with a synchronous scan (i.e., when entering a location).
 	The QR code may either be static or dynamic, and in that case associated to a freshness check.
 	The check-in timestamp is the time when the user scans this QR code.
 
@@ -330,7 +332,7 @@ where:
 		| Enc(PK_MCTA, locContactMsg) if locContactMsgPresent==1 ]
 ```
 
-- LSPtype = 1, for a QR code that enables an asynchronous scan (i.e., before, during, or after visiting a location).
+- LSPtype = 1, for a QR code compatible with an asynchronous scan (i.e., before, during, or after visiting a location).
 	The QR code is necessarily static (i.e., the LTId/LTKey remain constant over the whole period), qrCodeRenewalInterval is necessarily equal to 0 (i.e., there is no renewal), and there is no freshness check.
 	The check-in timestamp is the one provided in the clear-text part of the LSP, and not the timestamp when scaning the QR code (which may happen several days before or after the visit).
 	The check-in time may not exactly correspond to the reality (e.g., case of a delayed train), but this is not an issue since all users will use the same time.
@@ -350,7 +352,7 @@ The `Enc(PK_MCTA, locContactMsg)` is defined in section ["A user tested COVID+ h
 
 **_Binary format of the location-specific-part for LSPtype = 0 (synchronous scan)_**
 
-The following binary format must be used for the location specific part:
+The following binary format must be used when `LSPtype = 0`:
 ```
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
@@ -376,7 +378,7 @@ The following binary format must be used for the location specific part:
 
 **_Binary format of the location-specific-part for LSPtype = 1 (asynchronous scan)_**
 
-The following binary format must be used for the location specific part:
+The following binary format must be used when `LSPtype = 1`:
 ```
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
@@ -452,22 +454,22 @@ this is the protocol version number, in order to enable an evolution of the prot
 
 - `LSPtype` (3 bits) (`t=0` or `t=1` in figure):
 this is the LSP type:
-	- LSPtype = 0:
-	this type indicates a QR code that only enables a synchronous scan (i.e., when entering a location).
+	- `LSPtype = 0`:
+	this type indicates a QR code compatible with a synchronous scan (i.e., when entering a location).
 
-	- LSPtype = 1:
-	this type enables an asynchronous scan (i.e., before, during, or after visiting a location).
+	- `LSPtype = 1`:
+	this type indicates a QR code compatible with an asynchronous scan (i.e., before, during, or after visiting a location).
 
 - `reserved1` (2 bits) (`res`in figure):
 this field is unused in the current specification and must be set to zero.
 
 - `visitDuration` (1 byte):
-Restricted to LSPtype=1, this is the expected duration of the stay in the location, expressed in number of hours.
+Restricted to `LSPtype = 1`, this is the expected duration of the stay in the location, expressed in number of hours.
 This field is not necessarily meaningful nor known upon the generation of QR code.
 In that case it must contain value 0.
 
 - `t_checkin` (4 bytes):
-Restricted to LSPtype=1, this is the time when the user is expected to enter the location.
+Restricted to `LSPtype = 1`, this is the time when the user is expected to enter the location.
 	This time is different from the timestamp when scaning this QR code, which is not used with that type of QR code.
 	The check-in time may not exactly correspond to the reality (e.g., a delayed train), but this is not an issue as all users will use the same theoretical time.
 
