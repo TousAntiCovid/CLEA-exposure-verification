@@ -351,7 +351,7 @@ The following binary format must be used for the location specific part:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| ver | type|res|        ...                                    |
+| ver |t = 0|res|        ...                                    |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |       ...                                                     |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -377,7 +377,7 @@ The following binary format must be used for the location specific part:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| ver | type|res| visitDuration |      t_checkin (4 bytes)      |
+| ver |t = 1|res| visitDuration |      t_checkin (4 bytes)      |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |       ...                     |                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -446,8 +446,8 @@ The location specific part contains (in plaintext or encrypted) the following fi
 - `version` (3 bits) (`ver` in figure):
 this is the protocol version number, in order to enable an evolution of the protocol. The present specification corresponds to protocol version 0.
 
-- `LSPtype` (3 bits) (`type` in figure):
-this is the LSP type. Two types are specified in protocol version 0:
+- `LSPtype` (3 bits) (`t=0` or `t=1` in figure):
+this is the LSP type:
 	- LSPtype = 0:
 	this type indicates a QR code that only enables a synchronous scan (i.e., when entering a location).
 
@@ -456,6 +456,16 @@ this is the LSP type. Two types are specified in protocol version 0:
 
 - `reserved1` (2 bits) (`res`in figure):
 this field is unused in the current specification and must be set to zero.
+
+- `visitDuration` (1 byte):
+Restricted to LSPtype=1, this is the expected duration of the stay in the location, expressed in number of hours.
+This field is not necessarily meaningful nor known upon the generation of QR code.
+In that case it must contain value 0.
+
+- `t_checkin` (4 bytes):
+Restricted to LSPtype=1, this is the time when the user is expected to enter the location.
+	This time is different from the timestamp when scaning this QR code, which is not used with that type of QR code.
+	The check-in time may not exactly correspond to the reality (e.g., a delayed train), but this is not an issue as all users will use the same theoretical time.
 
 - `LTId` (16 bytes, or 128 bits): 
 this field carries the location temporary UUID for the period.
