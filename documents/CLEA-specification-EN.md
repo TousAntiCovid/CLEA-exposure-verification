@@ -6,7 +6,7 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Work in Progress, May 3rd, 2021_**
+**_Work in Progress, May 4th, 2021_**
 
 
 ----
@@ -50,10 +50,12 @@ The following terms are used in this document:
 | **Period**         |	time is split into periods (e.g., 24 hours), during which the location pseudonyms (more precisely a temporary cryptographic key and a derived temporary UUID) are stable. After that period, a new location pseudonym is generated. For practical reasons, a new period MUST start at a round predefined hour (e.g., 4:00am may be chosen as a default period start). A period can also have an unlimited duration, meaning that the location pseudonym will remain unchanged. |
 | **(User) terminal**|	the user smartphone used to scan the QR code. |
 | **CLEA application** | the application on the user smartphone used to scan the QR code. |
-| **QR code** | The QR code of a location, usually dynamic, that needs to be scanned when entering a location. It contains a URL ("deep link") structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. |
-| **Location Specific Part**  | This is the location specific part of a the QR code, renewed periodically, that contains all the information related to the location, at a given time. |
+| **QR code** | The dynamic or static QR code of a location that is scanned (e.g., when entering the location). It contains a URL ("deep link") structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. |
+| **Location Specific Part**  | This is the location specific part of a the QR code that contains all the information related to the location. With a dynamic QR code, the information contained is periodically renewed. |
 
 ### 2.2- Overview
+
+**_Two key design choices: centralized cluster detection and decentralized risk estimation and notification_**
 
 This protocol must comply with two privacy-related requirements:
 
@@ -83,16 +85,50 @@ _Figure 2: Decentralized risk evaluation. Here Bob compares his scanned QR codes
 
 We believe that making public the list of location temporary UUIDs and time corresponding to clusters is an acceptable tradeoff, because this information is not per se sensitive health data (it does not reveal any user health information to an eavesdropper), although it can be considered as personal data (it is associated to the location manager)[^footnote-2].
 
-[^footnote-2]: This is a big difference with a decentralized contact tracing system, for instance based on the Google/Apple Exposure Notification (GAEN) component, where the pseudonyms of COVID+ users are freely available over the Internet. In that case, revealing this sensitive health data enables any curious neighbour who uses a dedicated BLE scanning system (and [https://coronadetective.eu](https://coronadetective.eu) has shown how trivial this can be since a web browser is sufficient) to immediately identify the health status of their neighbours if they upload their pseudonyms later on, with potentially major discrimination consequences. A centralized scheme should be used for contact tracing for privacy purposes in countries where citizens can trust their institutions and their Data Protection Agency, for GDPR compliance reasons. With the present specification, on the opposite, a decentralized risk evaluation approach makes sense as it does not disclose sensitive information per se.
+[^footnote-2]: This is a big difference with a decentralized contact tracing system, for instance based on the Google/Apple Exposure Notification (GAEN) component, where the pseudonyms of COVID+ users are freely available over the Internet. In that case, revealing this sensitive health data enables any curious neighbour who uses a dedicated BLE scanning system (and [https://coronadetective.eu](https://coronadetective.eu) has shown how trivial this can be since a web browser is sufficient) to immediately identify the health status of their neighbours if they upload their pseudonyms later on, with potentially major discrimination consequences. A centralized scheme should be used for contact tracing for privacy purposes in countries where citizens can trust their institutions and their Data Protection Agency, for GDPR compliance reasons. With CLEA, a decentralized risk evaluation approach makes sense as it does not disclose sensitive information per se.
 
-In order to further improve privacy and security considerations, the current specification relies on dynamic QR codes that are periodically renewed and displayed with the help of a dedicated physical device.
+
+**_A single protocol, three potential deployments_**
+
+Central to the deployment of CLEA is the question of the role given to the Manual Contact Tracing Team (MCT).
+Three options exist:
+
+- Option 1: the MCT is at the center, for a maximum control.
+	Here the upload of Alice scanned QR code history is done during or after an interview with the MCT, under MCT control;
+- Option 2: the MCT is at the edge, for maximum scalability and speed, and to avoid overloading the MCT.
+	Here clusters can potentially be identified as soon as Alice uploads her scanned QR code history, without any delay.
+	The MCT is also informed of those new clusters but they are not in the critical path;
+- Option 3: the MCT is not involved in any manner.
+	Here it is not possible to couple the digital system with any hand-written attendance register.
+
+
+**_QR codes for synchronous versus asynchronous scans_**
+
+Regardless of which deployment option is chosen, two types of QR codes exist in order to reflect the two broad categories of use-cases:
+
+- those involving a **synchronous** scan of a QR code, for situations where a user scans a QR code upon entering an event or location.
+	This is typically the case with a restaurant.
+	The QR code requires a synchronous scan (i.e., when entering a location), and the location check-in timestamp is always the scanning time.
+
+- those involving an **asynchronous** scan of a QR code, for situations where a QR code is produced that can be scanned either in advance or after visiting the event or location.
+	This is typically the case with an on-line train ticketing service, where the QR code is printed on the ticket itself to let the user scan it at its discretion.
+	The QR code enables an asynchronous scan, before, during, or after visiting the location, and the location check-in timestamp is the one provided in the QR code itself rather than the scanning time.
+
+
+**_Static versus dynamic QR codes_**
+
+In order to further improve privacy and security considerations, the current specification defines **_dynamic QR codes_** that are periodically renewed and displayed with the help of a dedicated physical device.
 Each QR code includes, among other things, the location temporary UUID (behaving as a temporary pseudonym) that typically changes at least once a day (another period is possible, as explained later).
+These dynamic QR codes necessarily require a **synchronous scan**, since the QR code will change over the time.
 
-The current specification can also be used with static QR codes (e.g., printed on paper and made available to clients) if a location does not own a dedicated physical device.
+The current specification can also be used with **_static QR codes_** (e.g., printed on paper and made available to clients) if a location does not own a dedicated physical device or with QR codes for an asynchronous scan.
 Being static, this solution has downsides: it is less robust in front of relay attacks, and it enables an attacker to display all the clusters on a map (since the location UUIDs will not frequently change over time, it is relatively easy to collect them) or to focus on a specific set of locations to know if they are cluster.
-A good practice is to regularly change the QR codes, in particular if the location is identified as a cluster.
+When possible, a good practice is to regularly change the QR codes, in particular if the location is identified as a cluster.
 This aspect is out of scope of the present specification.
-It can also be noticed that both systems can nicely cohabit, on the same CLEA application, using the same protocol and central server.
+It can also be noticed that both static and dynamic QR codes are processed by the same CLEA application, using the same protocol and central server.
+
+
+**_The case of employees_**
 
 Finally the employees of a location can benefit from the service, in order to be warned if their workplace is a cluster, or on the opposite to upload to the server that they have been tested COVID+.
 Since they have a long presence in the location, the employees must scan a specific QR code which differs from regular QR codes scanned by clients.
@@ -239,7 +275,7 @@ Since the devices are not perfectly synchronized (device clock drifts), a small 
 
 ### 3.4- Dynamic QR code generation within the device
 
-**_Principles:_**
+**_Principles_**
 
 The QR code of a location, at any moment, contains a URL ("deep link"), structured as:
 ```
@@ -343,9 +379,18 @@ The location specific part contains (in plaintext or encrypted) the following fi
 this is the protocol version number, in order to enable an evolution of the protocol. The present specification corresponds to protocol version 0.
 
 - `LSPtype` (3 bits) (`type` in figure):
-this is the LSP type, in order to be able to use multiple formats in parallel in the future.
-If several types are to be defined, the specification will have to clarify which protocol version supports which type.
-In the current specification, only LSP type 0 is defined.
+this is the LSP type. Two types are specified in protocol version 0:
+	- LSPtype = 0:
+	this type indicates a QR code that only enables a synchronous scan (i.e., when entering a location).
+	The QR code may either be static or dynamic, and in that case associated to a freshness check.
+	The check-in timestamp is the time when the user scans this QR code.
+
+	- LSPtype = 1:
+	this type enables an asynchronous scan (i.e., before, during, or after visiting a location).
+	The QR code is necessarily static (i.e., the LTId/LTKey remain constant over the whole period), qrCodeRenewalInterval is necessarily equal to 0 (i.e., there is no renewal), and there is no freshness check.
+	The check-in timestamp is the one provided in the clear-text part of the LSP, and not the timestamp when scaning the QR code (which may happen several days before or after the visit).
+	The check-in time may not exactly correspond to the reality (e.g., case of a delayed train), but this is not an issue since all users will use the same time.
+	When meaningful (e.g., a train trip), a duration information is also provided in the clear-text part of the LSP.
 
 - `reserved1` (2 bits) (`res`in figure):
 this field is unused in the current specification and must be set to zero.
