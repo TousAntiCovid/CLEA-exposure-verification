@@ -551,10 +551,10 @@ Or, without `locContactMsg`, the URL size amounts to **a total of 171 characters
 | `locContactMsg` size (bytes)                                 | 65 bytes             | 65 bytes             |
 | size with `locContactMsg` before Base64url encoding (bytes)  | 175 bytes            | 180 bytes            |
 | size with `locContactMsg` after Base64url encoding (chars)   | 233 chars            | 240 chars            |
-| total URL (deep link) size with `locContactMsg` (characters) | 257 chars            | 264 chars            |
+| **_total URL (deep link) size with `locContactMsg` (characters) | 257 chars            | 264 chars_**            |
 | size w/o `locContactMsg` before Base64url encoding (bytes)   | 110 bytes            | 115 bytes            |
 | size w/o `locContactMsg` after Base64url encoding (chars)    | 147 chars            | 153 chars            |
-| total URL (deep link) size w/o `locContactMsg` (chars)       | 171 chars            | 177 chars            |
+| **_total URL (deep link) size w/o `locContactMsg` (chars)       | 171 chars            | 177 chars_**            |
 
 
 ### 3.5- Scan of the QR code when a client enters a location
