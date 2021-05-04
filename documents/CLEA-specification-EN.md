@@ -334,8 +334,8 @@ where:
 
 More precisely, it is structured as follows (high-level view):
 ```
-	LSP(t_periodStart, t_qrStart) = [ version | LSPtype = 1 | reserved1 | visitDuration | t_checkin | LTId(t_periodStart)
-		| Enc(PK_SA, msg) ]
+	LSP(t_periodStart, t_qrStart) = [ version | LSPtype = 1 | reserved1 | visitDuration | t_checkin
+		| LTId(t_periodStart) | Enc(PK_SA, msg) ]
 ```
 with the same definition for `msg`.
 
