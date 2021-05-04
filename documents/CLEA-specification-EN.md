@@ -97,7 +97,7 @@ Three options exist:
 - Option 1: the MCT is at the center, for a maximum control.
 	Here the upload of Alice scanned QR code history is done during or after an interview with the MCT, under MCT control;
 
-<img src="img/CLEA_deployment_option1.jpg" alt=".CLEA_deployment_option1.jpg" width="700"/>    
+<img src="img/CLEA_deployment_option1.jpg" alt=".CLEA_deployment_option1.jpg" width="550"/>    
 
 _Figure 3: CLEA deployment option 1, with the MCT at the center._
 
@@ -105,7 +105,7 @@ _Figure 3: CLEA deployment option 1, with the MCT at the center._
 	Here clusters can potentially be identified as soon as Alice uploads her scanned QR code history, without any delay.
 	The MCT is also informed of those new clusters but they are not in the critical path;
 
-<img src="img/CLEA_deployment_option2.jpg" alt=".CLEA_deployment_option2.jpg" width="700"/>    
+<img src="img/CLEA_deployment_option2.jpg" alt=".CLEA_deployment_option2.jpg" width="550"/>    
 
 _Figure 4: CLEA deployment option 2, with the MCT at the edge._
 
