@@ -557,7 +557,7 @@ Or, without `locContactMsg`, the URL size amounts to **a total of 171 characters
 | **_total URL size w/o `locContactMsg` (chars)_**             | **_171 chars_**      | **_177 chars_**            |
 
 
-### 3.5- Synchronous scan of the QR code when a client enters a location (LSP Type 0)
+### 3.5- Synchronous scan of a QR code when a client enters a location (LSP Type 0)
 
 A client entering a location scans the QR code, and the CLEA application adds the following tuple to its local list, `localList`, which records the visited locations:
 ```
@@ -603,7 +603,7 @@ With an interval of `2^^10 = 1024 seconds`, the accuracy requirement is pretty l
 The CLEA application benefits from such an internal trustworthy clock, making it relatively robust in front of such a relay attack.
 
 
-### 3.5- Asynchronous scan of the QR code (LSP Type 1)
+### 3.5- Asynchronous scan of a QR code (LSP Type 1)
 
 
 ### 3.7- Upload of the location history by a client tested COVID+ and cluster detection on the server
