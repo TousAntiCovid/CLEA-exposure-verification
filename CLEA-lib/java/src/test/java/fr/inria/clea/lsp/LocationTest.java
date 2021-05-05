@@ -68,7 +68,7 @@ public class LocationTest {
 
     @Test
     public void testWhenSettingQrCodeValidityStartTimeWithNoQrCodeRenewalIntervalThenQrValidityStartTimeNotUpdated() {
-        int qrCodeRenewalIntervalExponentCompact = 0x1F;
+        int qrCodeRenewalIntervalExponentCompact = LocationSpecificPart.QRCODE_NO_RENEWAL;
         int periodDuration = 3;
 
         lsp = newLocationSpecificPart(qrCodeRenewalIntervalExponentCompact, periodDuration);
@@ -84,7 +84,7 @@ public class LocationTest {
 
     @Test
     public void testWhenSettingQrCodeValidityStartTimeWithNoQrCodeRenewalIntervalThenQrValidityStartTimeUpdatedWhenNewPeriod() throws CleaEncryptionException {
-        int qrCodeRenewalIntervalExponentCompact = 0x1F;
+        int qrCodeRenewalIntervalExponentCompact = LocationSpecificPart.QRCODE_NO_RENEWAL;
         int periodDuration = 3;
 
         lsp = newLocationSpecificPart(qrCodeRenewalIntervalExponentCompact, periodDuration);

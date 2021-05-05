@@ -218,7 +218,7 @@ public class LocationSpecificPartValidationTest {
     }
 
     @Test
-    public void testWhenPeriodDurationIsGreaterThan255ThenValidationFails() {
+    public void testWhenPeriodDurationIsGreaterThanMaxValueThenValidationFails() {
         LocationSpecificPart lsp = locationSpecificPartBuilder.periodDuration(256).build();
         
         CleaInvalidLocationMessageException exception = assertThrows(CleaInvalidLocationMessageException.class, () -> {

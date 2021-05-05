@@ -34,6 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 @ToString
 @Slf4j
 public class LocationSpecificPart {
+    public static final int UNLIMITED_PERIOD_DURATION = 255;
+    public static final int QRCODE_NO_RENEWAL = 0x1F;
+
     public static final short LOCATION_TEMPORARY_SECRET_KEY_SIZE = 32; // 256 bits
     public static final String VERSION_VALIDATION_MESSAGE = "Version should have a value between 0 and 8 (included)";
     public static final String TYPE_VALIDATION_MESSAGE = "Type should have a value between 0 and 8 (included)";
@@ -47,7 +50,7 @@ public class LocationSpecificPart {
     public static final String QR_CODE_VALIDITY_START_TIME_VALIDATION_MESSAGE = "QR-code validity start time must not be null";
     public static final String LOCATION_TEMPORARY_SECRET_KEY_VALIDATION_MESSAGE = "Location temporary secret key must not be null";
     public static final String LOCATION_TEMPORARY_SECRET_KEY_SIZE_VALIDATION_MESSAGE = "Location temporary secret key must have a size of " + LOCATION_TEMPORARY_SECRET_KEY_SIZE + " bytes";
-    
+
     /* Clea protocol version number */
     @Builder.Default
     @Min(value = 0, message = VERSION_VALIDATION_MESSAGE)
@@ -99,7 +102,7 @@ public class LocationSpecificPart {
     
     /* Duration, in terms of number of hours, of the period */
     @Min(value = 0, message = PERIOD_DURATION_VALIDATION_MESSAGE)
-    @Max(value = 255, message = PERIOD_DURATION_VALIDATION_MESSAGE)
+    @Max(value = UNLIMITED_PERIOD_DURATION, message = PERIOD_DURATION_VALIDATION_MESSAGE)
     protected int periodDuration;
     
     /* Starting time of the period in a compressed manner (round hour) */
@@ -146,7 +149,7 @@ public class LocationSpecificPart {
      * @return the number of seconds between a new QR code generation.
      */
     public int getQrCodeRenewalInterval() {
-        if (this.qrCodeRenewalIntervalExponentCompact == 0x1F) {
+        if (this.qrCodeRenewalIntervalExponentCompact == QRCODE_NO_RENEWAL) {
             return 0;
         }
         return (int) Math.pow(2, this.qrCodeRenewalIntervalExponentCompact);
