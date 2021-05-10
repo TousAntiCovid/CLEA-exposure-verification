@@ -322,7 +322,7 @@ Since the devices are not perfectly synchronized (device clock drifts), a small 
 
 ### 3.4- QR code content 
 
-**_High level view of the QR code content_**
+#### High level view of the QR code content
 
 The QR code of a location, at any moment, contains a URL ("deep link"), structured as:
 ```
@@ -377,7 +377,7 @@ The various fields are described below.
 The `Enc(PK_MCTA, locContactMsg)` is defined in section ["A user tested COVID+ has used the CLEA system"](#a-user-tested-covid-has-used-the-cléa-system).
 
 
-**_Binary format of the location-specific-part for LSPtype = 0 (synchronous scan)_**
+#### Binary format of the location-specific-part for LSPtype = 0 (synchronous scan)
 
 The following binary format must be used when `LSPtype = 0`:
 ```
@@ -403,7 +403,7 @@ The following binary format must be used when `LSPtype = 0`:
 ```
 
 
-**_Binary format of the location-specific-part for LSPtype = 1 (asynchronous scan)_**
+#### Binary format of the location-specific-part for LSPtype = 1 (asynchronous scan)
 
 The following binary format must be used when `LSPtype = 1`:
 ```
@@ -431,7 +431,7 @@ The following binary format must be used when `LSPtype = 1`:
 ```
 
 
-**_Binary format of the msg_**
+#### Binary format of the msg
 
 Regardless of the `LSTtype`, the following binary format for the `msg` message must be used:
 ```
@@ -471,7 +471,7 @@ Regardless of the `LSTtype`, the following binary format for the `msg` message m
 ```
 
 
-**_Field descriptions_**
+#### Field descriptions
 
 The "big endianness" (also called "network endianness" with the Internet protocol suite), transmitting the most significant byte first, must be used whenever meaningful.
 The location specific part contains (in plaintext or encrypted) the following fields, in this order:
@@ -559,7 +559,7 @@ This scheme is implemented using SECP256R1 ECDH as KEM, KDF1 using SHA256 hash a
 A detailed description of the `Enc` function is given in [Appendix A](#a-description-of-the-hybrid-encryption-scheme-and-the-enc-and-dec-functions).
 
 
-**_Size of the various QR codes_**
+#### Size of the various QR codes
 
 For the LSP type 0, the plain text part is 17 bytes long, and 22 bytes long for the LSP type 1.
 
@@ -600,7 +600,7 @@ where `t_qrScan` is the timestamp in NTP format (32-bit seconds field) of the CL
 Entries in the local list are automatically removed after 14 days.
 
 
-**_Detection of duplicate scans by the CLEA application:_**
+#### Detection of duplicate scans by the CLEA application
 
 Before adding `{QR_code, t_qrScan}` in the local list, the CLEA application checks that an entry with the same `LTId` is not already there, with a scanning time "close" to `t_qrScan`:
 ```C
@@ -626,7 +626,7 @@ Note that this is not an absolute protection as an attacker using a malicious ap
 Note also that having a `dupScanThreshold` value that depends on the location specificities (e.g., the expected duration during which a client is supposed to stay in a location) is not feasible since this piece of information is in the encrypted part of the QR code and is not accessible to the CLEA application.
 
 
-**_Reliability of the t_qrScan timestamp:_**
+#### Reliability of the t_qrScan timestamp
 
 The replay protection is limited by the availability of a trustworthy `t_qrScan` timestamp, which garanties that the local terminal clock has not been maliciously modified to match that of the replayed QR code.
 
@@ -637,6 +637,15 @@ The CLEA application benefits from such an internal trustworthy clock, making it
 
 
 ### 3.6- Asynchronous scan of a QR code (LSP Type 1)
+
+TO BE ADDED
+
+- Detection of duplicate scans (only one scan per QR code, strictly, since it corresponds to a well defined event).
+
+- t_qrScan is meaningless here but recorded for homogeneity purposes.
+
+- use the t_checkin timestamp instead (integrity protected)
+
 
 
 ### 3.7- Upload of the location history by a client tested COVID+ and cluster detection on the server
@@ -653,7 +662,7 @@ The details of this authorisation mechanism are out of scope of the present docu
 
 The location history consists of a set of records of the form:
 ```
-	{QR_code_0, t_scan_0}, {QR_code_1, t_scan_1}, {QR_code_2, t_scan_2}...
+	{QR_code_0, t_qrScan_0}, {QR_code_1, t_qrScan_1}, {QR_code_2, t_qrScan_2}...
 ```
 This history is by design limited to 14 days of history, and perhaps further restricted to the potential contagious period if known.
 For instance, if the user experienced symptoms starting from a well defined date, it could be useful to take advantage of the COVID specificities (start of the infectious period) to filter the history that is uploaded.
@@ -663,7 +672,9 @@ The frontend of the server:
 
 - first of all verifies the COVID+ status of the user and discards an invalid upload from a user who does not show a valid authorisation.
 
-- then it checks that this history does not contain duplicate scans, using the same methodology as before, namely by checking if: `(abs(t_qrScan - t_scan0) > dupScanThreshold)`. If any duplicate scan is identified (test is true), it is recommended to discard the whole history as coming from a invalid application. This verification is meant to protect the server against malicious applications that could try to bypass the local duplicate scan check.
+- then it checks that this history does not contain duplicate scans, using the same methodology as before, namely by checking if: `(abs(t_qrScan - t_qrScan0) > dupScanThreshold)`.
+If any duplicate scan is identified (test is true), it is recommended to discard the whole history as coming from a invalid application.
+This verification is meant to protect the server against malicious applications that could try to bypass the local duplicate scan check.
 
 - the frontend then sanitizes the message (e.g., by removing the source IP address).
 
