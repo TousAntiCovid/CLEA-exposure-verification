@@ -56,7 +56,7 @@ The following terms are used in this document:
 
 ### 2.2- Overview
 
-**_Two key design choices: centralized cluster detection and decentralized risk estimation and notification_**
+#### Two key design choices: centralized cluster detection and decentralized risk estimation and notification
 
 This protocol must comply with two privacy-related requirements:
 
@@ -89,7 +89,7 @@ We believe that making public the list of location temporary UUIDs and time corr
 [^footnote-2]: This is a big difference with a decentralized contact tracing system, for instance based on the Google/Apple Exposure Notification (GAEN) component, where the pseudonyms of COVID+ users are freely available over the Internet. In that case, revealing this sensitive health data enables any curious neighbour who uses a dedicated BLE scanning system (and [https://coronadetective.eu](https://coronadetective.eu) has shown how trivial this can be since a web browser is sufficient) to immediately identify the health status of their neighbours if they upload their pseudonyms later on, with potentially major discrimination consequences. A centralized scheme should be used for contact tracing for privacy purposes in countries where citizens can trust their institutions and their Data Protection Agency, for GDPR compliance reasons. With CLEA, a decentralized risk evaluation approach makes sense as it does not disclose sensitive information per se.
 
 
-**_A single protocol, three potential deployments_**
+#### A single protocol, three potential deployments
 
 Central to the deployment of CLEA is the question of the role given to the Manual Contact Tracing Team (MCT).
 Three options exist:
@@ -119,7 +119,7 @@ _Figure 4: CLEA deployment option 3, involving no MCT._
 Choosing an option is a local decision, based on local criteria, that does not compromize interoperability with other types of deployment in neighbouring countries.
 
 
-**_QR codes for synchronous versus asynchronous scans_**
+#### QR codes for synchronous versus asynchronous scans
 
 Regardless of which deployment option is chosen, two types of QR codes exist in order to reflect the two broad categories of use-cases:
 
@@ -132,7 +132,7 @@ Regardless of which deployment option is chosen, two types of QR codes exist in 
 	The QR code enables an asynchronous scan, before, during, or after visiting the location, and the location check-in timestamp is the one provided in the QR code itself rather than the scanning time.
 
 
-**_Static versus dynamic QR codes_**
+#### Static versus dynamic QR codes
 
 In order to further improve privacy and security considerations, the current specification defines **_dynamic QR codes_** that are periodically renewed and displayed with the help of a dedicated physical device.
 Each QR code includes, among other things, the location temporary UUID (behaving as a temporary pseudonym) that typically changes at least once a day (another period is possible, as explained later).
@@ -145,7 +145,7 @@ This aspect is out of scope of the present specification.
 It can also be noticed that both static and dynamic QR codes are processed by the same CLEA application, using the same protocol and central server.
 
 
-**_The case of employees_**
+#### The case of employees
 
 Finally the employees of a location can benefit from the service, in order to be warned if their workplace is a cluster, or on the opposite to upload to the server that they have been tested COVID+.
 Since they have a long presence in the location, the employees must scan a specific QR code which differs from regular QR codes scanned by clients.
@@ -228,7 +228,7 @@ The following acronyms and variable names are used:
 
 ### 3.2- Initial configuration of the service at a location
 
-**_Case of a location using a dedicated device(s) or tablets and dynamic QR codes for synchronous scans_**
+#### Case of a location using a dedicated device(s) or tablets and dynamic QR codes for synchronous scans
 
 The device(s) of a location must be initialized by the manufacturer (specialized device) before being used by the location manager.
 Similar rules (slightly updated) apply to a location manager who has its own dedicated tablet(s).
@@ -271,7 +271,7 @@ It is therefore a key parameter that defines the robustness against attackers wh
 A default value is: `2^^10 = 1024 seconds` (approx. 17 minutes).
 
 
-**_Case of a location manager or private event organiser who relies on a web service to generate a static QR code for synchronous scans_**
+#### Case of a location manager or private event organiser who relies on a web service to generate a static QR code for synchronous scans
 
 It is also possible to use a web service to generate a static QR code.
 Here the whole generation process is done within the web browser, thanks to a dedicated javascript library: an `SK_L` secret key is generated locally, the `PK_SA` and potentially `PK_MCTA` public keys are also communicated to the web browser.
@@ -281,7 +281,7 @@ If needed (e.g., for large locations), the location manager can easily provide s
 However, it is recommended to regularly generate and propose a new QR code within the location, in order to slightly reduce the attack probability and improve the user privacy.
 
 
-**Case of static QR codes for asynchronous scans_**
+#### Case of static QR codes for asynchronous scans
 
 This approach is also compatible with online electronic ticketing systems (e.g., for buses, shared rides, trains, or shows).
 Along with a ticket, a ready to be scanned QR code can be added, to let the user register their presence.
