@@ -6,7 +6,7 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Work in Progress, May 4th, 2021_**
+**_Work in Progress, May 10th, 2021_**
 
 
 ----
@@ -226,13 +226,18 @@ The following acronyms and variable names are used:
 | `locationPIN` | idem                         |  Secret 6 digit PIN, known only by the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance register. |
 
 
-### 3.2- Initial configuration of the device(s) at the manufacturer (specialized device), location (tablet)
+### 3.2- Initial configuration of the service at a location
 
-The following rules apply to the configuration of the device(s) of a given location:
+**_Case of a location using a dedicated device(s) or tablets and dynamic QR codes for synchronous scans_**
+
+The device(s) of a location must be initialized by the manufacturer (specialized device) before being used by the location manager.
+Similar rules (slightly updated) apply to a location manager who has its own dedicated tablet(s).
 
 - The location keeps a long-term secret, `SK_L`, specific to this location, that is never communicated.
-If this location uses several devices, each of them must be configured with this same `SK_L`.
-This configuration can be done by the device manufacturer meaning that the manufacturer is in charge of keeping this long-term secret. Details are out of the scope of this document.
+If this location uses several devices, each of them must be configured with the same `SK_L`.
+With a dedicated device, this configuration can be done by the device manufacturer, meaning that the manufacturer is in charge of keeping this long-term secret.
+With a tablet, this is performed by the CLEA software used on the tablet, and when several tablets are used, a synchronization is required to make sure they all use the same long-term secret.
+Details are out of the scope of this document.
 
 - Each device knows the public key of the Authority in charge of the backend server, `PK_SA`.
 When the deployment involves the MCT (options 1 and 2), the device also knows the public key of the Authority in charge of manual contact tracing, `PK_MCTA`.
@@ -266,10 +271,32 @@ It is therefore a key parameter that defines the robustness against attackers wh
 A default value is: `2^^10 = 1024 seconds` (approx. 17 minutes).
 
 
-### 3.3- Location Temporary Key (LTKey) and UUID (LTId) generation
+**_Case of a location manager or private event organiser who relies on a web service to generate a static QR code for synchronous scans_**
+
+It is also possible to use a web service to generate a static QR code.
+Here the whole generation process is done within the web browser, thanks to a dedicated javascript library: an `SK_L` secret key is generated locally, the `PK_SA` and potentially `PK_MCTA` public keys are also communicated to the web browser.
+No state is kept on the web service.
+The produced QR code is necessarily static, meaning that such parameters as `periodDuration` is set to 255 and `qrCodeRenewalInterval` is set to 0.
+If needed (e.g., for large locations), the location manager can easily provide several prints of the same QR codes within the location.
+However, it is recommended to regularly generate and propose a new QR code within the location, in order to slightly reduce the attack probability and improve the user privacy.
+
+
+**Case of static QR codes for asynchronous scans_**
+
+This approach is also compatible with online electronic ticketing systems (e.g., for buses, shared rides, trains, or shows).
+Along with a ticket, a ready to be scanned QR code can be added, to let the user register their presence.
+The QR code is necessarily static, a single LTKey/LTId being generated for the location/event.
+Since there is no way to check when the user who receives this QR code will scan it (i.e., before attending the location, when entering the location, after having left the location), there is no anti-replay verification (`qrCodeRenewalInterval = 0`).
+
+For instance, after buying a train ticket, the user will receive a QR code associated to the coach and seat, for that day, with timing information for the trip.
+
+
+### 3.3- Location Temporary Key (LTKey) and Location Temporary UUID (LTId) generation
 
 **_Step 1: key generation:_**
-A temporary key is generated for the location, which is automatically renewed (by default once a day) at a predefined round hour (e.g., at 4:00 am) which ideally corresponds to a closing time of the location.
+A key is generated for the location. 
+With a dynamic QR code, this is a temporary key which is automatically renewed (by default once a day) at a predefined round hour (e.g., at 4:00 am) which ideally corresponds to a closing time of the location.
+For the particular case of a static QR code, this key is in fact never renewed, the location manager needs to go to the website to renew the whole QR code, `SK_L` included.
 For the given period, this key is computed as follows:
 ```
 	LTKey(t_periodStart) = SHA256(SK_L | t_periodStart)
@@ -316,7 +343,7 @@ With a static QR code, the `LTKey`/`LTId` are kept unchanged for an undefined du
 
 In the current specification, corresponding to protocol version 0, two `location-specific--part` are defined:
 
-- LSPtype = 0, for a QR code compatible with a synchronous scan (i.e., when entering a location).
+- `LSPtype = 0`: for a QR code compatible with a synchronous scan (i.e., when entering a location).
 	The QR code may either be static or dynamic, and in that case associated to a freshness check.
 	The check-in timestamp is the time when the user scans this QR code.
 
@@ -332,7 +359,7 @@ where:
 		| Enc(PK_MCTA, locContactMsg) if locContactMsgPresent==1 ]
 ```
 
-- LSPtype = 1, for a QR code compatible with an asynchronous scan (i.e., before, during, or after visiting a location).
+- `LSPtype = 1`: for a QR code compatible with an asynchronous scan (i.e., before, during, or after visiting a location).
 	The QR code is necessarily static (i.e., the LTId/LTKey remain constant over the whole period), qrCodeRenewalInterval is necessarily equal to 0 (i.e., there is no renewal), and there is no freshness check.
 	The check-in timestamp is the one provided in the clear-text part of the LSP, and not the timestamp when scaning the QR code (which may happen several days before or after the visit).
 	The check-in time may not exactly correspond to the reality (e.g., case of a delayed train), but this is not an issue since all users will use the same time.
@@ -893,30 +920,6 @@ This is a consequence of the notion of "extended presence range" that cannot be 
 *Limit:* a "staff" QR code creates a risk of attack amplification since the attacker could switch a place as a cluster during the whole period and not the typical time slot of that place (e.g., 3 hours for a restaurant).
 It is recommended to allow this feature only on a device located in a safe place of the location in order to avoid that a simple client can unblock it.
 
-
-### 3.11- Web-based static QR code generation and integration in other web-based services
-
-#### The case of private events
-
-The system is compatible with a Web-based service meant to generate a static QR code, for instance to let an individual generate a QR code in the context of a private event.
-To that purpose, etc.
-
-```diff
-- TODO: short description.
-```
-
-#### The case of electronic ticketing
-
-This approach is also compatible with online electronic ticketing systems (e.g., for buses, shared rides, trains, or shows).
-Along with a ticket, a ready to be scanned QR code can be added, to let the user register their presence.
-The QR code is necessarily static, a single LTKey/LTId being generated for the location/event.
-Since there is no way to check when the user who receives this QR code will scan it (i.e., before attending the location, when entering the location, after having left the location), there is no anti-replay verification (`qrCodeRenewalInterval = 0`).
-
-For instance, after buying a train ticket, the user will receive a QR code associated to the coach and seat, for that day, with timing information for the trip.
-
-```diff
-- TODO: describe the exact QR code content.
-```
 
 
 ## 4- Conclusions
