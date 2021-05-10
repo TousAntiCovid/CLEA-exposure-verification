@@ -293,7 +293,8 @@ For instance, after buying a train ticket, the user will receive a QR code assoc
 
 ### 3.3- Location Temporary Key (LTKey) and Location Temporary UUID (LTId) generation
 
-**_Step 1: key generation:_**
+#### Step 1: key generation
+
 A key is generated for the location. 
 With a dynamic QR code, this is a temporary key which is automatically renewed (by default once a day) at a predefined round hour (e.g., at 4:00 am) which ideally corresponds to a closing time of the location.
 For the particular case of a static QR code, this key is in fact never renewed, the location manager needs to go to the website to renew the whole QR code, `SK_L` included.
@@ -305,7 +306,9 @@ where `t_periodStart` is the reference timestamp for the beginning of the period
 The `t_periodStart` value must match the predefined round hour: it cannot just be the result of a `gettimeofday()` (or similar) converted to an NTP time, a rounding to the nearest predefined round hour is necessary.
 For instance, 3h59mn48s and 4h00mn31s are both rounded to the same 4h00mn00 `t_periodStart` value, that is also necessarily multiple of 3600 seconds.
 
-**_Step 2: UUID generation:_**
+
+#### Step 2: UUID generation
+
 In order to keep this key secret with respect to the user, the device derives the following UUID from it:
 ```
 	LTId(t_periodStart) = HMAC-SHA-256-128(LTKey(t_periodStart), "1")
