@@ -554,21 +554,27 @@ this field contains the starting time of the QR code validity timespan, expresse
 this field carries the location temporary key for the period.
 
 The `msg` message must be encrypted using the ECIES-KEM **[ISO18033-2] [Shoup2006] [Libecc]** hybrid encryption scheme that provides both confidentiality, using an asymmetric encryption scheme, and integrity verification.
-This scheme is implemented using SECP256R1 ECDH as KEM, KDF1 using SHA256 hash as KDF and AES-256-GCM with a fixed 96-bits IV as DEM and TAG. A detailed description of the `Enc` function is given in appendix A
+While only the `msg` message is encrypted, the integrity protection encompasses the whole `LSP` message, including the part in cleartext.
+This scheme is implemented using SECP256R1 ECDH as KEM, KDF1 using SHA256 hash as KDF and AES-256-GCM with a fixed 96-bits IV as DEM and TAG.
+A detailed description of the `Enc` function is given in [Appendix A](#a-description-of-the-hybrid-encryption-scheme-and-the-enc-and-dec-functions).
+
 
 **_Size of the various QR codes_**
 
 For the LSP type 0, the plain text part is 17 bytes long, and 22 bytes long for the LSP type 1.
 
-The `msg` message, without taking `Enc(PK_MCTA, locContactMsg)` into account (or when absent), is 44 bytes long.
-The hybrid ECIES-KEM adds an overhead of 49 bytes (see [Description of the hybrid encryption scheme and the Enc and Dec functions](#a-description-of-the-hybrid-encryption-scheme-and-the-enc-and-dec-functions)), for a total of 93 bytes.
+The `msg` message, without taking `Enc(PK_MCTA, locContactMsg)` into account or when absent, is 44 bytes long.
+The hybrid ECIES-KEM adds an overhead of 49 bytes, for a total of 93 bytes.
 
 When the `locContactMsgPresent == 1`, the `locContactMsg` message adds an extra 16 bytes, as well as the same 49-byte overhead for the hybrid ECIES-KEM encryption, for a total of 65 bytes.
 
 The total is therefore 175 bytes long (resp. 180 for LSP type 1) with the `locContactMsg`, or 110 bytes long (resp. 115 for LSP type 1) without.
 
-The size of this binary message, after Base64url encoding, increases to 235 characters (resp. 242) that are added to the `https://tac.gouv.fr?v=0#` 24-character-long prefix (in case of France), for a **total of 259 characters** (resp. 266) for the URL.
-Or, without `locContactMsg`, the URL size amounts to **a total of 171 characters** (resp. 177).
+The size of this binary message, after Base64url encoding, increases to 235 characters (resp. 242) that are added to the `https://tac.gouv.fr?v=0#` 24-character-long prefix (in case of France), for a **total of 259 characters (resp. 266 for LSP type 1)** for the URL, with `locContactMsg`.
+Or, without `locContactMsg`, the URL size amounts to **a total of 171 characters (resp. 177)**.
+With a 65x65 QR code level 12, and M (resp. Q) redundancy, this is below the 287 (resp. 203) binary characters threshold.
+
+The following table summarizes the situation.
 
 | Name                                                         | size with LSP Type 0 | size with LSP Type 1 |
 |--------------------------------------------------------------|----------------------|----------------------|
@@ -630,7 +636,7 @@ With an interval of `2^^10 = 1024 seconds`, the accuracy requirement is pretty l
 The CLEA application benefits from such an internal trustworthy clock, making it relatively robust in front of such a relay attack.
 
 
-### 3.5- Asynchronous scan of a QR code (LSP Type 1)
+### 3.6- Asynchronous scan of a QR code (LSP Type 1)
 
 
 ### 3.7- Upload of the location history by a client tested COVID+ and cluster detection on the server
