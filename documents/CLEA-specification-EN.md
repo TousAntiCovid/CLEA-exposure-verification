@@ -226,7 +226,7 @@ The following acronyms and variable names are used:
 | `locationPIN` | idem                         |  Secret 6 digit PIN, known only by the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance register. |
 
 
-### 3.2- Initial configuration of the service at a location
+### 3.2- Initial configuration of the service 
 
 #### Case of a location using a dedicated device(s) or tablets and dynamic QR codes for synchronous scans
 
@@ -645,14 +645,21 @@ The CLEA application benefits from such an internal trustworthy clock, making it
 
 ### 3.6- Asynchronous scan of a QR code (LSP Type 1)
 
-TO BE ADDED
+A user who receives a QR code of LSP Type 1 can use the CLEA application to scan it, at her own discretion, before, during or after the event.
+Similarly to LSP Type 0, the CLEA application will add the following tuple to its local list:
+```
+	{QR_code, t_checkin}
+```
+where `t_checkin` is the timestamp in NTP format (32-bit seconds field) contained in the cleartext part of the LSP.
+Note that the scanning time is meaningless in case of these QR codes and is not recorded.
+The `t_checkin` information is also redundant with that contained in the QR code, but is added here in order to have uniform processings of LST Types 0 and 1.
+Entries in the local list are automatically removed after 14 days, where this delay is measured with respect to the `t_checkin` date.
 
-- Detection of duplicate scans (only one scan per QR code, strictly, since it corresponds to a well defined event).
+#### Detection of duplicate scans by the CLEA application
 
-- t_qrScan is meaningless here but recorded for homogeneity purposes.
-
-- use the t_checkin timestamp instead (integrity protected)
-
+Before adding `{QR_code, t_checkin}` in the local list, the CLEA application checks that an entry with the same `LTId` is not already there.
+Since LSP Type 1 QR codes correspond to unique events, there can be only a single entry for a given `LTId` at any time.
+This is a difference with respect to LSP Type 1 QR codes where a client can visit the same location several times.
 
 
 ### 3.7- Upload of the location history by a client tested COVID+ and cluster detection on the server
