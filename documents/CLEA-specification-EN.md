@@ -6,7 +6,7 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Work in Progress, May 10th, 2021_**
+**_Work in Progress, May 11th, 2021_**
 
 
 ----
@@ -556,10 +556,14 @@ this field contains the starting time of the QR code validity timespan, expresse
 - `LTKey` (32 bytes, or 256 bits):
 this field carries the location temporary key for the period.
 
+
+#### Encryption and integrity protection
+
 The `msg` message must be encrypted using the ECIES-KEM **[ISO18033-2] [Shoup2006] [Libecc]** hybrid encryption scheme that provides both confidentiality, using an asymmetric encryption scheme, and integrity verification.
-While only the `msg` message is encrypted, the integrity protection encompasses the whole `LSP` message, including the part in cleartext.
-This scheme is implemented using SECP256R1 ECDH as KEM, KDF1 using SHA256 hash as KDF and AES-256-GCM with a fixed 96-bits IV as DEM and TAG.
-A detailed description of the `Enc` function is given in [Appendix A](#a-description-of-the-hybrid-encryption-scheme-and-the-enc-and-dec-functions).
+More precisely, this scheme uses SECP256R1 ECDH as KEM, KDF1 using SHA256 hash as KDF and AES-256-GCM with a fixed 96-bits IV as DEM and TAG.
+A detailed description is given in [Appendix A](#a-description-of-the-hybrid-encryption-scheme-and-the-enc-and-dec-functions).
+
+While only the `msg` message is encrypted, the integrity protection encompasses the whole `LSP` message, including the cleartext part of the message.
 
 
 #### Size of the various QR codes
