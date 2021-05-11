@@ -344,11 +344,11 @@ Note that if there are several devices, an asynchronism between them during the 
 With a static QR code, the `LTKey`/`LTId` are kept unchanged for an undefined duration.
 
 
-In the current specification, corresponding to protocol version 0, two `location-specific--part` are defined:
+In the current specification, corresponding to protocol version 0, two `location-specific--part` types are defined:
 
 - `LSPtype = 0`: for a QR code compatible with a synchronous scan (i.e., when entering a location).
 	The QR code may either be static or dynamic, and in that case associated to a freshness check.
-	The check-in timestamp is the time when the user scans this QR code.
+	The check-in timestamp is the time when the user scans this QR code, called `t_qrScan`hereafter.
 
 More precisely, it is structured as follows (high-level view):
 ```
@@ -364,13 +364,14 @@ where:
 
 - `LSPtype = 1`: for a QR code compatible with an asynchronous scan (i.e., before, during, or after visiting a location).
 	The QR code is necessarily static (i.e., the LTId/LTKey remain constant over the whole period), qrCodeRenewalInterval is necessarily equal to 0 (i.e., there is no renewal), and there is no freshness check.
-	The check-in timestamp is the one provided in the clear-text part of the LSP, and not the timestamp when scaning the QR code (which may happen several days before or after the visit).
-	The check-in time may not exactly correspond to the reality (e.g., case of a delayed train), but this is not an issue since all users will use the same time.
+	This QR code corresponds to a unique event, that takes place at a well defined time.
+	The check-in timestamp is the one provided in the clear-text part of the LSP, `t_event`, and not the timestamp when scaning the QR code (which may happen several days before or after the visit).
+	Sometimes, the check-in time may not exactly correspond to the reality (e.g., case of a delayed train), but this is not an issue since all users will use the same time.
 	When meaningful (e.g., a train trip), a duration information is also provided in the clear-text part of the LSP, otherwise 
 
 More precisely, it is structured as follows (high-level view):
 ```
-	LSP(t_periodStart, t_qrStart) = [ version | LSPtype = 1 | reserved1 | visitDuration | t_checkin
+	LSP(t_periodStart, t_qrStart) = [ version | LSPtype = 1 | reserved1 | visitDuration | t_event  
 		| LTId(t_periodStart) | Enc(PK_SA, msg) ]
 ```
 with the same definition for `msg`.
@@ -413,7 +414,7 @@ The following binary format must be used when `LSPtype = 1`:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| ver |t = 1|res| visitDuration |      t_checkin (4 bytes)      |
+| ver |t = 1|res| visitDuration |       t_event (4 bytes)       |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |       ...                     |                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -498,10 +499,10 @@ Restricted to `LSPtype = 1`, this is the expected duration of the stay in the lo
 This field is not necessarily meaningful nor known upon the generation of QR code.
 In that case it must contain value 0.
 
-- `t_checkin` (4 bytes):
+- `t_event` (4 bytes):
 Restricted to `LSPtype = 1`, this is the time when the user is expected to enter the location.
 	This time is different from the timestamp when scaning this QR code, which is not used with that type of QR code.
-	The check-in time may not exactly correspond to the reality (e.g., a delayed train), but this is not an issue as all users will use the same theoretical time.
+	This event time may not exactly correspond to the reality (e.g., a delayed train), but this is not an issue as all users will use the same theoretical time.
 
 - `LTId` (16 bytes, or 128 bits): 
 this field carries the location temporary UUID for the period.
@@ -648,18 +649,19 @@ The CLEA application benefits from such an internal trustworthy clock, making it
 A user who receives a QR code of LSP Type 1 can use the CLEA application to scan it, at her own discretion, before, during or after the event.
 Similarly to LSP Type 0, the CLEA application will add the following tuple to its local list:
 ```
-	{QR_code, t_checkin}
+	{QR_code, t_event}
 ```
-where `t_checkin` is the timestamp in NTP format (32-bit seconds field) contained in the cleartext part of the LSP.
+where `t_event` is the timestamp in NTP format (32-bit seconds field) contained in the cleartext part of the LSP.
 Note that the scanning time is meaningless in case of these QR codes and is not recorded.
-The `t_checkin` information is also redundant with that contained in the QR code, but is added here in order to have uniform processings of LST Types 0 and 1.
-Entries in the local list are automatically removed after 14 days, where this delay is measured with respect to the `t_checkin` date.
+The `t_event` information is also redundant with that contained in the QR code, but is added here in order to enable a uniform processing of the LSP Types 0 and 1.
+Entries in the local list are automatically removed after 14 days, delay that is measured with respect to the `t_event` date.
+
 
 #### Detection of duplicate scans by the CLEA application
 
-Before adding `{QR_code, t_checkin}` in the local list, the CLEA application checks that an entry with the same `LTId` is not already there.
-Since LSP Type 1 QR codes correspond to unique events, there can be only a single entry for a given `LTId` at any time.
-This is a difference with respect to LSP Type 1 QR codes where a client can visit the same location several times.
+Before adding `{QR_code, t_event}` in the local list, the CLEA application checks that an entry with the same `LTId` is not already there.
+Since LSP Type 1 QR codes correspond to unique events, there can be only a single entry for a given `LTId` at any time and any duplicate is systematically removed.
+This is a difference with respect to LSP Type 0 QR codes where a client can visit the same location several times.
 
 
 ### 3.7- Upload of the location history by a client tested COVID+ and cluster detection on the server
@@ -676,11 +678,15 @@ The details of this authorisation mechanism are out of scope of the present docu
 
 The location history consists of a set of records of the form:
 ```
-	{QR_code_0, t_qrScan_0}, {QR_code_1, t_qrScan_1}, {QR_code_2, t_qrScan_2}...
+	{QR_code_0, t_checkin_0}, {QR_code_1, t_checkin_1}, {QR_code_2, t_checkin_2}...
 ```
-This history is by design limited to 14 days of history, and perhaps further restricted to the potential contagious period if known.
-For instance, if the user experienced symptoms starting from a well defined date, it could be useful to take advantage of the COVID specificities (start of the infectious period) to filter the history that is uploaded.
-The details of what criteria should be used to perform this extra filtering are out of scope of this specification.
+where the `t_checkin` is either a scanning timestamp (LSP Type 0) or the event timestamp (LSP Type 1).
+
+This history is by design limited to 14 days of history.
+It could be further restricted, or the uploaded data could add additional information.
+For instance, if the user experienced symptoms starting from a well defined date, it could be useful to take advantage of the start of the infectious period (when the user could contaminate others) to filter the history that is uploaded and remove records prior to that date.
+On the opposite, in order to have some backward tracing capabilities, it could be advantageous to distinguish between the "contagious periode" (when the user could contaminate others) and "infected period" (when the user has potentially been contaminated), when known.
+The details of what to do exactly are out of scope of this specification as they depend on external decisions, of the responsibiliy of the Health Authority, on the use of the tool.
 
 The frontend of the server:
 
