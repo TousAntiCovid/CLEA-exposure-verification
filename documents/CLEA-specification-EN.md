@@ -216,7 +216,7 @@ The following acronyms and variable names are used:
 | `CRIexp` | qrCodeRenewalIntervalExponent     | Compact version of the `qrCodeRenewalInterval` as the exponent of a power of two, coded in 5 bits. When equal to `0x1F`, `qrCodeRenewalInterval` must be set to `0` (i.e. no renewal period), otherwise `qrCodeRenewalInterval` must be set to `2^^CRIexp` seconds. |
 | `t_qrStart` (in seconds) | qrCodeValidityStartingTime | Starting time of the QR code validity timespan, expressed as the number of seconds since January 1st, 1900 (NTP timestamp limited to the 32-bit seconds field), by convention in UTC (Coordinated Universal Time) timezone. |
 | `t_qrScan` (in seconds) | qrCodeScanTime     | Timestamp when a user terminal scans a given QR code, expressed as the number of seconds since January 1st, 1900 (NTP timestamp limited to the 32-bit seconds field), by convention in UTC (Coordinated Universal Time) timezone. |
-| `t_checkin`(in seconds) | checkinTime        | When `LSPtype` is equal to 1, this is the time when the user is expected to enter the location, expressed as the number of seconds since January 1st, 1900 (NTP timestamp limited to the 32-bit seconds field), by convention in UTC (Coordinated Universal Time) timezone. |
+| `t_event`(in seconds) | eventTime            | When `LSPtype` is equal to 1, this is the time when the user is expected to enter the location, expressed as the number of seconds since January 1st, 1900 (NTP timestamp limited to the 32-bit seconds field), by convention in UTC (Coordinated Universal Time) timezone. |
 | `visitDuration` (in hours) | idem             | When `LSPtype` is equal to 1, this is the expected duration of the stay in the location, expressed in number of hours. This field is not necessarily meaningful nor known upon the generation of QR code. In that case it must contain value 0. |
 | `localList` | idem                           | Within the user terminal, this list contains all the `{QR code, t_qrScan}` tuples collected by a user within the current 14-day window. Entries are added in this localList as the user visits new locations and scans the corresponding QR code, and automatically deleted after 14 days. |
 | `clusterList` | idem                         | Within the backend server, this list contains all the `LTId` and timing information corresponding to a potential cluster. This list is public, it is downloaded by all the user terminals, and is updated each time a new cluster is identified. The cluster qualification happens when the hourly counter of a location exceeds a given threshold that depends on the location features. |
@@ -680,13 +680,13 @@ The location history consists of a set of records of the form:
 ```
 	{QR_code_0, t_checkin_0}, {QR_code_1, t_checkin_1}, {QR_code_2, t_checkin_2}...
 ```
-where the `t_checkin` is either a scanning timestamp (LSP Type 0) or the event timestamp (LSP Type 1).
+where the `t_checkin` is either a scanning timestamp (in case of LSP Type 0) or the event timestamp (in case of LSP Type 1).
 
 This history is by design limited to 14 days of history.
 It could be further restricted, or the uploaded data could add additional information.
-For instance, if the user experienced symptoms starting from a well defined date, it could be useful to take advantage of the start of the infectious period (when the user could contaminate others) to filter the history that is uploaded and remove records prior to that date.
-On the opposite, in order to have some backward tracing capabilities, it could be advantageous to distinguish between the "contagious periode" (when the user could contaminate others) and "infected period" (when the user has potentially been contaminated), when known.
-The details of what to do exactly are out of scope of this specification as they depend on external decisions, of the responsibiliy of the Health Authority, on the use of the tool.
+For instance, if the goal is to do forward tracing, and if the user experienced symptoms starting from a known date, it could be helpful to take advantage of the start of the "infectious period" (i.e., when the user could contaminate others) to remove records prior to that date.
+On the opposite, if the goal is to do backward tracing, it could be helpful to distinguish between the "infectious periode" (when the user could contaminate others) and "infected period" (when the user has potentially been contaminated), when known.
+The details of what to do exactly, as they depend on the Health Authority decisions, are out of scope of this specification.
 
 The frontend of the server:
 
@@ -703,15 +703,16 @@ This verification is meant to protect the server against malicious applications 
 
 #### Processing of a user location record by the backend server
 
-When receiving a given `{QR_code, t_qrScan}` tuple (they are processed independently from one another as a result of the frontend mixnet), the backend server:
+When receiving a given `{QR_code, t_checkin}` tuple (they are processed independently from one another as a result of the frontend mixnet), the backend server:
 
 
 **_- Step 1:_** decrypts the `msg` part of the QR code, using its `SK_SA` secret key, and checks the message integrity.
 In case of problem, the server rejects the tuple.
 
 
-**_- Step 2:_** If `qrCodeRenewalInterval > 0`, a freshness check is performed for this tuple in order to limit relay attacks.
-More precisely, if `t_qrScan` (generated by the CLEA application during the scan) and `t_qrStart` (generated by the device and protected from malicious modifications by being in the encrypted part of the QR code) are "too different", the server rejects the tuple.
+**_- Step 2:_** With an LSP Type 0 QR code (synchronous scan), if `qrCodeRenewalInterval > 0`, a freshness check is performed for this tuple in order to limit relay attacks.
+In that case, the `t_checkin` of this tuple is the QR code scan timestamp, `t_qrScan`.
+So, if `t_qrScan` (generated by the CLEA application during the scan) and `t_qrStart` (generated by the device and protected from malicious modifications by being in the encrypted part of the QR code) are "too different", the server rejects the tuple.
 The tolerance depends on the `qrCodeRenewalInterval` value, on the possible drift of the device clock (e.g., one or two minutes per year), and on the accuracy of the CLEA application clock on the user terminal.
 For instance it checks that: 
 ```
@@ -721,7 +722,7 @@ in order to take into account the possibility of scanning the code just before i
 
 This verification is intended to limit (without being able to totally prevent them) relay attacks where the attacker scans a QR code from a target location and communicates it to several supposed patients in order to create a fake cluster afterwards. The attack is thus limited in time to the defined tolerance.
 
-If `qrCodeRenewalInterval == 0`, there is no freshness check, the QR code being static during the whole period (e.g., a day).
+If `qrCodeRenewalInterval == 0` of with an LSP Type 1 QR code (asynchronous scan), there is no freshness check, the QR code being static during the whole period (e.g., a day).
 
 
 **_- Step 3:_** computes from the information stored in the encrypted `msg`, `HMAC-SHA-256-128(LTKey(t_periodStart), "1")`, and compares its value to the `LTId` value retrieved from the unencrypted part of the QR code. If the two values differ, the server rejects the tuple.
@@ -762,6 +763,8 @@ and increments the three hourly exposure counters  of `LTId` (assuming `e` is a 
 ```
 It is important to verify that any index is within 0 and `e->periodDuration - 1` (inclusive) before updating any counter, since the 3 exposure hours (previous example) may extend beyond the closure of the location.
 The above code avoids wrapping to zero when a counter already reached its maximum value, 255 (counting above 255 is of course possible after changing the data type).
+
+With an LSP Type 1 (asynchronous scan), the QR code itself contains a `visitDuration` field that indicates the exposure (e.g., in case of a train travel, the timespan when the user stays within the wagon).
 
 
 **_- Step 6:_** if the `e->hourlyExposureCount[h1]` (for instance) goes above the cluster qualification threshold (this threshold may depend on the location category and capacity), it adds `{LTId, h1}` to its `clusterList`, a public list periodically downloaded by all terminals.
