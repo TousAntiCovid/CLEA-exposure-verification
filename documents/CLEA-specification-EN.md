@@ -240,10 +240,10 @@ The following acronyms and variable names are used:
 
 ### 3.2- Initial configuration of the service 
 
-#### Case of a location using a dedicated device(s) or tablets and dynamic QR codes for synchronous scans
+#### Case of a location using a dedicated device(s) or tablet(s) and dynamic QR codes for synchronous scans
 
-The device(s) of a location must be initialized by the manufacturer (specialized device) before being used by the location manager.
-Similar rules (slightly updated) apply to a location manager who has its own dedicated tablet(s).
+The device(s) of a location must be initialized.
+This is either managed by the manufacturer in case of specialized device(s), before being used by the location manager, or by the location manager in case of tablet(s).
 
 - The location keeps a long-term secret, `SK_L`, specific to this location, that is never communicated.
 If this location uses several devices, each of them must be configured with the same `SK_L`.
@@ -257,16 +257,16 @@ When the deployment involves the MCT (options 1 and 2), the device also knows th
 - If the location has several totally independent rooms (e.g., a restaurant across two different buildings), distinct devices initialized with different long-term secrets, `SK_R1` and `SK_R2`, may be used in order to generate different location keys and identifiers.
 
 - A pre-determined round hour (e.g., 4:00am, local timezone) is defined, that ideally corresponds to a moment when this location is closed.
-At that hour, every day, the location `LTKey` and `LTId` are automatically renewed.
+At that time, every day, the location `LTKey` and `LTId` are automatically renewed.
 Later, if the authority identifies a cluster in this location, it will be notified through this location temporary UUID, known only by the clients of the location who scanned the associated QR code.
 
-- The case of a location that never closes should be handled in the most appropriate manner, for instance with a location key and identifier renewal that corresponds to a low affluence period.
-The motivation is to reduce the risk that a client who arrives just after the location key and identifier renewal (who learns the new `LTId_{i+1}` via the new QR code) be not informed of a cluster warning for this location for a cluster time span that starts just before the renewal, since this later may be associated to the previous `LTId_i`.
+- The case of a location that never closes should be handled in the most appropriate manner, for instance with a location `LTKey` and `LTId` renewal that corresponds to a low affluence period.
+The motivation is to reduce the probability that a client who arrives after the renewal and learns the new `LTId_{i+1}` via the new QR code, misses a cluster warning for the previous `LTId_i` since it started before the renewal.
 
 - The case of a long event (e.g., over several days) requires specific attention.
-For instance, it can be a public or private event gathering several persons in a closed location during more than one day (e.g., a marriage or party over a week-end), with people who may only arrive on the second day, or leave earlier, or stay during all the event.
-Such events are incompatible with a daily renewal of the location key and identifier, since obliging all users to scan the new QR code after each renewal can be impractical.
-Having the location key and identifier lasting the full duration of the event can be a practical solution.
+For instance, it can be a private event in a closed location during several days (e.g., a marriage or party over a week-end), with people who may only arrive on the second day, or leave earlier, or stay during the whole event.
+Such events are incompatible with a daily renewal of the location `LTKey` and `LTId`, since requiring all users to scan the new QR code after each renewal is impractical.
+Having the location `LTKey` and `LTId` lasting the full duration of the event can be a practical solution.
 Then, since the exact moment when a participant definitively leaves the event is unknown by default, it can be preferable to use a coarse grain warning during the risk evaluation process.
 
 - A period can also be shorter than 24 hours, when several activity periods are clearly defined, each of them separated by official closures of the location (e.g., the two services of a restaurant, at noon and in the evening).
@@ -276,29 +276,28 @@ The main benefit of shorter periods is to avoid that a client of the noon servic
 
 - The `periodDuration` parameter contains the chosen period duration, expressed in number of hours, between 1 and 255 (note that value 0 is invalid), the value 255 being reserved to the special case of a unlimited period duration. 
 It is part of the information carried in the QR code and it is used by the server.
-This `periodDuration` determines the renewal frequency of the location temporary key and identifier.
+This `periodDuration` determines the renewal frequency of the location `LTKey` and `LTId`.
 It is therefore a key parameter that defines the robustness against attackers who want to monitor the potential cluster status of a set of locations in the long term.
 
 - An appropriate value for the `qrCodeRenewalInterval` parameter (duration after which a QR code is renewed) is chosen, depending on the device specifications and the desired protection against relay attacks. A value of 0 indicates the QR code is never renewed during the period, otherwise `qrCodeRenewalInterval` must be equal to a power of two.
 A default value is: `2^^10 = 1024 seconds` (approx. 17 minutes).
 
 
-#### Case of a location manager or private event organiser who relies on a web service to generate a static QR code for synchronous scans
+#### Case of a location manager or private event organizer who relies on a web service to generate a static QR code for synchronous scans
 
 It is also possible to use a web service to generate a static QR code.
 Here the whole generation process is done within the web browser, thanks to a dedicated javascript library: an `SK_L` secret key is generated locally, the `PK_SA` and potentially `PK_MCTA` public keys are also communicated to the web browser.
 No state is kept on the web service.
-The produced QR code is necessarily static, meaning that such parameters as `periodDuration` is set to 255 and `qrCodeRenewalInterval` is set to 0.
-If needed (e.g., for large locations), the location manager can easily provide several prints of the same QR codes within the location.
-However, it is recommended to regularly generate and propose a new QR code within the location, in order to slightly reduce the attack probability and improve the user privacy.
+The produced QR code is necessarily static, meaning that `periodDuration = 255` and `qrCodeRenewalInterval = 0`.
+With large locations, the manager can easily provide several prints of the same QR code.
+In any case, it is recommended to regularly generate and propose a new QR code in order to (slightly) reduce the attack probability and improve the user privacy.
 
 
 #### Case of static QR codes for asynchronous scans
 
-This approach is also compatible with online electronic ticketing systems (e.g., for buses, shared rides, trains, or shows).
-Along with a ticket, a ready to be scanned QR code can be added, to let the user register their presence.
-The QR code is necessarily static, a single LTKey/LTId being generated for the location/event.
-Since there is no way to check when the user who receives this QR code will scan it (i.e., before attending the location, when entering the location, after having left the location), there is no anti-replay verification (`qrCodeRenewalInterval = 0`).
+Static QR codes can be generated by online electronic ticketing systems (e.g., for buses, shared rides, trains, or shows): part of the ticket, a QR code is added to let the user register her presence.
+The QR code is static since a single `LTKey` and `LTId` is generated for the event, and it is necessarily associated to an asynchronous scan since the user can scan it at any time (before, during, or after the event).
+There is no anti-replay verification.
 
 For instance, after buying a train ticket, the user will receive a QR code associated to the coach and seat, for that day, with timing information for the trip.
 
