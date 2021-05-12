@@ -330,35 +330,34 @@ Indeed, an attacker who scans a QR code must not know the `LTKey(t_periodStart)`
 
 If there are several devices, each of them must generate the same `LTKey(t_periodStart)` and `LTId(t_periodStart)` when switching to a new period.
 This is guaranteed if the same `t_periodStart` value is generated.
-Renewal at a pre-defined full hour associated with a limited drift of the boxes (e.g., one or two minutes per year) guarantees this.
-Since the devices are not perfectly synchronized (device clock drifts), a small hazard is possible (i.e., some devices will still display the old QR code and others the new one), but without any consequence if the location is closed to public at that moment.
+The renewal at a pre-defined well-known full hour, plus a limited drift of the devices (e.g., one or two minutes per year) guarantees this.
+The fact the devices are not perfectly synchronized (because of different clock drifts across devices), a small hazard is possible (i.e., some devices will still display the old QR code and others the new one).
+It does not have any consequence if the location is closed to public at that moment.
 
 
 ### 3.4- QR code content 
 
 #### High level view of the QR code content
 
-The QR code of a location, at any moment, contains a URL ("deep link"), structured as:
+The QR code of a location contains a URL ("deep link") structured as follows:
 ```
 	"country-specific-prefix" "Base64url(location-specific-part)"
 ```
-For instance, the country specific prefix is: `https://tac.gouv.fr?v=0#` in case of France, where:
-`v=0` indicates it's protocol version 0;
-the `#` character prevents the text that follows (namely the Base64url encoding of the location specific part) to be sent to the `tac.gouv.fr` server if the application is not already installed on the user terminal.
+The country specific prefix is: `https://tac.gouv.fr?v=0#` in case of France, where `v=0` indicates it's the protocol version 0 of CLEA, and the `#` character prevents the text that follows (namely the Base64url encoding of the location specific part) to be sent to the `tac.gouv.fr` server if the application is not already installed on the user terminal.
 
-In the remaining of this section, we define the structure of the location specific part.
+The remaining of this section defines the location specific part.
 
-With a dynamic QR code, this QR code is renewed when switching from one period to another (change of `LTKey`/`LTId`), but also periodically during the period.
-This renewal during the period is automatic every `qrCodeRenewalInterval` seconds.
-This QR code renewal interval is a balance between the calculation and/or autonomy constraints of the device on the one hand (the higher the `qrCodeRenewalInterval` value, the better), and the desired protection against relay attacks that would otherwise be possible during the entire period on the other hand (the lower, the better, see below).
-Note that if there are several devices, an asynchronism between them during the renewal of the QR code does not pose a problem: the `t_qrStart` values may differ, only the `LTId(t_periodStart)` must be identical across all QR codes, which is guaranteed.
-With a static QR code, the `LTKey`/`LTId` are kept unchanged for an undefined duration.
+With a dynamic QR code, this QR code is renewed when switching from one period to another (change of `LTKey` and `LTId`), but also periodically during the period.
+This renewal during the period happens every `qrCodeRenewalInterval` seconds.
+It is a balance between the calculation and autonomy constraints of the device on the one hand (the higher the `qrCodeRenewalInterval` value, the better), and the desired protection against relay attacks on the other hand (the lower, the better).
+Note that if there are several devices, an asynchronism between them during the renewal of the QR code does not pose any problem: if the `t_qrStart` values may differ, the `LTId(t_periodStart)` will remain identical.
+With a static QR code, the `LTKey` and `LTId` are kept unchanged for an undefined duration.
 
 
-In the current specification, corresponding to protocol version 0, two `location-specific--part` types are defined:
+With the current specification for CLEA protocol version 0, two `location-specific-part` (LSP) types are defined:
 
 - `LSPtype = 0`: for a QR code compatible with a synchronous scan (i.e., when entering a location).
-	The QR code may either be static or dynamic, and in that case associated to a freshness check.
+	The QR code may either be static or dynamic, and in the latter case associated to a freshness check.
 	The check-in timestamp is the time when the user scans this QR code, called `t_qrScan` hereafter.
 
 More precisely, it is structured as follows (high-level view):
@@ -374,18 +373,18 @@ where:
 ```
 
 - `LSPtype = 1`: for a QR code compatible with an asynchronous scan (i.e., before, during, or after visiting a location).
-	The QR code is necessarily static (i.e., the LTId/LTKey remain constant over the whole period), qrCodeRenewalInterval is necessarily equal to 0 (i.e., there is no renewal), and there is no freshness check.
+	The QR code is necessarily static (i.e., the `LTKey` and `LTId` remain constant over the whole period), qrCodeRenewalInterval is necessarily equal to 0 (i.e., there is no renewal), and there is no freshness check.
 	This QR code corresponds to a unique event, that takes place at a well defined time.
 	The check-in timestamp is the one provided in the clear-text part of the LSP, `t_event`, and not the timestamp when scanning the QR code (which may happen several days before or after the visit).
 	Sometimes, the check-in time may not exactly correspond to the reality (e.g., case of a delayed train), but this is not an issue since all users will use the same time.
-	When meaningful (e.g., a train trip), a duration information is also provided in the clear-text part of the LSP, otherwise 
+	When meaningful (e.g., a train trip), a duration information is also provided in the clear-text part of the LSP, otherwise the duration is that of the full event and is not specified.
 
 More precisely, it is structured as follows (high-level view):
 ```
 	LSP(t_periodStart, t_qrStart) = [ version | LSPtype = 1 | reserved1 | visitDuration | t_event  
 		| LTId(t_periodStart) | Enc(PK_SA, msg) ]
 ```
-with the same definition for `msg`.
+with the same definitions for `msg`.
 
 
 The various fields are described below.
