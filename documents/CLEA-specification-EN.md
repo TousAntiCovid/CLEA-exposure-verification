@@ -221,7 +221,7 @@ The following acronyms and variable names are used:
 | `visitDuration` (in hours) | idem             | When `LSPtype` is equal to 1, this is the expected duration of the stay in the location, expressed in number of hours. This field is not necessarily meaningful nor known upon the generation of QR code. In that case it must contain value 0. |
 | `localList` | idem                           | Within the user terminal, this list contains all the `{QR code, t_checkin}` tuples collected by a user within the current 14-day window. Entries are added in this localList as the user visits new locations and scans the corresponding QR code, and automatically deleted after 14 days. |
 | `clusterList` | idem                         | Within the backend server, this list contains all the `LTId` and timing information corresponding to a potential cluster. This list is public, it is downloaded by all the user terminals, and is updated each time a new cluster is identified. The cluster qualification happens when the hourly counter of a location exceeds a given threshold that depends on the location features. |
-| `dupScanThreshold` (in seconds) | idem       | Time tolerance in the duplicate scan mechanism: for a given `LTId`, a single QR code can be recorded in the localList every `dupScanThreshold` seconds. A similar check is performed on the server frontend. |
+| `dupScanThreshold` (in seconds) | idem       | Time tolerance in the duplicated scan mechanism: for a given `LTId`, a single QR code can be recorded in the localList every `dupScanThreshold` seconds. A similar check is performed on the server frontend. |
 | `locationPhone` | idem                       | Phone number of the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance register. |
 | `locationRegion` | idem                      | Coarse grain geographical information for the location, in order to facilitate the work of the Manual Contact Tracing team. In case of France, it can contain a department number. |
 | `locationPIN` | idem                         |  Secret 6 digit PIN, known only by the location contact person, stored as a set of 4-bit sub-fields that each contain a digit. This piece of information is only accessible to the manual contact tracing authority. It is meant to create a link between the digital system and the hand-written attendance register. |
@@ -563,27 +563,32 @@ this field carries the location temporary key for the period.
 
 The `msg` message must be encrypted using the ECIES-KEM **[ISO18033-2] [Shoup2006] [Libecc]** hybrid encryption scheme that provides both confidentiality, using an asymmetric encryption scheme, and integrity verification.
 More precisely, this scheme uses SECP256R1 ECDH as KEM, KDF1 using SHA256 hash as KDF and AES-256-GCM with a fixed 96-bits IV as DEM and TAG.
+To the orginal `msg` message, the hybrid ECIES-KEM scheme appends a block of 49 bytes that contains both a tag and an ephemeral public key.
 A detailed description is given in [Appendix A](#a-description-of-the-hybrid-encryption-scheme-and-the-enc-and-dec-functions).
 
-While only the `msg` message is encrypted, the integrity protection encompasses the whole `LSP` message, including the cleartext part of the message.
+While only the `msg` message is encrypted, the integrity protection encompasses the whole `LSP` message, including the cleartext part of the LSP: any accidental or malicious modification of the QR code content is therefore automatically detected.
 
 
 #### Size of the various QR codes
 
-For the LSP type 0, the plain text part is 17 bytes long, and 22 bytes long for the LSP type 1.
+A Level 12 65x65 QR code Type 2 (see [Section 2.4](#24-technical-requirements)) has a limited capacity, 287 binary characters for redundancy level M or 203 for redundancy level Q. 
+It is therefore essential that the full "deep link" complies with these limits.
+The country specific prefix, `https://tac.gouv.fr?v=0#` in case of France, require 24 characters.
 
-The `msg` message, without taking `Enc(PK_MCTA, locContactMsg)` into account or when absent, is 44 bytes long.
-The hybrid ECIES-KEM adds an overhead of 49 bytes, for a total of 93 bytes.
+The location specific part size depends on:
 
-When the `locContactMsgPresent == 1`, the `locContactMsg` message adds an extra 16 bytes, as well as the same 49-byte overhead for the hybrid ECIES-KEM encryption, for a total of 65 bytes.
+- the LSP type, since type 1 adds 5 more bytes (this value is before the Base64url encoding);
 
-The total is therefore 175 bytes long (resp. 180 for LSP type 1) with the `locContactMsg`, or 110 bytes long (resp. 115 for LSP type 1) without.
+- the optional presence of the `locContactMsg` message (when the `locContactMsgPresent == 1`), which consists of 16 bytes of cleartext.
 
-The size of this binary message, after Base64url encoding, increases to 235 characters (resp. 242) that are added to the `https://tac.gouv.fr?v=0#` 24-character-long prefix (in case of France), for a **total of 259 characters (resp. 266 for LSP type 1)** for the URL, with `locContactMsg`.
-Or, without `locContactMsg`, the URL size amounts to **a total of 171 characters (resp. 177)**.
-With a 65x65 QR code level 12, and M (resp. Q) redundancy, this is below the 287 (resp. 203) binary characters threshold.
+It should also be noted that :
+
+- the hybrid ECIES-KEM encryption add a 49-byte overhead;
+
+- the Base64url encoding increases the size by a factor `1.33` approximately.
 
 The following table summarizes the situation.
+
 
 | Name                                                         | size with LSP Type 0 | size with LSP Type 1 |
 |--------------------------------------------------------------|----------------------|----------------------|
@@ -609,7 +614,7 @@ where `t_qrScan` is the timestamp in NTP format (32-bit seconds field) of the CL
 Entries in the local list are automatically removed after 14 days.
 
 
-#### Detection of duplicate scans by the CLEA application
+#### Detection of duplicated scans by the CLEA application
 
 Before adding `{QR_code, t_qrScan}` in the local list, the CLEA application checks that an entry with the same `LTId` is not already there, with a scanning time "close" to `t_qrScan`:
 ```C
@@ -620,7 +625,7 @@ Before adding `{QR_code, t_qrScan}` in the local list, the CLEA application chec
 		// reject the new entry as duplicated
 	}
 ```
-where the `dupScanThreshold` is the time tolerance in the duplicate scan mechanism: for a given `LTId`, a single QR code can be recorded in the localList every `dupScanThreshold` seconds.
+where the `dupScanThreshold` is the time tolerance in the duplicated scan mechanism: for a given `LTId`, a single QR code can be recorded in the localList every `dupScanThreshold` seconds.
 
 This verification is intended to avoid disrupting the "cluster" qualification mechanism by artificially increasing the number of reports for a given time slot and location, which may be accidental (a client unwillingly scans twice the QR code) or deliberate (a malicious client, who knows he will likely be tested COVID+).
 From this point of view a large value for `dupScanThreshold` is preferable.
@@ -658,7 +663,7 @@ The `t_event` information is also redundant with that contained in the QR code, 
 Entries in the local list are automatically removed after 14 days, delay that is measured with respect to the `t_event` date.
 
 
-#### Detection of duplicate scans by the CLEA application
+#### Detection of duplicated scans by the CLEA application
 
 Before adding `{QR_code, t_event}` in the local list, the CLEA application checks that an entry with the same `LTId` is not already there.
 Since LSP Type 1 QR codes correspond to unique events, there can be only a single entry for a given `LTId` at any time and any duplicate is systematically removed.
@@ -693,9 +698,9 @@ The frontend of the server:
 
 - first of all verifies the COVID+ status of the user and discards an invalid upload from a user who does not show a valid authorisation.
 
-- then it checks that this history does not contain duplicate scans, using the same methodology as before, namely by checking if: `(abs(t_qrScan - t_qrScan0) > dupScanThreshold)`.
-If any duplicate scan is identified (test is true), it is recommended to discard the whole history as coming from a invalid application.
-This verification is meant to protect the server against malicious applications that could try to bypass the local duplicate scan check.
+- then it checks that this history does not contain duplicated scans, using the same methodology as before, namely by checking if: `(abs(t_qrScan - t_qrScan0) > dupScanThreshold)`.
+If any duplicated scan is identified (test is true), it is recommended to discard the whole history as coming from a invalid application.
+This verification is meant to protect the server against malicious applications that could try to bypass the local duplicated scan check.
 
 - the frontend then sanitizes the message (e.g., by removing the source IP address).
 
