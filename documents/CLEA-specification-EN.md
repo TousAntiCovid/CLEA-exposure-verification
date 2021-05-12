@@ -26,7 +26,7 @@ This document is a specification of the CLuster Exposure verificAtion (CLEA) pro
 
 It is based:
 
-- on a central server, in order to automatically detect potential clusters. This server is under the responsability of a health authority;
+- on a central server, in order to automatically detect potential clusters. This server is under the responsibility of a health authority;
 
 - on the display a QR code at the location or on a ticket, either in a static (e.g., printed) or dynamic manner (e.g., via a dedicated device, smartphone, or tablet);
 
@@ -165,7 +165,7 @@ This specification considers two different types of attackers.
 
 The first type is composed of individuals who try to corrupt the service, deny the service, or break the confidentiality of the service.
 Although a certain number of measures are taken to mitigate risks, for instance with dynamic QR codes, there are limits.
-For instance, the CLEA protocol cannot prevent a static QR code to be communicated to other persons. 
+For instance, the CLEA protocol cannot prevent a static QR code to be communicated to other persons, potentially tested COVID+, in order to trigger wrong cluster detections. 
 This is also a direct consequence of a fully anonymous system that is meant to preserve user privacy.
 
 In the second type, the authority that operates the CLEA system could try to know as much as possible on the users.
@@ -195,7 +195,7 @@ Since the output of a Base64url encoding uses an alphabet of 65 characters, it i
 This specification targets a Level 12 QR code Type 2 (see [QRcodeWeb](#references)), of size 65x65.
 It also uses the 8-bit byte mode (in particular because the `#` character is absent from the alphanumeric mode), and the information capacity ranges between 155 and 367 binary characters, depending on the chosen redundancy.
 With maximum sized QR codes, the redundancy is set to the Medium level, leaving a maximum of 287 characters for the URL.
-When the URL is shorter (i.e., when `locContactMsg` is absent, see below), the redundancy is set to Q level for a better error correction faeture, leaving a maximum of 203 characters for the URL.
+When the URL is shorter (i.e., when `locContactMsg` is absent, see below), the redundancy is set to Q level for a better error correction feature, leaving a maximum of 203 characters for the URL.
 In both cases, the content of the location specific part, before Base64url encoding, uses a binary format (rather than JSON or Protobuf) for compactness reasons, in order to comply with the 287 or 203 character size limits.
 
 - a specialized device is typically not connected to the Internet nor any wireless network, it does not feature any connector (no USB), and is powered by a non-rechargeable battery (no power plug, an autonomy of several months being expected).
