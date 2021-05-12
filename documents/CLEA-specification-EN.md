@@ -22,25 +22,25 @@ PRIVATICS team, Inria, France
 
 ## 1- Introduction
 
-This document is a specification of the CLuster Exposure verificAtion (CLEA) protocol meant to warn the participants of a private event (e.g., wedding or private party) or the persons present in a commercial or public location (e.g., bar, restaurant, sport center, or train) that became a cluster because a certain number of people who were present at the same time have been tested COVID+.
+This document is a specification of the CLuster Exposure verificAtion (CLEA) protocol meant to warn the participants of a private event (e.g., wedding or private party) or the persons present in a commercial or public location (e.g., bar, restaurant, sport center, or train), when this event or location later became a cluster because a certain number of people who were present at the same time have been tested COVID+.
 
 It is based:
 
-- on a central server, under the responsibility of an authority (typically a health authority), that automatically detects potential clusters;
+- on a central server, in order to automatically detect potential clusters. This server is under the responsability of a health authority;
 
 - on the display a QR code at the location or on a ticket, either in a static (e.g., printed) or dynamic manner (e.g., via a dedicated device, smartphone, or tablet);
 
 - and on a smartphone application.
 
-This smartphone application enables its user to scan a QR code, to store it locally for the next 14 days, and to perform periodic risk analyses, in a decentralized manner.
-In order to enable this decentralized (i.e., on the smartphone) risk analysis, information about clusters (location pseudonyms and timing information) needs to be disclosed.
+This smartphone application is used to scan a QR code, to store it locally for the next 14 days, and to perform periodic risk analyses, in a decentralized manner, on the smartphone.
+In order to enable this decentralized risk analysis, information about clusters (i.e., the location pseudonyms and timing information) needs to be disclosed.
 We believe this is an acceptable downside because this information is not per se sensitive health data (it does not reveal any user health information to an eavesdropper), although it can be considered as personal data (it is indirectly linked to the location manager).
 
 Two broad categories of use-cases exist:
 
 - those involving a synchronous scan of a QR code, for situations where a user scans a QR code upon entering an event or location (e.g., a restaurant);
 
-- those involving an asynchronous scan of a QR code, for situations where a QR code is produced that can be scanned either in advance or after visiting the event or location (e.g., an on-line train ticketing service can add a QR code on the ticket to let a user scan it at its discretion).
+- those involving an asynchronous scan of a QR code, for situations where a QR code is generated that can be scanned either in advance or after visiting the event or location (e.g., an on-line train ticketing service can add a QR code on the ticket to let a user scan it at its discretion).
 
 Finally, the CLEA protocol is also meant to be used by the location employees in order to warn them if their work place is qualified as cluster, or on the opposite to let them upload information to the server if they are themselves tested COVID+.
 
@@ -53,13 +53,13 @@ The following terms are used in this document:
 
 | Name                     | Description                                                                     |
 |--------------------------|---------------------------------------------------------------------------------|
-| **Location**       |	synonymous to venue, this is a closed area where people meet. It can be a private venue (e.g., for a wedding or a party) or a commercial or public venue (e.g., a bar, a restaurant, a sport center, an entertainment hall or auditorium, a train). |
-| **Device**         |	a specialized device or a general purpose smartphone or tablet with the appropriate software, used by the location manager or event organizer, that displays a QR code. Note that in alternative use-cases, QR codes can also be printed or included in a digital ticket. |
-| **Period**         |	time is split into periods (e.g., 24 hours), during which the location pseudonyms (more precisely a temporary cryptographic key and a derived temporary UUID) are stable. After that period, a new location pseudonym is generated. For practical reasons, a new period MUST start at a round predefined hour (e.g., 4:00am may be chosen as a default period start). A period can also have an unlimited duration, meaning that the location pseudonym will remain unchanged. |
-| **(User) terminal**|	the user smartphone used to scan the QR code. |
-| **CLEA application** | the application on the user smartphone used to scan the QR code. |
-| **QR code** | The dynamic or static QR code of a location that is scanned (e.g., when entering the location). It contains a URL ("deep link") structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. |
-| **Location Specific Part**  | This is the part of the QR code that contains the information specific to the location. With a dynamic QR code, the information contained in this part is periodically renewed. |
+| **Location**             | Synonymous to venue, this is a closed area where people meet. It can be a private location (e.g., for a wedding or a party event) or a commercial or public location (e.g., a bar, a restaurant, a sport center, an entertainment hall or auditorium, a train). |
+| **Device**               | A specialized device, or a general purpose smartphone or tablet with the appropriate software, used by the location manager or event organizer, that displays a QR code. Alternatively, QR codes can also be printed or included in a digital ticket. |
+| **(User) terminal**      | The user smartphone. |
+| **CLEA application**     | The application on the user terminal (smartphone). |
+| **QR code**              | The dynamic or static QR code of a location that is scanned (e.g., when entering the location). It contains a URL ("deep link") structured as: `"country-specific-prefix" "Base64url(location-specific-part)"`. |
+|**Location Specific Part**| This is the part of the QR code that contains the information specific to the location. With a dynamic QR code, the information contained in this part is periodically renewed. |
+| **Period**               | With dynamic QR codes, time is split into periods (e.g., 24 hours), during which the location pseudonyms (more precisely a temporary cryptographic key and a derived temporary UUID) are stable. After that period, a new location pseudonym is generated. For practical reasons, a new period MUST start at a round predefined hour (e.g., 4:00am may be chosen as a default period start). As a special case, and this is used by static QR codes, a period can also have an unlimited duration, meaning that the location pseudonym will remain unchanged. |
 
 ### 2.2- Overview
 
@@ -82,18 +82,18 @@ _Figure 1: Centralized cluster detection. Here Alice, tested COVID+, agrees to u
 
 In parallel, each CLEA application periodically downloads this list containing the latest clusters that have been identified, in order to check locally whether or not there is a match.
 In case of a match, the user is informed with a "warning".
-The exact type of warning message could be adjusted to reflect the risk level (e.g., if a very high number of COVID+ users have been identified in a cluster), which is out of scope of the present specification.
-Therefore this solution follows a **_decentralized risk evaluation_**.
+The exact type of warning message could be adjusted to reflect the risk level (e.g., if a high number of COVID+ users have been identified in a cluster), which is out of scope of the present specification.
+Therefore CLEA performs a **_decentralized risk evaluation_**.
 
 <img src="img/CLEA_decentralized_risk_evaluation.jpg" alt="CLEA_decentralized_risk_evaluation.jpg" width="600"/>    
 
 _Figure 2: Decentralized risk evaluation. Here Bob compares his scanned QR codes with the new potential cluster location pseudonyms in a first step, and if a match is found, if the corresponding period overlaps significantly with his own presence as stored in his local database._    
 
-[^footnote-1]: the 14 days number is provided as an example. The national health authority will define the appropriate epidemiological value that is considered the most appropriate, that may also depend on another considerations like the date of first symptoms when known. The details are out of scope of this document.
-
 We believe that making public the list of location temporary UUIDs and time corresponding to clusters is an acceptable tradeoff, because this information is not per se sensitive health data (it does not reveal any user health information to an eavesdropper), although it can be considered as personal data (it is associated to the location manager)[^footnote-2].
 
-[^footnote-2]: This is a big difference with a decentralized contact tracing system, for instance based on the Google/Apple Exposure Notification (GAEN) component, where the pseudonyms of COVID+ users are freely available over the Internet. In that case, revealing this sensitive health data enables any curious neighbour who uses a dedicated BLE scanning system (and [https://coronadetective.eu](https://coronadetective.eu) has shown how trivial this can be since a web browser is sufficient) to immediately identify the health status of their neighbours if they upload their pseudonyms later on, with potentially major discrimination consequences. A centralized scheme should be used for contact tracing for privacy purposes in countries where citizens can trust their institutions and their Data Protection Agency, for GDPR compliance reasons. With CLEA, a decentralized risk evaluation approach makes sense as it does not disclose sensitive information per se.
+[^footnote-1]: the 14 days number is provided as an example. The national health authority will define the appropriate epidemiological value that is considered the most appropriate, that may also depend on another considerations like the date of first symptoms when known. The details are out of scope of this document.
+
+[^footnote-2]: This is a big difference with a decentralized contact tracing system, for instance based on the Google/Apple Exposure Notification (GAEN) component, where the pseudonyms of COVID+ users are freely available over the Internet: revealing sensitive health data enables any curious neighbour who uses a dedicated BLE scanning system (and [https://coronadetective.eu](https://coronadetective.eu) has shown how trivial this can be since a web browser is sufficient) to immediately identify the health status of their neighbours if they upload their pseudonyms later on, with potentially major discrimination consequences. With CLEA, a decentralized risk evaluation approach makes sense as it does not disclose sensitive health information.
 
 
 #### A single protocol, three potential deployments
@@ -109,15 +109,15 @@ Three options exist:
 _Figure 3: CLEA deployment option 1, with the MCT at the center._
 
 - Option 2: the MCT is at the edge, for maximum scalability and speed, and to avoid overloading the MCT.
-	Here clusters can potentially be identified as soon as Alice uploads her scanned QR code history, without any delay.
-	The MCT is also informed of those new clusters but they are not in the critical path;
+	Here clusters are identified as soon as Alice uploads her scanned QR code history, without any delay.
+	The MCT is also informed of those new clusters, yet they are not in the critical path;
 
 <img src="img/CLEA_deployment_option2.jpg" alt=".CLEA_deployment_option2.jpg" width="600"/>    
 
 _Figure 4: CLEA deployment option 2, with the MCT at the edge._
 
 - Option 3: the MCT is not involved in any manner.
-	Here it is not possible to couple the digital system with any hand-written attendance register.
+	As a direct consequence, it is not possible to couple the digital system with any hand-written attendance register.
 
 <img src="img/CLEA_deployment_option3.jpg" alt=".CLEA_deployment_option3.jpg" width="600"/>    
 
@@ -128,76 +128,79 @@ Choosing an option is a local decision, based on local criteria, that does not c
 
 #### QR codes for synchronous versus asynchronous scans
 
-Regardless of which deployment option is chosen, two types of QR codes exist in order to reflect the two broad categories of use-cases:
+Regardless of which deployment option is chosen, two types of QR codes exist that reflect two broad categories of use-cases:
 
-- those involving a **synchronous** scan of a QR code, for situations where a user scans a QR code upon entering an event or location.
+- those involving a **synchronous scan** of a QR code, for situations where a user scans a QR code upon entering an event or location.
 	This is typically the case with a restaurant.
-	The QR code requires a synchronous scan (i.e., when entering a location), and the location check-in timestamp is always the scanning time.
+	The QR code requires a synchronous scan (i.e., when entering a location), and the location check-in timestamp is the scanning time.
 
-- those involving an **asynchronous** scan of a QR code, for situations where a QR code is produced that can be scanned either in advance or after visiting the event or location.
+- those involving an **asynchronous scan** of a QR code, for situations where a QR code is produced that can be scanned either in advance or after visiting the event or location.
 	This is typically the case with an on-line train ticketing service, where the QR code is printed on the ticket itself to let the user scan it at its discretion.
 	The QR code enables an asynchronous scan, before, during, or after visiting the location, and the location check-in timestamp is the one provided in the QR code itself rather than the scanning time.
 
 
 #### Static versus dynamic QR codes
 
-In order to further improve privacy and security considerations, the current specification defines **_dynamic QR codes_** that are periodically renewed and displayed with the help of a dedicated physical device.
-Each QR code includes, among other things, the location temporary UUID (behaving as a temporary pseudonym) that typically changes at least once a day (another period is possible, as explained later).
+In order to further improve privacy and security, the current specification defines **_dynamic QR codes_** that are periodically renewed and displayed with the help of a device.
+Each QR code includes, among other things, the location temporary UUID (behaving as a temporary pseudonym) that, for instance, changes once a day.
 These dynamic QR codes necessarily require a synchronous scan, since the QR code will change over the time.
 
-The current specification can also be used with **_static QR codes_** (e.g., printed on paper and made available to clients) if a location does not own a dedicated physical device or with QR codes for an asynchronous scan.
-Being static, this solution has downsides: it is less robust in front of relay attacks, and it enables an attacker to display all the clusters on a map (since the location UUIDs will not frequently change over time, it is relatively easy to collect them) or to focus on a specific set of locations to know if they are cluster.
-When possible, a good practice is to regularly change the QR codes, in particular if the location is identified as a cluster.
+The current specification can also be used with **_static QR codes_** (e.g., printed on paper and made available to clients) if a location does not own a dedicated device or with QR codes for an asynchronous scan.
+Being static, this solution has downsides: it is less robust in front of relay attacks, and it enables an attacker to display all the clusters on a map (since the location pseudonyms will not change, it is relatively easy to collect them all), or to focus on a specific set of locations to know if they have been cluster.
+When possible, a good practice is to regularly change static QR codes, manually, in particular if the location is identified as cluster.
 This aspect is out of scope of the present specification.
-It can also be noticed that both static and dynamic QR codes are processed by the same CLEA application, using the same protocol and central server.
+
+It can also be noticed that both static and dynamic QR codes are processed homogeneously by the same CLEA protocol, the same application and central server.
 
 
-#### The case of employees
+#### The particular case of employees
 
-Finally the employees of a location can benefit from the service, in order to be warned if their workplace is a cluster, or on the opposite to upload to the server that they have been tested COVID+.
-Since they have a long presence in the location, the employees must scan a specific QR code which differs from regular QR codes scanned by clients.
+Finally the employees of a location can benefit from the service, in order to be warned if their workplace is a cluster, or, on the opposite, to inform the server that they have been tested COVID+.
+Since they have a long presence in the location, the employees must scan a specific QR code which slightly differs from regular QR codes scanned by clients.
 
 
 ### 2.3- Attacker model and trust considerations
 
 This specification considers two different types of attackers.
-The first type is composed of individuals who try to corrupt the service, deny the service, or break the confidentiality of the service.
 
-In the second type, the authority that operates the CLEA system, tries to reidentify the users and know as much as possible on the users.
-The system is expected to be audited by an external trusted authority (e.g., a national Data Protection Agency, like CNIL in case of France).
-Because of these audits, this authority is assumed to be curious but honest.
-It means the authority in charge of the server will not try to modify the CLEA protocol itself, nor the implementation of the CLEA protocol, since this would be detected by the external trusted authority.
+The first type is composed of individuals who try to corrupt the service, deny the service, or break the confidentiality of the service.
+Although a certain number of measures are taken to mitigate risks, for instance with dynamic QR codes, there are limits.
+For instance, the CLEA protocol cannot prevent a static QR code to be communicated to other persons. 
+This is also a direct consequence of a fully anonymous system that is meant to preserve user privacy.
+
+In the second type, the authority that operates the CLEA system could try to know as much as possible on the users.
+Yet the system is expected to be audited by an external trusted Data Protection Authority (DPA, for instance CNIL in case of France).
+Because of these audits, the authority in charge of the CLEA system is assumed to be honest: it will not try to modify the CLEA protocol itself, nor the implementation of the CLEA protocol, since this would be detected by the DPA.
 However, it may benefit from the recorded information to infer additional information or use it for different purposes.
 
-It follows that the CLEA server should be split into several independent entities: a front end that collects the traffic from the CLEA users and sanitizes the traffic, removing the source IP address for instance, "on-the-fly", without storing any piece of information beyond what is strictly required (care should be put to logs for instance).
-On the opposite, the back end only processes messages that have been sanitized by the front end.
-The backend may also leverage from specific hardware for storing system keys, in order to minimize the security risks in case of intrusion.
+It follows that the CLEA server needs to be split into several independent entities: a frontend that collects the traffic from the CLEA users and sanitizes the traffic, removing the source IP address for instance, "on-the-fly", without storing any piece of information beyond what is strictly required (care should be put to logs for instance).
+On the opposite, the backend only processes messages that have been sanitized by the frontend.
+The backend may also leverage specific hardware for storing system keys, in order to minimize the security risks in case of intrusion.
 
-On the opposite, the CLEA system assumes that the authority in charge of the Manual Contact Tracing is trustworthy when it comes to dealing with personal data, for instance when a manual contact tracing team contact a location manager or event organizer, not to take advantage of the information collected beyond what is strictly required to perform its task.
+It is assumed that the authority in charge of Manual Contact Tracing (MCT) is trustworthy when it comes to dealing with personal data (e.g., when an MCT team contacts a location manager or event organizer), so that it does not take advantage of the information collected beyond what is strictly required to perform its task.
 However this authority must not be involved in the cluster detection process, that is not under its responsibility.
 
-It should be noted that technical implementation considerations (e.g., the exact design of the CLEA server or application) are out of scope of the present document, whereas such considerations can impact security and privacy.
+It should be noted that detailed implementation choices (e.g., the exact design of the CLEA server or application) are out of scope of the present document, whereas such considerations could also impact security and privacy properties.
 
 
 ### 2.4- Technical requirements
 
-Several technical requirements, in particular motivated by the compatibility with embedded devices, have shaped the design:
+Several technical requirements, in particular motivated by the use of embedded devices, have shaped the design:
 
 - each QR code contains a country specific URL ("deep link"), composed of a country specific prefix (for instance: `https://tac.gouv.fr?v=0#` in case of France), and a location specific part, defined in Section [Dynamic QR code generation within the device](#dynamic-qr-code-generation-within-the-device).
-Therefore, any binary information of the location specific part, is first translated to a printable character, using a Base64url encoding, which adds a 33% overhead compared to the binary size (see [RFC4648](#references) section 5.). The Base64url is the Base 64 encoding with an URL and filename safe alphabet.
+Therefore, any binary information of the location specific part, is first translated to a printable character, using a Base64url encoding (i.e., an URL and filename safe variant of Base 64), which adds a 33% overhead compared to the binary size (see [RFC4648](#references) section 5.).
 Since the output of a Base64url encoding uses an alphabet of 65 characters, it is not compatible with the Alphanumeric Mode of a QR code (limited to 45 printable characters), and it requires the use of the 8-bit Byte Mode (see [QRcode18004](#references), Section~8.4.4).
 
 - the need to easily and reliably scan a QR code type 2 and the screen size/resolution constraints of the specialized device (e.g., 200 x 200 pixels) impact the maximum QR code size.
-In this specification, we limit the size of the QR code to be 65x65, using a Level 12 QR code Type 2 (see [QRcodeWeb](#references)).
-With this level, using the 8-bit byte mode, the information size to be between 155 and 367 binary characters, depending on the chosen redundancy.
-Given the size of data to be embedded in the QR code, the redundancy is set to the Medium level, leaving a maximum of 287 characters for the URL.
-If the URL is shorter (e.g., when `locContactMsg` is absent, see below), the redundancy is set to Q level, leaving a maximum of 203 characters for the URL.
+This specification targets a Level 12 QR code Type 2 (see [QRcodeWeb](#references)), of size 65x65.
+It also uses the 8-bit byte mode (in particular because the `#` character is absent from the alphanumeric mode), and the information capacity ranges between 155 and 367 binary characters, depending on the chosen redundancy.
+With maximum sized QR codes, the redundancy is set to the Medium level, leaving a maximum of 287 characters for the URL.
+When the URL is shorter (i.e., when `locContactMsg` is absent, see below), the redundancy is set to Q level for a better error correction faeture, leaving a maximum of 203 characters for the URL.
+In both cases, the content of the location specific part, before Base64url encoding, uses a binary format (rather than JSON or Protobuf) for compactness reasons, in order to comply with the 287 or 203 character size limits.
 
-- a specialized device is typically not connected to the Internet nor any wireless network, it does not feature any connector (no USB), is powered by a non-rechargeable battery, in a fully autonomous manner (no power plug, an autonomy of several months is expected).
-
-- a specialized device features a dedicated micro-controller (e.g., a MICROCHIP micro-controller, PIC32MM0256GPM036-I/M2). 
-This embedded platform has low computation capabilities, which limits the QR code renewal period.
-Power consumption also limits the QR code renewal period.
+- a specialized device is typically not connected to the Internet nor any wireless network, it does not feature any connector (no USB), and is powered by a non-rechargeable battery (no power plug, an autonomy of several months being expected).
+This specialized device will typically feature a dedicated micro-controller (e.g., a MICROCHIP micro-controller, PIC32MM0256GPM036-I/M2), with low computation capabilities, which also limits the QR code renewal period.
+These considerations have been considered in the present CLEA design.
 
 - a dedicated tablet could easily remove some of the above limitations, but on the other hand a tablet is more costly, is subject to theft, and is subject to attacks, being connected to wireless networks. It is therefore a potential target device for displaying dynamic QR codes, but not the privileged one.
 
