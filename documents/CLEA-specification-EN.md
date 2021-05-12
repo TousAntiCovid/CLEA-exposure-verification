@@ -6,7 +6,7 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Work in Progress, May 11th, 2021_**
+**_Work in Progress, May 12th, 2021_**
 
 
 ----
@@ -22,9 +22,16 @@ PRIVATICS team, Inria, France
 
 ## 1- Introduction
 
-This document specifies the Cluster Exposure Verification (CLEA) protocol meant to warn the participants of a private event (e.g., wedding or private party) or the persons present in a commercial or public location (e.g., bar, restaurant, sport center, or train) that became a cluster because a certain number of people who were present at the same time have been tested COVID+.
+This document is a specification of the CLuster Exposure verificAtion (CLEA) protocol meant to warn the participants of a private event (e.g., wedding or private party) or the persons present in a commercial or public location (e.g., bar, restaurant, sport center, or train) that became a cluster because a certain number of people who were present at the same time have been tested COVID+.
 
-It is based: (1) on a central server, under the responsibility of an authority (typically a health authority), that automatically detects potential clusters; (2) on the display a QR code at the location or on a ticket, either in a static (e.g., printed) or dynamic manner (e.g., via a dedicated device, smartphone, or tablet); and (3) on a smartphone application.
+It is based:
+
+- on a central server, under the responsibility of an authority (typically a health authority), that automatically detects potential clusters;
+
+- on the display a QR code at the location or on a ticket, either in a static (e.g., printed) or dynamic manner (e.g., via a dedicated device, smartphone, or tablet);
+
+- and on a smartphone application.
+
 This smartphone application enables its user to scan a QR code, to store it locally for the next 14 days, and to perform periodic risk analyses, in a decentralized manner.
 In order to enable this decentralized (i.e., on the smartphone) risk analysis, information about clusters (location pseudonyms and timing information) needs to be disclosed.
 We believe this is an acceptable downside because this information is not per se sensitive health data (it does not reveal any user health information to an eavesdropper), although it can be considered as personal data (it is indirectly linked to the location manager).
@@ -176,7 +183,7 @@ It should be noted that technical implementation considerations (e.g., the exact
 
 Several technical requirements, in particular motivated by the compatibility with embedded devices, have shaped the design:
 
-- each QR code contains a country specific URL ("deep link"), composed of a contry specific prefix (for instance: `https://tac.gouv.fr?v=0#` in case of France), and a location specific part, defined in Section [Dynamic QR code generation within the device](#dynamic-qr-code-generation-within-the-device).
+- each QR code contains a country specific URL ("deep link"), composed of a country specific prefix (for instance: `https://tac.gouv.fr?v=0#` in case of France), and a location specific part, defined in Section [Dynamic QR code generation within the device](#dynamic-qr-code-generation-within-the-device).
 Therefore, any binary information of the location specific part, is first translated to a printable character, using a Base64url encoding, which adds a 33% overhead compared to the binary size (see [RFC4648](#references) section 5.). The Base64url is the Base 64 encoding with an URL and filename safe alphabet.
 Since the output of a Base64url encoding uses an alphabet of 65 characters, it is not compatible with the Alphanumeric Mode of a QR code (limited to 45 printable characters), and it requires the use of the 8-bit Byte Mode (see [QRcode18004](#references), Section~8.4.4).
 
@@ -188,7 +195,7 @@ If the URL is shorter (e.g., when `locContactMsg` is absent, see below), the red
 
 - a specialized device is typically not connected to the Internet nor any wireless network, it does not feature any connector (no USB), is powered by a non-rechargeable battery, in a fully autonomous manner (no power plug, an autonomy of several months is expected).
 
-- a specialized device features a dedicated microcontroller (e.g., a MICROCHIP microcontroller, PIC32MM0256GPM036-I/M2). 
+- a specialized device features a dedicated micro-controller (e.g., a MICROCHIP micro-controller, PIC32MM0256GPM036-I/M2). 
 This embedded platform has low computation capabilities, which limits the QR code renewal period.
 Power consumption also limits the QR code renewal period.
 
@@ -333,7 +340,7 @@ The QR code of a location, at any moment, contains a URL ("deep link"), structur
 	"country-specific-prefix" "Base64url(location-specific-part)"
 ```
 For instance, the country specific prefix is: `https://tac.gouv.fr?v=0#` in case of France, where:
-`v=0`indicates it's protocol version 0;
+`v=0` indicates it's protocol version 0;
 the `#` character prevents the text that follows (namely the Base64url encoding of the location specific part) to be sent to the `tac.gouv.fr` server if the application is not already installed on the user terminal.
 
 In the remaining of this section, we define the structure of the location specific part.
@@ -349,7 +356,7 @@ In the current specification, corresponding to protocol version 0, two `location
 
 - `LSPtype = 0`: for a QR code compatible with a synchronous scan (i.e., when entering a location).
 	The QR code may either be static or dynamic, and in that case associated to a freshness check.
-	The check-in timestamp is the time when the user scans this QR code, called `t_qrScan`hereafter.
+	The check-in timestamp is the time when the user scans this QR code, called `t_qrScan` hereafter.
 
 More precisely, it is structured as follows (high-level view):
 ```
@@ -366,7 +373,7 @@ where:
 - `LSPtype = 1`: for a QR code compatible with an asynchronous scan (i.e., before, during, or after visiting a location).
 	The QR code is necessarily static (i.e., the LTId/LTKey remain constant over the whole period), qrCodeRenewalInterval is necessarily equal to 0 (i.e., there is no renewal), and there is no freshness check.
 	This QR code corresponds to a unique event, that takes place at a well defined time.
-	The check-in timestamp is the one provided in the clear-text part of the LSP, `t_event`, and not the timestamp when scaning the QR code (which may happen several days before or after the visit).
+	The check-in timestamp is the one provided in the clear-text part of the LSP, `t_event`, and not the timestamp when scanning the QR code (which may happen several days before or after the visit).
 	Sometimes, the check-in time may not exactly correspond to the reality (e.g., case of a delayed train), but this is not an issue since all users will use the same time.
 	When meaningful (e.g., a train trip), a duration information is also provided in the clear-text part of the LSP, otherwise 
 
@@ -438,7 +445,7 @@ The following binary format must be used when `LSPtype = 1`:
 
 #### Binary format of the msg
 
-Regardless of the `LSTtype`, the following binary format for the `msg` message must be used:
+Regardless of the `LSPtype`, the following binary format for the `msg` message must be used:
 ```
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 
@@ -492,7 +499,7 @@ this is the LSP type:
 	- `LSPtype = 1`:
 	this type indicates a QR code compatible with an asynchronous scan (i.e., before, during, or after visiting a location).
 
-- `reserved1` (2 bits) (`res`in figure):
+- `reserved1` (2 bits) (`res` in figure):
 this field is unused in the current specification and must be set to zero.
 
 - `visitDuration` (1 byte):
@@ -502,7 +509,7 @@ In that case it must contain value 0.
 
 - `t_event` (4 bytes):
 Restricted to `LSPtype = 1`, this is the time when the user is expected to enter the location.
-	This time is different from the timestamp when scaning this QR code, which is not used with that type of QR code.
+	This time is different from the timestamp when scanning this QR code, which is not used with that type of QR code.
 	This event time may not exactly correspond to the reality (e.g., a delayed train), but this is not an issue as all users will use the same theoretical time.
 
 - `LTId` (16 bytes, or 128 bits): 
@@ -563,10 +570,10 @@ this field carries the location temporary key for the period.
 
 The `msg` message must be encrypted using the ECIES-KEM **[ISO18033-2] [Shoup2006] [Libecc]** hybrid encryption scheme that provides both confidentiality, using an asymmetric encryption scheme, and integrity verification.
 More precisely, this scheme uses SECP256R1 ECDH as KEM, KDF1 using SHA256 hash as KDF and AES-256-GCM with a fixed 96-bits IV as DEM and TAG.
-To the orginal `msg` message, the hybrid ECIES-KEM scheme appends a block of 49 bytes that contains both a tag and an ephemeral public key.
+To the original `msg` message, the hybrid ECIES-KEM scheme appends a block of 49 bytes that contains both a tag and an ephemeral public key.
 A detailed description is given in [Appendix A](#a-description-of-the-hybrid-encryption-scheme-and-the-enc-and-dec-functions).
 
-While only the `msg` message is encrypted, the integrity protection encompasses the whole `LSP` message, including the cleartext part of the LSP: any accidental or malicious modification of the QR code content is therefore automatically detected.
+While only the `msg` message is encrypted, the integrity protection encompasses the whole `LSP` message, including the cleartext part of the LSP: any accidental or malicious modification is therefore automatically detected.
 
 
 #### Size of the various QR codes
@@ -592,7 +599,7 @@ The following table summarizes the situation.
 
 | Name                                                         | size with LSP Type 0 | size with LSP Type 1 |
 |--------------------------------------------------------------|----------------------|----------------------|
-| `https://tac.gouv.fr?v=0#` preffix (characters)              | 24 chars             | 24 chars             |
+| `https://tac.gouv.fr?v=0#` prefix (characters)              | 24 chars             | 24 chars             |
 | Plain text part of the LSP (bytes)                           | 17 bytes             | 22 bytes             |
 | msg part of the LSP, without `locContactMsg` (bytes)         | 93 bytes             | 93 bytes             |
 | `locContactMsg` size (bytes)                                 | 65 bytes             | 65 bytes             |
@@ -691,7 +698,7 @@ where the `t_checkin` is either a scanning timestamp (in case of LSP Type 0) or 
 This history is by design limited to 14 days of history.
 It could be further restricted, or the uploaded data could add additional information.
 For instance, if the goal is to do forward tracing, and if the user experienced symptoms starting from a known date, it could be helpful to take advantage of the start of the "infectious period" (i.e., when the user could contaminate others) to remove records prior to that date.
-On the opposite, if the goal is to do backward tracing, it could be helpful to distinguish between the "infectious periode" (when the user could contaminate others) and "infected period" (when the user has potentially been contaminated), when known.
+On the opposite, if the goal is to do backward tracing, it could be helpful to distinguish between the "infectious period" (when the user could contaminate others) and "infected period" (when the user has potentially been contaminated), when known.
 The details of what to do exactly, as they depend on the Health Authority decisions, are out of scope of this specification.
 
 The frontend of the server:
@@ -750,7 +757,7 @@ If `LTId` has already been flagged as exposed, it retrieves the associated conte
 	        uint8_t         hourlyExposureCount[];  // number of COVID+ users per hour
 	} LTId_exposure_context;
 ```
-where the first three fields are initialized thanks to the fields of the same name in the QR code (after conversion for `t_periodStart`).
+where the first three fields are initialized thanks to the corresponding fields in the QR code (after conversion for `t_periodStart`).
 The `hourlyExposureCount[]` table should be large enough to encompass the whole duration of a very long event, when `periodDuration` is equal to 255 (possibly by using a different data structure, a list instead of table). The technical details are out of scope of the present document.
 
 Then, if the exposure is 3 hours (previous example of the restaurant), the server calculates the index of the first hour of exposure:
@@ -1031,7 +1038,7 @@ However, the risk being assessed locally, by default, the authority will not kno
 | `G` | Base point of SECP256R1 |
 | `n` | Order of `G` |
 | `S` | Shared secret |
-| `K` | Derived key for symetric encryption |
+| `K` | Derived key for symmetric encryption |
 | `IV` | AES-GCM IV set to the 96-bit constant value  `0xF01F2F3F4F5F6F7F8F9FAFB` (big endian encoding) |
 | `C0` | Ephemeral public key |
 
