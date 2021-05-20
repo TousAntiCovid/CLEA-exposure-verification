@@ -6,7 +6,7 @@ PRIVATICS team, Inria, France
 
 {firstname.lastname}@inria.fr
 
-**_Work in Progress, May 12th, 2021_**
+**_Work in Progress, May 20th, 2021_**
 
 
 ----
@@ -582,7 +582,7 @@ While only the `msg` message is encrypted, the integrity protection encompasses 
 
 A Level 12 65x65 QR code Type 2 (see [Section 2.4](#24-technical-requirements)) has a limited capacity, 287 binary characters for redundancy level M or 203 for redundancy level Q. 
 It is therefore essential that the full "deep link" complies with these limits.
-The country specific prefix, `https://tac.gouv.fr?v=0#` in case of France, require 24 characters.
+The country specific prefix, namely `https://tac.gouv.fr?v=0#` in case of France, requires 24 characters.
 
 The location specific part size depends on:
 
@@ -601,16 +601,16 @@ The following table summarizes the situation.
 
 | Name                                                         | size with LSP Type 0 | size with LSP Type 1 |
 |--------------------------------------------------------------|----------------------|----------------------|
-| `https://tac.gouv.fr?v=0#` prefix (characters)              | 24 chars             | 24 chars             |
+| `https://tac.gouv.fr?v=0#` prefix (characters)               | 24 chars             | 24 chars             |
 | Plain text part of the LSP (bytes)                           | 17 bytes             | 22 bytes             |
 | msg part of the LSP, without `locContactMsg` (bytes)         | 93 bytes             | 93 bytes             |
 | `locContactMsg` size (bytes)                                 | 65 bytes             | 65 bytes             |
 | size with `locContactMsg` before Base64url encoding (bytes)  | 175 bytes            | 180 bytes            |
-| size with `locContactMsg` after Base64url encoding (chars)   | 233 chars            | 240 chars            |
-| **_total URL size with `locContactMsg` (characters)_**       | **_257 chars_**      | **_264 chars_**            |
+| size with `locContactMsg` after Base64url encoding (chars)   | 234 chars            | 240 chars            |
+| **_total URL size with `locContactMsg` (characters)_**       | **_258 chars_**      | **_264 chars_**      |
 | size w/o `locContactMsg` before Base64url encoding (bytes)   | 110 bytes            | 115 bytes            |
-| size w/o `locContactMsg` after Base64url encoding (chars)    | 147 chars            | 153 chars            |
-| **_total URL size w/o `locContactMsg` (chars)_**             | **_171 chars_**      | **_177 chars_**            |
+| size w/o `locContactMsg` after Base64url encoding (chars)    | 147 chars            | 154 chars            |
+| **_total URL size w/o `locContactMsg` (chars)_**             | **_171 chars_**      | **_178 chars_**      |
 
 
 ### 3.5- Synchronous scan of a QR code when a client enters a location (LSP Type 0)
