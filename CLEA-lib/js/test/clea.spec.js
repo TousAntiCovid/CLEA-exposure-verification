@@ -1,4 +1,5 @@
 import * as clea from '../src/js/clea.js'
+
 import {DATA_SET} from './dataset.js';
 
 function hexToBytes(hex) {
@@ -73,7 +74,6 @@ describe('concatBuffer()', function () {
     });
 });
 
-
 describe('getNtpUtc()', function () {
     it('getNtpUtc(true) should return equivalent result', function () {
         let ntpUtc1 = clea.getNtpUtc(true);
@@ -106,8 +106,24 @@ describe('renewLocationSpecificPart()', function () {
             await clea.renewLocationSpecificPart(locationSpecificPart, qrCodeValidityStartTime);
             let result = await clea.newDeepLink(location, locationSpecificPart, conf.staff);
 
+            const decrypted = await clea.decryptDeeplink(result, conf.SK_SA, conf.SK_MCTA);
+
+            expect(decrypted.staff).to.eq(conf.staff);
+            expect(decrypted.CRIexp).to.eq(conf.CRIexp);
+            expect(decrypted.venueType).to.eq(conf.venueType);
+            expect(decrypted.venueCategory1).to.eq(conf.venueCategory1);
+            expect(decrypted.venueCategory2).to.eq(conf.venueCategory2);
+            expect(decrypted.periodDuration).to.eq(conf.periodDuration);
+
+            if (decrypted.locationMsg != null) {
+                expect(decrypted.locationPhone).to.eq(conf.locationPhone);
+                expect(decrypted.locationRegion).to.eq(conf.locationRegion);
+                expect(decrypted.locationPIN).to.eq(conf.locationPIN);
+                expect(result.length - clea.COUNTRY_SPECIFIC_PREFIX.length).to.eq(234);
+            } else {
+                expect(result.length - clea.COUNTRY_SPECIFIC_PREFIX.length).to.eq(147);
+            }
             logEncodingDataAndResult(conf, result);
-            expect([147, 234]).to.include(result.length - clea.COUNTRY_SPECIFIC_PREFIX.length);
         });
     });
 });
@@ -124,8 +140,23 @@ describe('newDeepLink()', function () {
                 let locationSpecificPart = await clea.newLocationSpecificPart(location, conf.venueType, conf.venueCategory1, conf.venueCategory2, conf.periodDuration, periodStartTime, conf.CRIexp, qrCodeValidityStartTime);
                 let result = await clea.newDeepLink(location, locationSpecificPart, conf.staff);
 
+                const decrypted = await clea.decryptDeeplink(result, conf.SK_SA, conf.SK_MCTA);
+                expect(decrypted.staff).to.eq(conf.staff);
+                expect(decrypted.CRIexp).to.eq(conf.CRIexp);
+                expect(decrypted.venueType).to.eq(conf.venueType);
+                expect(decrypted.venueCategory1).to.eq(conf.venueCategory1);
+                expect(decrypted.venueCategory2).to.eq(conf.venueCategory2);
+                expect(decrypted.periodDuration).to.eq(conf.periodDuration);
+
+                if (decrypted.locationMsg != null) {
+                    expect(decrypted.locationPhone).to.eq(conf.locationPhone);
+                    expect(decrypted.locationRegion).to.eq(conf.locationRegion);
+                    expect(decrypted.locationPIN).to.eq(conf.locationPIN);
+                    expect(result.length - clea.COUNTRY_SPECIFIC_PREFIX.length).to.eq(234);
+                } else {
+                    expect(result.length - clea.COUNTRY_SPECIFIC_PREFIX.length).to.eq(147);
+                }
                 logEncodingDataAndResult(conf, result);
-                expect([147, 234]).to.include(result.length - clea.COUNTRY_SPECIFIC_PREFIX.length);
             });
         });
     });
