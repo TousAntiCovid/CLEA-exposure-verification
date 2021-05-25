@@ -155,13 +155,6 @@ module.exports = function(config) {
         browser : "Chrome",
         browser_version : "90.0"
       },
-      chrome_win_91: {
-        base: 'BrowserStack',
-        os : "Windows",
-        os_version : "10",
-        browser : "Chrome",
-        browser_version : "91.0"
-      },
       safari_mojave_12_1: {
         base: 'BrowserStack',
         os : "OS X",
@@ -176,12 +169,12 @@ module.exports = function(config) {
         browser : "Safari",
         browser_version : "13.1"
       },
-      safari_big_sur_14_1: {
+      safari_big_sur_14: {
         base: 'BrowserStack',
         os : "OS X",
         os_version : "Big Sur",
         browser : "Safari",
-        browser_version : "14.1"
+        browser_version : "14.0"
       },
       firefox_win_71: {
         base: 'BrowserStack',
@@ -457,10 +450,9 @@ module.exports = function(config) {
         'chrome_win_88',
         'chrome_win_89',
         'chrome_win_90',
-        'chrome_win_91',
         'safari_mojave_12_1',
         'safari_catalina_13_1',
-        'safari_big_sur_14_1',
+        'safari_big_sur_14',
         'firefox_win_71',
         'firefox_win_72',
         'firefox_win_73',
@@ -500,7 +492,7 @@ module.exports = function(config) {
         'opera_win_76'
     ],
 
-    // Continuous Integration mode
+  // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
     singleRun: true,
 
