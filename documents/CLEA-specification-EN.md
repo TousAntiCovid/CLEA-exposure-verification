@@ -246,6 +246,7 @@ The device(s) of a location must be initialized.
 This is either managed by the manufacturer in case of specialized device(s), before being used by the location manager, or by the location manager in case of tablet(s).
 
 - The location keeps a long-term secret, `SK_L`, specific to this location, that is never communicated.
+This key is 408 bits (51 bytes) long, so that after concatenation with the `t_periodStart` and addition of 72 bits of padding, the total is 512 bits long and fits in a single SHA256 block size.
 If this location uses several devices, each of them must be configured with the same `SK_L`.
 With a dedicated device, this configuration can be done by the device manufacturer, meaning that the manufacturer is in charge of keeping this long-term secret.
 With a tablet, this is performed by the CLEA software used on the tablet, and when several tablets are used, a synchronization is required to make sure they all use the same long-term secret.
