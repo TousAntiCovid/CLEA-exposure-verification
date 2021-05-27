@@ -71,9 +71,9 @@ export async function newDeepLink(location, locationSpecificPart, staff) {
 }
 
 export async function newDeepLinks(location, locationSpecificPart) {
-  let staffDeepLink = newDeepLink(location, locationSpecificPart, true);
-  let visitorsDeepLink = newDeepLink(location, locationSpecificPart, false);
-  { staffDeepLink; visitorsDeepLink }
+  let staffDeepLink = await newDeepLink(location, locationSpecificPart, true);
+  let visitorsDeepLink = await newDeepLink(location, locationSpecificPart, false);
+  return { staffDeepLink, visitorsDeepLink }
 }
 
 function buildHeader(version, qrType, locationTemporaryPublicId) {
