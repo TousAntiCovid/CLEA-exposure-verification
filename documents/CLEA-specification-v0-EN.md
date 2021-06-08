@@ -12,13 +12,9 @@ PRIVATICS team, Inria, France
 
 ----
 
-[comment]: # ( [[_TOC_]] )
-[comment]: # ( ———— )
+[comment0]: # ( [[_TOC_]] )
+[comment1]: # ( ———— )
 
-
-[[_TOC_]]
-
-----
 
 This document and the associated reference source code are available at: [https://gitlab.inria.fr/stopcovid19/CLEA-exposure-verification]     
 and mirrored at: [https://github.com/TousAntiCovid/CLEA-exposure-verification]     
@@ -93,7 +89,7 @@ _Figure 2: Decentralized risk evaluation. Here Bob compares his scanned QR codes
 
 We believe that making public the list of location temporary UUIDs and time corresponding to clusters is an acceptable tradeoff, because this information is not per se sensitive health data (it does not reveal any user health information to an eavesdropper), although it can be considered as personal data (it is associated to the location manager)[^footnote-2].
 
-[^footnote-1]: the 14 days number is provided as an example. The national health authority will define the appropriate epidemiological value that is considered the most appropriate, that may also depend on another considerations like the date of first symptoms when known. The details are out of scope of this document.
+[^footnote-1]: The 14 days number is provided as an example. The national health authority will define the appropriate epidemiological value that is considered the most appropriate, that may also depend on another considerations like the date of first symptoms when known. The details are out of scope of this document.
 
 [^footnote-2]: This is a big difference with a decentralized contact tracing system, for instance based on the Google/Apple Exposure Notification (GAEN) component, where the pseudonyms of COVID+ users are freely available over the Internet: revealing sensitive health data enables any curious neighbour who uses a dedicated BLE scanning system (and [https://coronadetective.eu](https://coronadetective.eu) has shown how trivial this can be since a web browser is sufficient) to immediately identify the health status of their neighbours if they upload their pseudonyms later on, with potentially major discrimination consequences. With CLEA, a decentralized risk evaluation approach makes sense as it does not disclose sensitive health information.
 
@@ -106,7 +102,7 @@ Three options exist:
 - Option 1: the MCT is at the center, for a maximum control.
 	Here the upload of Alice scanned QR code history is done during or after an interview with the MCT, under MCT control;
 
-<img src="img/CLEA_deployment_option1.jpg" alt=".CLEA_deployment_option1.jpg" width="600"/>    
+<img src="img/CLEA_deployment_option1.jpg" alt="CLEA_deployment_option1.jpg" width="600"/>    
 
 _Figure 3: CLEA deployment option 1, with the MCT at the center._
 
@@ -114,16 +110,16 @@ _Figure 3: CLEA deployment option 1, with the MCT at the center._
 	Here clusters are identified as soon as Alice uploads her scanned QR code history, without any delay.
 	The MCT is also informed of those new clusters, yet they are not in the critical path;
 
-<img src="img/CLEA_deployment_option2.jpg" alt=".CLEA_deployment_option2.jpg" width="600"/>    
+<img src="img/CLEA_deployment_option2.jpg" alt="CLEA_deployment_option2.jpg" width="600"/>    
 
 _Figure 4: CLEA deployment option 2, with the MCT at the edge._
 
 - Option 3: the MCT is not involved in any manner.
 	As a direct consequence, it is not possible to couple the digital system with any hand-written attendance register.
 
-<img src="img/CLEA_deployment_option3.jpg" alt=".CLEA_deployment_option3.jpg" width="600"/>    
+<img src="img/CLEA_deployment_option3.jpg" alt="CLEA_deployment_option3.jpg" width="600"/>    
 
-_Figure 4: CLEA deployment option 3, involving no MCT._
+_Figure 5: CLEA deployment option 3, involving no MCT._
 
 Choosing an option is a local decision, based on local criteria, that does not compromize interoperability with other types of deployment in neighbouring countries.
 
@@ -134,7 +130,7 @@ Regardless of which deployment option is chosen, the present specification focus
 This is typically the case with a restaurant.
 The QR code requires a synchronous scan (i.e., when entering a location), and the location check-in timestamp is the scanning time.
 
-[^footnote-3]: a future version of the present specification may consider additional use-cases involving an asynchronous scan of a QR code, for situations where a QR code is produced that can be scanned either in advance or after visiting the event or location. This is typically the case with an on-line train ticketing service, where the QR code is printed on the ticket itself to let the user scan it at its discretion. The QR code enables an asynchronous scan, before, during, or after visiting the location, and the location check-in timestamp is the one provided in the QR code itself rather than the scanning time.
+[^footnote-3]: A future version of the present specification may consider additional use-cases involving an asynchronous scan of a QR code, for situations where a QR code is produced that can be scanned either in advance or after visiting the event or location. This is typically the case with an on-line train ticketing service, where the QR code is printed on the ticket itself to let the user scan it at its discretion. The QR code enables an asynchronous scan, before, during, or after visiting the location, and the location check-in timestamp is the one provided in the QR code itself rather than the scanning time.
 
 
 #### Static versus dynamic QR codes
