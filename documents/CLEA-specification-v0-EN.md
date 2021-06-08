@@ -20,8 +20,9 @@ PRIVATICS team, Inria, France
 
 ----
 
-This document is available at: [https://gitlab.inria.fr/stopcovid19/CLEA-exposure-verification]     
-and mirrored at: [https://github.com/TousAntiCovid/CLEA-exposure-verification]
+This document and the associated reference source code are available at: [https://gitlab.inria.fr/stopcovid19/CLEA-exposure-verification]     
+and mirrored at: [https://github.com/TousAntiCovid/CLEA-exposure-verification]     
+This document is also available in the HAL open-archive: [https://hal.inria.fr/hal-03146022]
 
 
 ## 1- Introduction
@@ -142,7 +143,7 @@ In order to further improve privacy and security, the current specification defi
 Each QR code includes, among other things, the location temporary UUID (behaving as a temporary pseudonym) that, for instance, changes once a day.
 These dynamic QR codes necessarily require a synchronous scan, since the QR code will change over the time.
 
-The current specification can also be used with **_static QR codes_** (e.g., printed on paper and made available to clients) if a location does not own a dedicated device or with QR codes for an asynchronous scan.
+The current specification can also be used with **_static QR codes_** (e.g., printed on paper and made available to clients) if a location does not own a dedicated device.
 Being static, this solution has downsides: it is less robust in front of relay attacks, and it enables an attacker to display all the clusters on a map (since the location pseudonyms will not change, it is relatively easy to collect them all), or to focus on a specific set of locations to know if they have been cluster.
 When possible, a good practice is to regularly change static QR codes, manually, in particular if the location is identified as cluster.
 This aspect is out of scope of the present specification.
@@ -437,7 +438,7 @@ The location specific part contains (in plaintext or encrypted) the following fi
 this is the protocol version number, in order to enable an evolution of the protocol. The present specification corresponds to protocol version 0.
 
 - `LSPtype` (3 bits) (`t=0` in figure):
-this is the LSP type 0, that indicates a QR code compatible with a synchronous scan (i.e., when entering a location).
+this is the LSP type 0 used with a QR code compatible with a synchronous scan (i.e., when entering a location).
 
 - `reserved1` (2 bits) (`res` in figure):
 this field is unused in the current specification and must be set to zero.
@@ -643,7 +644,7 @@ in order to take into account the possibility of scanning the code just before i
 
 This verification is intended to limit (without being able to totally prevent them) relay attacks where the attacker scans a QR code from a target location and communicates it to several supposed patients in order to create a fake cluster afterwards. The attack is thus limited in time to the defined tolerance.
 
-If `qrCodeRenewalInterval == 0` of with an LSP Type 1 QR code (asynchronous scan), there is no freshness check, the QR code being static during the whole period (e.g., a day).
+If `qrCodeRenewalInterval == 0`, there is no freshness check, the QR code being static during the whole period (e.g., a day).
 
 
 **_- Step 3:_** computes from the information stored in the encrypted `msg`, `HMAC-SHA-256-128(LTKey(t_periodStart), "1")`, and compares its value to the `LTId` value retrieved from the unencrypted part of the QR code. If the two values differ, the server rejects the tuple.
