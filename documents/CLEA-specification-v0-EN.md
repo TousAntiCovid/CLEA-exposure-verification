@@ -15,6 +15,9 @@ PRIVATICS team, Inria, France
 [comment0]: # ( [[_TOC_]] )
 [comment1]: # ( ———— )
 
+[[_TOC_]]
+
+————
 
 This document and the associated reference source code are available at: [https://gitlab.inria.fr/stopcovid19/CLEA-exposure-verification]     
 and mirrored at: [https://github.com/TousAntiCovid/CLEA-exposure-verification]     
