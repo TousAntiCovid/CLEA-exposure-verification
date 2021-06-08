@@ -595,8 +595,8 @@ If the user explicitly agrees, the following operations take place.
 
 #### Processing of the user location history by the frontend server
 
-The user application uploads to the server, within a TLS connection, the location history stored in its local list, `localList`, along with the associated authorisation, meant to prove the user has indeed been tested COVID+.
-The details of this authorisation mechanism are out of scope of the present document.
+The user application uploads to the server, within a TLS connection, the location history stored in its local list, `localList`, along with the associated authorization, meant to prove the user has indeed been tested COVID+.
+The details of this authorization mechanism are out of scope of the present document.
 
 The location history consists of a set of records of the form:
 ```
@@ -612,7 +612,7 @@ The details of what to do exactly, as they depend on the Health Authority decisi
 
 The frontend of the server:
 
-- first of all verifies the COVID+ status of the user and discards an invalid upload from a user who does not show a valid authorisation.
+- first of all verifies the COVID+ status of the user and discards an invalid upload from a user who does not show a valid authorization.
 
 - then it checks that this history does not contain duplicated scans, using the same methodology as before, namely by checking if: `(abs(t_qrScan - t_qrScan0) > dupScanThreshold)`.
 If any duplicated scan is identified (test is true), it is recommended to discard the whole history as coming from a invalid application.
@@ -707,7 +707,7 @@ To that goal the following data structure is used (inspired from GAEN, see [Kess
 - a well-known URL is defined, for instance: `https://tacw.example.com/clusterlist/`, that is meant to contain the various files of the `clusterList` collection;
 - the server makes available a well-known index, `index.txt`,  that lists the various files available, in a chronological order, and limited to a 14 days history;
 - each file contains some metadata and the identification of all the clusters added to the `clusterList` during that time span (LTId and timing information);
-- the file names use the following convention: `cluster_file_ID_DATE.json` where `ID` is a monotonically incremented identifier, starting at 0 when bootstraping the system, and the `DATE` suffix indicates the corresponding `yyyymmdd` (it is essentially here to facilitate human checks);
+- the file names use the following convention: `cluster_file_ID_DATE.json` where `ID` is a monotonically incremented identifier, starting at 0 when bootstrapping the system, and the `DATE` suffix indicates the corresponding `yyyymmdd` (it is essentially here to facilitate human checks);
 - all files are made available as soon as possible in order to quickly let users know if they are at risk. It follows that several files per day should be made available (4 in this example).
 
 Here is an example of `index.txt` file (usually there are as many entries as required to cover the 14 days window):
