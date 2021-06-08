@@ -940,23 +940,28 @@ However, the risk being assessed locally, by default, the authority will not kno
 
 | Symbol | Description |
 |--------|-------------|
-| `p` | Prime number, dimension of `F_p` the finite field over which SECP256R1 is defined |
+| `p` | Prime number, characteristic of `F_p` the finite field over which SECP256R1 is defined |
 | `G` | Base point of SECP256R1 |
 | `n` | Order of `G` |
 | `S` | Shared secret |
 | `K` | Derived key for symmetric encryption |
 | `IV` | AES-GCM IV set to the 96-bit constant value  `0xF01F2F3F4F5F6F7F8F9FAFB` (big endian encoding) |
 | `C0` | Ephemeral public key |
+| `pub_key` | The public key to encode the message with. Using §3.1 notations it can be either `PK_SA` or `PK_MCTA` |
+| `priv_key` | The private key to decode the message with. Using §3.1 notations it can be either `SK_SA` or `SK_MCTA` |
+| `msg` | The part of the message to be encrypted |
+| `aad` | The additionnal data in AES-GCM terminology, i.e. the part of the message that is used in the signature of the message but is not encrypted |
+| `emsg` | The message to be decrypted, containing the clear data (`aad` in the encoding part) and the encrypted message |
 
 ### A.2- Pseudo-code:
 
 ```
-Enc(pub_key, msg):
+Enc(pub_key, aad, msg):
 	-Draw an ephemeral private key r in [1, n-1]
 	-Compute C0 = r * G
 	-Compute S = r * pub_key
 	-Compute K = KDF1(C0 | S)
-	-Compute emsg = AES-256-GCM(K, IV, msg) and tag = GMAC(K, IV, emsg)
+	-Compute emsg = AES-256-GCM(K, IV, msg) and tag = GMAC(K, IV, aad | msg)
 	-Return (emsg, tag, C0)
 ```
 
@@ -964,8 +969,9 @@ Enc(pub_key, msg):
 Dec(priv_key, emsg, tag, C0):
 	-Compute S = priv_key * C0
 	-Compute K = KDF1(C0 | S)
-	-Compute msg = AES-256-GCM(K, IV, emsg) and tag' = GMAC(K, IV, emsg)
-	-if(tag == tag') return msg else raise error
+	-Split emsg into: aad and emsg2 (where emsg = aad | emsg2)
+	-Compute msg = AES-256-GCM(K, IV, emsg2) and tag' = GMAC(K, IV, aad | emsg2)
+	-if(tag == tag') return (aad | msg) else raise error
 ```
 
 Note that in computation of K with the KDF1 function C0 is represented in its compressed form as specified in ANSI X9.62 (i.e. 33 bytes) and S is represented by its X coordinate (i.e. 32 bytes)
